@@ -4,7 +4,8 @@
     box-sizing: border-box;
 }
 html {
-	color: #2d303b;
+	color: #0F238C;
+    /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 html, p, nav, section, article {
 	font-family: 'Raleway', 'Helvetica', 'Arial', sans-serif;
@@ -13,7 +14,8 @@ pre {
     padding: 0;
 }
 p {
-	color: #2d303b;
+	color: #0F238C;
+    /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 a {
   -o-transition:.5s;
@@ -96,7 +98,8 @@ h2.brand-tagline {
 	font-weight: 200;
 }
 .sidebar {
-	background: #2d303b;
+	background: #0F238C;
+    /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 .sidebar, .sidebar p {
 	color: #8b8b8b;
