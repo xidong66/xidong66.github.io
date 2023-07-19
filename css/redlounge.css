@@ -285,7 +285,8 @@ a.post-author {
 
 /*Main Color for Left Pannel*/
 .post-meta {
-    color: #002147;          /* 8C1515 Stanford Red,  #002147 Oxford Blue */
+    color: #0F238C;
+    /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
     font-size: 90%;
     margin: 0;
 }
