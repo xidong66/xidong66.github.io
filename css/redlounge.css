@@ -4,7 +4,7 @@
     box-sizing: border-box;
 }
 html {
-	color: 002147;
+	color: #002147;
     /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 html, p, nav, section, article {
@@ -14,7 +14,7 @@ pre {
     padding: 0;
 }
 p {
-	color: 002147;
+	color: #002147;
     /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 a {
@@ -98,7 +98,7 @@ h2.brand-tagline {
 	font-weight: 200;
 }
 .sidebar {
-	background: 002147;
+	background: #002147;
     /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
 }
 .sidebar, .sidebar p {
@@ -288,7 +288,7 @@ a.post-author {
 
 /*Main Color for Left Pannel*/
 .post-meta {
-    color: 002147;
+    color: #002147;
     /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
     font-size: 90%;
     margin: 0;
