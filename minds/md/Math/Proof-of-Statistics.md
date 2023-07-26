@@ -220,9 +220,9 @@ $$
 $$
 
 
-![image-20220205160543840](https://chqwer2.github.io/img/Typora/image-20220205160543840.png)
+![image-20220205160543840](https://ik.imagekit.io/haochen/Typora/image-20220205160543840.png)
 
-![image-20220213171530998](https://chqwer2.github.io/img/Typora/image-20220213171530998.png)
+![image-20220213171530998](https://ik.imagekit.io/haochen/Typora/image-20220213171530998.png)
 
 [pdf](file:///C:/Users/calvchen/Downloads/408jointdiscrete(1).pdf)
 
@@ -277,7 +277,7 @@ False, the criterion for **independence** is $F(x,y)=F_X(x)F_Y(y)$
 
 **variance of ln function**
 
-![image-20220216223016542](https://chqwer2.github.io/img/Typora/image-20220216223016542.png)
+![image-20220216223016542](https://ik.imagekit.io/haochen/Typora/image-20220216223016542.png)
 
 **Var[X] is known, how to calculate Var[$\frac{1}{x}$]:**
 
@@ -436,4 +436,4 @@ P\left(x_{n} \rightarrow x\right) \neq 1 \text {, } x_{n} {\text { has not limis
 $$
 Quadratic equation
 
-![image-20220307210646804](https://chqwer2.github.io/img/Typora/image-20220307210646804.png)
+![image-20220307210646804](https://ik.imagekit.io/haochen/Typora/image-20220307210646804.png)

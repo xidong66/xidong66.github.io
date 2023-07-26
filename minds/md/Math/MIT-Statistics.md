@@ -203,7 +203,7 @@ $$
 \frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{1}{2}\left( \frac{x-\mu}{\sigma}  \right)^2}
 $$
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205100840395.png" alt="image-20220205100840395" style="zoom:67%;" />
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205100840395.png" alt="image-20220205100840395" style="zoom:67%;" />
 
 **Cumulative Distribution Function:**
 
@@ -213,7 +213,7 @@ $$
 
 $\text{erf}(\cdot)$ is the exponential response formula.
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205100857657.png" alt="image-20220205100857657" style="zoom:67%;" />
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205100857657.png" alt="image-20220205100857657" style="zoom:67%;" />
 
 **Why we use Gaussian Distribution so frequently?**
 
@@ -231,7 +231,7 @@ Yes, there exists extreme value, but they never really come into play. Because o
 
 A Gaussian CDF (z-score) [calculator](https://www.calculator.net/z-score-calculator.html?c1raw=400&c1mean=-33.33&c1sd=58.92556&calctype=zscore&x=99&y=20).
 
-![image-20220219230424092](https://chqwer2.github.io/img/Typora/image-20220219230424092.png)
+![image-20220219230424092](https://ik.imagekit.io/haochen/Typora/image-20220219230424092.png)
 
 **Quantiles**
 
@@ -254,7 +254,7 @@ E(X^2) = Var(X) + E(x)^2 =  \lambda + \lambda^2
 $$
 
 
-![image-20220206111006698](https://chqwer2.github.io/img/Typora/image-20220206111006698.png)
+![image-20220206111006698](https://ik.imagekit.io/haochen/Typora/image-20220206111006698.png)
 
 Pre-require 0! = 1
 
@@ -264,11 +264,11 @@ $$
 \mathbb{P}(x=k) = \frac{\lambda^k}{k!} e^{-\lambda}, \ k=0,1,2,\cdots \\
 $$
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205102615493.png" alt="image-20220205102615493" style="zoom:50%;" />
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205102615493.png" alt="image-20220205102615493" style="zoom:50%;" />
 
 **Cumulative distribution function:**
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205102652730.png" alt="image-20220205102652730" style="zoom:50%;" />
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205102652730.png" alt="image-20220205102652730" style="zoom:50%;" />
 
 ### Exponential Distribution
 
@@ -290,13 +290,9 @@ $$
 $$
 ![cdf](https://upload.wikimedia.org/wikipedia/commons/b/ba/Exponential_cdf.svg)
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205172337486.png" alt="image-20220205172337486" style="zoom: 50%;" />
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205172337486.png" alt="image-20220205172337486" style="zoom: 50%;" />
 
-<img src="https://chqwer2.github.io/img/Typora/image-20220205172726369.png" alt="image-20220205172726369" style="zoom: 50%;" />
-
-
-
-
+<img src="https://ik.imagekit.io/haochen/Typora/image-20220205172726369.png" alt="image-20220205172726369" style="zoom: 50%;" />
 
 
 
@@ -340,7 +336,7 @@ $$
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Gamma_distribution_cdf.png" alt="https://upload.wikimedia.org/wikipedia/commons/a/a9/Gamma_distribution_cdf.png" style="zoom:50%;" />
 
-![image-20220217094728373](https://chqwer2.github.io/img/Typora/image-20220217094728373.png)
+![image-20220217094728373](https://ik.imagekit.io/haochen/Typora/image-20220217094728373.png)
 
 ### Geometric Distribution
 
@@ -446,13 +442,13 @@ https://en.wikipedia.org/wiki/Moment-generating_function
 
 expectation of moment generating function
 
-![image-20220209101247516](https://chqwer2.github.io/img/Typora/image-20220209101247516.png)
+![image-20220209101247516](https://ik.imagekit.io/haochen/Typora/image-20220209101247516.png)
 
-![image-20220209101551026](https://chqwer2.github.io/img/Typora/image-20220209101551026.png)
+![image-20220209101551026](https://ik.imagekit.io/haochen/Typora/image-20220209101551026.png)
 
 https://online.stat.psu.edu/stat414/book/export/html/676
 
-![image-20220209101722845](https://chqwer2.github.io/img/Typora/image-20220209101722845.png)
+![image-20220209101722845](https://ik.imagekit.io/haochen/Typora/image-20220209101722845.png)
 
 [mixture distribution moment generating function](https://math.stackexchange.com/questions/2051583/mixture-distribution-moment-generating-function)
 
