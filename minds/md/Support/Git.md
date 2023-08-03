@@ -58,6 +58,7 @@
 	- git commit --amend 
 	- git push -f              # "force local branch commit to cover the remote commit"
 
+# If you have merge commits in your history, you may need to use the --preserve-merges option with the git rebase
 
 ```
 
