@@ -1,3 +1,4 @@
 # chqwer2.github.io
 
-Thanks for Chenyuan (Henry) providing a delightful template.
+Inspired by Prof. Jianbo Jiao and thanks for Chenyuan (Henry) providing a delightful template.
+
