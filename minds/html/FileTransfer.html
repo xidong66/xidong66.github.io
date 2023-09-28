@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>FileTransfer</title>
+</head>
+<body><h2 id='mac-sshfs'>MAC +sshfs</h2>
+<p>To mount remote folder locally requires:</p>
+<ul>
+<li>MacFUSE</li>
+<li>sshfs</li>
+
+</ul>
+<p>Both can be download from: <a href='https://osxfuse.github.io/' target='_blank' class='url'>https://osxfuse.github.io/</a></p>
+<p><img src="https://xmanyou.com/content/images/2021/02/MacFuse-sshfs-mount-remote-folder-01.png" referrerpolicy="no-referrer" alt="MacFuse-sshfs-mount-remote-folder-01"></p>
+<p>Or try:</p>
+<pre><code>brew install sshfs
+</code></pre>
+<h3 id='command'>Command</h3>
+<p>mount the remote folder</p>
+<pre><code>sshfs &lt;user&gt;@&lt;server&gt;:&lt;path&gt; &lt;local folder&gt; -ovolname=&lt;rename folder&gt;
+</code></pre>
+<p>unmount the remote folder</p>
+<pre><code>umount &lt;rename folder&gt;
+</code></pre>
+<h2 id='win-sshfs'>WIN +sshfs</h2>
+<p>requires the following: </p>
+<pre><code>- sshfs-win：https://github.com/billziss-gh/sshfs-win/releases
+- winfsp：https://github.com/billziss-gh/winfsp/releases
+- SSHFS-Win Manager：https://github.com/evsar3/sshfs-win-manager/releases (GUI，可选)
+</code></pre>
+<h3 id='connection-a'>Connection A:</h3>
+<p>Open the GUI and Add Connection</p>
+<p>Recommend to open “<em>Startup with windows</em>”</p>
+<p><img src="https://cdn.jsdelivr.net/gh/xieqk/blog-cdn@master/imgs/image-20201108112233090.png#pic_center" alt="添加连接" style="zoom:50%;" /></p>
+<h2 id='remote-mount-by-system-gui'>Remote Mount By System GUI</h2>
+<p><img src="https://cdn.jsdelivr.net/gh/xieqk/blog-cdn/imgs/win-sshfs.png#pic_center" referrerpolicy="no-referrer" alt="映射网络驱动器"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/xieqk/blog-cdn/imgs/win-sshfs-2.png#pic_center" referrerpolicy="no-referrer" alt="输入 sshfs 路径"></p>
+</body>
+</html>
