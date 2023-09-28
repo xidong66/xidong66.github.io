@@ -29,6 +29,8 @@ unmount the remote folder
 umount <rename folder>
 ```
 
+
+
 ## WIN +sshfs
 
 requires the following: 
@@ -46,6 +48,8 @@ Open the GUI and Add Connection
 Recommend to open “*Startup with windows*”
 
 <img src="https://cdn.jsdelivr.net/gh/xieqk/blog-cdn@master/imgs/image-20201108112233090.png#pic_center" alt="添加连接" style="zoom:50%;" />
+
+
 
 ## Remote Mount By System GUI
 
