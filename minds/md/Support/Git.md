@@ -95,3 +95,11 @@ git mergetool
 git log --pretty=oneline --follow filename  --- 显示某个文件的修改历史，加上--follow后即使文件被移动过也可以查看历史
 ```
 
+### Time Out
+
+```
+git config --global http.proxy 127.0.0.1:7890
+git config --global https.proxy 127.0.0.1:7890
+```
+
+### 
