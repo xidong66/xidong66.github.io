@@ -102,4 +102,13 @@ git config --global http.proxy 127.0.0.1:7890
 git config --global https.proxy 127.0.0.1:7890
 ```
 
-### 
+### Branch Out
+
+```
+git branch -b <new_branch>              -- create branch locally
+git push origin -u <new_branch>         -- push to remote 
+git branch branch_name <commit-hash>    -- create branch from a commit
+```
+
+```
+
