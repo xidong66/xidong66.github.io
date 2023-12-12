@@ -98,8 +98,16 @@ git log --pretty=oneline --follow filename  --- 显示某个文件的修改历�
 ### Time Out
 
 ```
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+
+git config --global http.sslVerify false
+git config --global https.sslVerify false
+
 git config --global http.proxy 127.0.0.1:7890
 git config --global https.proxy 127.0.0.1:7890
 ```
 
-### 
+##### Fresh Mac DNS: 
+
+dscacheutil -flushcache
