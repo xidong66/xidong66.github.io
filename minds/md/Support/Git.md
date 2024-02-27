@@ -122,3 +122,67 @@ git branch branch_name <commit-hash>    -- create branch from a commit
 ```
 
 ```
+
+```
+
+## Branch’s
+
+```
+Merge all commits from one branch to another branch
+# Step 1
+git checkout -b <new-branch-name>
+
+# Step 2
+git merge --squash <current-branch-name>. Replace <current-branch-name>
+
+# Step 3
+git add
+git commit -m "Combine all commits into one
+```
+
+### Delete Branch
+
+```
+git push origin --delete <branch-name>   # remote
+git branch -D <branch-name>              # Local
+```
+
+### File Too Large
+
+```
+Error: commit rejected because file "somefile" size 8710225 is larger than 5242880.
+```
+
+```
+git commit -n
+```
+
+
+
+```
+git lfs track "asml_lensheating/3.0_GCC4/BuildTools/src/ASML-Lapack.tar.gz" 
+git lfs track "asml_lensheating/3.0_GCC4/LensHeating/dat/data_1400.0.xml.bfe" 
+git lfs track "asml_lensheating/3.0_GCC4/LensHeating/dat/data_1700.0.xml.bfe" 
+git lfs track "asml_lensheating/3.0_GCC4/LensHeating/dat/data_1900.0.xml.bfe" 
+git lfs track "asml_lensheating/3.0_GCC4/LensHeating/tst/dat/WaveFront_Complete_5.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_01_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_01_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_08_deps.xml"
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_08_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_12_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_12_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_19_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_19_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_40_deps.xml"
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_40_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_41_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_41_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_59_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_59_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_70_deps.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/dat/lens_70_mc.xml" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/tst/src/GNKIXAtest_lens_14_LG0000.dd" 
+git lfs track "asml_lensheating/3.0_GCC4/LensModel/tst/src/KI_lens_type_70.dep" 
+
+```
+
