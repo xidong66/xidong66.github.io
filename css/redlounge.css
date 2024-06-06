@@ -97,12 +97,18 @@ h2.brand-tagline {
 	font-family: 'Raleway', 'Helvetica', 'Arial', sans-serif;
 	font-weight: 200;
 }
-.sidebar {
+/* .sidebar {
 	background: #002147;
     /* 8C1515 Stanford Red,  #002147 Oxford Blue, #0F238C ASML Blue */
+
+.sidebar {
+    background: rgb(144, 201, 231); /* 使用RGB颜色值 */
+    /* 其他已有的样式保持不变 */
+    color: rgb(1, 1, 1);
+    /* ... */
 }
 .sidebar, .sidebar p {
-	color: #8b8b8b;
+	color: rgb(1, 1, 1);
 }
 .sidebar a {
   color: #fff;
