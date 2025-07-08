@@ -316,12 +316,14 @@ Aug 2023: Northeast University Second Class Scholarship
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
+            flex-wrap: wrap; /* 允许换行 */
         }
         .journal-item {
             display: flex;
             align-items: center;
-            width: 30%; /* 每个期刊信息占总宽度的30% */
-            margin: 0 10px; /* 添加一些间距 */
+            width: 23%; /* 调整为4列布局 */
+            margin: 10px 1%; /* 间距自适应 */
+            min-width: 200px; /* 最小宽度防止挤压 */
         }
         .journal-item img {
             width: 60px;
@@ -344,6 +346,7 @@ Aug 2023: Northeast University Second Class Scholarship
         <br>
         <!-- 横向排列的期刊信息 -->
         <div class="journal-row">
+            <!-- 原始三个期刊 -->
             <div class="journal-item">
                 <img src="assets/img/logo/CurrentNeuropharmacology.jpg" width="60">
                 <div>
@@ -372,6 +375,18 @@ Aug 2023: Northeast University Second Class Scholarship
                     </a>
                     <br>
                     <b>Reviewer</b>
+                </div>
+            </div>
+
+            <!-- 新增的 MICCAI 2025 Workshop -->
+            <div class="journal-item">
+                <img src="assets/img/logo/miccai2025.png" width="60"> <!-- 需自备LOGO -->
+                <div>
+                    <a href="https://sites.google.com/view/create-miccai-2025">
+                        <b>MICCAI 2025: CMMCA Workshop</b>
+                    </a>
+                    <br>
+                    <b>Program Committee</b>
                 </div>
             </div>
         </div>
