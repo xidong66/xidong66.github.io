@@ -160,7 +160,26 @@ function copyBibTex1() {
 <font size=2 style="font-weight: lighter;">Biomedical Signal Processing and Control<strong> IF 4.9</strong></font><br>
         <a href="https://www.sciencedirect.com/science/article/pii/S1746809425010742">[PDF]</a>
         <a href=" " target="_blank"><b>[Code]<b></a>
-        <a href=" " target="_blank"><b>[Coming Soon]<b></a>
+        <a href="javascript:void(0);" onclick="copyBibTex3()"><b>[BibTeX]<b></a>
+
+<script>
+function copyBibTex3() {
+  const bibTex = `@article{wu2026mscgn,
+  title={MSCGN: Multiscale complementary gating network for time series classification},
+  author={Wu, Xidong and Yan, Mingke and Tang, Haotian and Wu, Dongchen and Xie, Liping},
+  journal={Biomedical Signal Processing and Control},
+  volume={112},
+  pages={108563},
+  year={2026},
+  publisher={Elsevier}
+}`;
+  navigator.clipboard.writeText(bibTex).then(() => {
+    alert("BibTeX 已复制");
+  }).catch(err => {
+    console.error("复制失败：", err);
+  });
+}
+</script>
 <br><br><br>
 
 <strong>OG-SAM: Enhancing Multi-Organ Segmentation with Organogenesis-Based Adaptive Modeling</strong><br>
