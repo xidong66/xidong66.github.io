@@ -1,2 +1,20 @@
 
 .DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local editor and Python files (already tracked files are unaffected).
+.idea/
+.vscode/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local configuration and preview artifacts.
+.env
+.env.*
+!.env.example
+node_modules/
+playwright-report/
+test-results/

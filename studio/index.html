@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive research workbench by Xidong Wu. Explore biosignals, medical imaging, and the places connecting my education.">
+  <meta name="theme-color" content="#f4f2eb">
+  <title>Research Workbench · Xidong Wu</title>
+  <link rel="icon" href="../assets/img/favicon1.ico">
+  <link rel="stylesheet" href="../css/studio.css">
+  <script type="module" src="../js/studio.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workbench">Skip to workbench</a>
+  <header class="topbar">
+    <a class="monogram" href="../index.html" aria-label="Xidong Wu academic homepage">xw<span>.</span></a>
+    <span class="topbar-label">A SMALL SPACE FOR BIG QUESTIONS</span>
+    <a class="back-link" href="../index.html">Academic homepage <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="workbench">
+    <div class="intro">
+      <div><p class="eyebrow">XIDONG WU / RESEARCH WORKBENCH</p><h1>From signals<br>to <em>possibilities.</em></h1></div>
+      <p class="intro-note">Biosignals, medical images, and a little curiosity.<br>Take a look around my desk.</p>
+    </div>
+    <div class="stage-shell">
+      <div class="scene" id="desk-scene" aria-label="Interactive research desk">
+        <div class="scene-grid" aria-hidden="true"></div>
+        <svg class="fallback-desk" viewBox="0 0 800 460" role="img" aria-label="Illustration of a research desk with a computer, globe, and ECG monitor">
+          <g stroke="#475b64" stroke-width="3" stroke-linejoin="round">
+            <path d="M130 310 540 280 710 350 285 391Z" fill="#d8d9ce"/>
+            <path d="M160 320v105m490-85v85m-337-38v45" fill="none"/>
+            <path d="M260 160h160v120H260z" fill="#c9d5d7"/><path d="M275 177h130v78H275z" fill="#1e3745"/>
+            <path d="M330 280v25m-40 0h90"/><circle cx="186" cy="230" r="43" fill="#b7d4d5"/>
+            <ellipse cx="186" cy="230" rx="20" ry="43" fill="none"/><path d="M145 230h82m-41 43v35m-25 0h50"/>
+            <path d="M470 232h145v75H470z" fill="#cdcfc4"/><path d="M481 244h96v49h-96z" fill="#183e3d"/>
+            <path d="m486 273 20 0 6-8 6 12 5-26 7 34 6-12h34" fill="none" stroke="#b8d6ad"/>
+            <path d="m300 330 105-9 55 24-109 11Z" fill="#c4c6bc"/>
+          </g>
+        </svg>
+        <canvas id="desk-canvas" aria-label="3D research workbench. Use the buttons below to explore its objects."></canvas>
+        <span class="scene-tag">01 / THE DESK</span>
+        <span class="scene-status" id="scene-status" role="status">Preparing the workbench…</span>
+        <span class="object-hint" id="object-hint" hidden></span>
+      </div>
+      <div class="desk-controls">
+        <p class="interaction-note"><span class="status-dot" aria-hidden="true"></span>Click an object to explore</p>
+        <div class="object-controls" aria-label="Workbench objects">
+          <button type="button" data-action="projects">Computer <span>↗</span></button>
+          <button type="button" data-action="signal">ECG <span>∿</span></button>
+          <button type="button" data-action="atlas">Globe <span>◎</span></button>
+          <button type="button" data-action="notes">Notebook <span>↗</span></button>
+          <button type="button" data-action="keyboard">Keyboard <span>⌨</span></button>
+          <button type="button" data-action="letter">Envelope <span>✉</span></button>
+          <button type="button" data-action="lamp" aria-pressed="false">Lamp <span>☼</span></button>
+        </div>
+        <button class="motion-button" type="button" id="motion-toggle" aria-pressed="false">Pause motion</button>
+      </div>
+    </div>
+    <div class="afterword">
+      <p>Medical signals tell stories.<br><span>I build methods to help us read them.</span></p>
+      <a href="../index.html#publications">Explore the publications <span aria-hidden="true">↗</span></a>
+    </div>
+    <noscript><p class="fallback-message">The 3D desk needs JavaScript. You can still explore <a href="../index.html#publications">publications</a>, <a href="https://github.com/xidong66/MFEG-Net">MFEG-Net code</a>, <a href="../assets/pdf/XidongWuCV.pdf">my CV</a>, or <a href="mailto:xidong03@163.com">email me</a>.</p></noscript>
+  </main>
+  <footer><span>Xidong Wu</span><span>BIOMEDICAL ENGINEERING / KEEP EXPLORING</span><button type="button" data-action="letter">Write a little letter ↗</button></footer>
+
+  <dialog class="detail-dialog" id="keyboard-dialog" aria-labelledby="keyboard-title">
+    <button type="button" class="close-button" data-close aria-label="Close keyboard">×</button>
+    <p class="eyebrow">AT THE KEYBOARD</p><h2 id="keyboard-title">A tiny research terminal.</h2>
+    <p class="dialog-lead">Type a command to explore the desk. Try <code>help</code>, <code>projects</code>, <code>globe</code>, <code>notes</code>, or <code>email</code>.</p>
+    <pre class="terminal-output" id="terminal-output" role="status">XW / RESEARCH TERMINAL
+Hello, curious visitor.
+Type help to get started.</pre>
+    <form id="terminal-form" class="terminal-form"><label for="terminal-input">&gt;</label><input id="terminal-input" name="command" type="text" maxlength="72" autocomplete="off" spellcheck="false" aria-label="Terminal command" placeholder="Type a command" autofocus><button type="submit">Enter ↵</button></form>
+  </dialog>
+
+  <dialog class="letter-dialog" id="letter-dialog" aria-labelledby="letter-title" data-state="draft">
+    <button type="button" class="close-button" data-close aria-label="Close letter">×</button>
+    <div class="letter-layout">
+      <div class="letter-intro"><p class="eyebrow">A LITTLE LETTER / 一封小信</p><h2 id="letter-title">Good ideas <br>start with <em>hello.</em></h2><p class="dialog-lead">A research question, a collaboration, or just a hello. There is room for all of them.</p><p class="letter-instruction" id="letter-instruction">Write a note, fold it, then finish sending in your email app.</p></div>
+      <div class="letter-desk">
+        <form class="letter-paper" id="letter-form">
+          <div class="letter-recipient"><div><span class="eyebrow">TO / 收件人</span><p>xidong03@163.com</p></div><span class="monogram" aria-hidden="true">xw<span>.</span></span></div>
+          <label class="letter-subject-label" for="letter-subject">SUBJECT / 主题</label><input id="letter-subject" name="subject" type="text" maxlength="120" placeholder="What is on your mind?" required>
+          <p class="letter-greeting">Hi Xidong,</p><label class="sr-only" for="letter-body">Your message / 信的正文</label><textarea id="letter-body" name="body" maxlength="2000" placeholder="I have been thinking about…" required></textarea>
+          <div class="letter-meta"><span>A few words are enough.</span><output id="letter-count" for="letter-body">0 / 2000</output></div>
+          <button class="letter-primary" type="submit">Fold the letter / 把信折好 <span aria-hidden="true">↗</span></button>
+        </form>
+        <div class="sealed-letter" id="sealed-letter" hidden>
+          <div class="paper-envelope" aria-hidden="true"><div class="envelope-fold"></div><span class="wax-seal">xw.</span><span class="envelope-address">TO XIDONG WU</span></div>
+          <p class="eyebrow">READY FOR YOUR EMAIL APP</p><h3 id="sealed-subject"></h3><p class="dialog-lead">Your letter is folded. Open your email app to review it and send.</p>
+          <a class="letter-primary" id="letter-mailto" href="mailto:xidong03@163.com">Open email app / 打开邮件应用 ↗</a>
+          <div class="letter-secondary"><button type="button" id="letter-edit">Unfold &amp; edit / 展开修改</button><button type="button" id="letter-copy">Copy letter / 复制信件</button></div>
+          <p class="letter-feedback" id="letter-feedback" role="status"></p><textarea id="letter-copy-text" class="manual-copy" aria-label="Letter text for manual copying" readonly hidden></textarea>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="detail-dialog" id="projects-dialog" aria-labelledby="projects-title">
+    <button type="button" class="close-button" data-close aria-label="Close projects">×</button>
+    <p class="eyebrow">ON THE COMPUTER</p><h2 id="projects-title">Signals &amp; images.</h2>
+    <p class="dialog-lead">A few windows into my research.</p>
+    <div class="project-list">
+      <a href="https://github.com/xidong66/MFEG-Net" target="_blank" rel="noopener"><span class="project-number">01</span><div><h3>MFEG-Net</h3><p>Multiscale feature enhanced gating for atrial fibrillation detection.</p><span class="link-label">EXPLORE THE CODE ↗</span></div></a>
+      <a href="https://ieeexplore.ieee.org/abstract/document/11460738/" target="_blank" rel="noopener"><span class="project-number">02</span><div><h3>MDF</h3><p>Noise-estimator-centric experts for robust biosignal classification.</p><span class="link-label">READ THE PAPER ↗</span></div></a>
+      <a href="https://link.springer.com/chapter/10.1007/978-3-032-06624-4_9" target="_blank" rel="noopener"><span class="project-number">03</span><div><h3>OG-SAM</h3><p>Organogenesis-based adaptive modeling for multi-organ segmentation.</p><span class="link-label">READ THE PAPER ↗</span></div></a>
+    </div>
+  </dialog>
+
+  <dialog class="detail-dialog" id="signal-dialog" aria-labelledby="signal-title">
+    <button type="button" class="close-button" data-close aria-label="Close ECG">×</button>
+    <p class="eyebrow">ON THE OSCILLOSCOPE</p><h2 id="signal-title">A rhythm to explore.</h2>
+    <p class="dialog-lead">A synthetic ECG illustration. Move the dial and watch the rhythm change.</p>
+    <div class="signal-display"><canvas id="signal-canvas" aria-label="Animated synthetic ECG waveform"></canvas><span>SYNTHETIC SIGNAL / DEMO</span></div>
+    <div class="signal-controls"><label for="heart-rate">Rate <output id="rate-output" for="heart-rate">72</output> bpm</label><input id="heart-rate" type="range" min="45" max="120" value="72"><button type="button" id="signal-toggle" aria-pressed="false">Freeze trace</button></div>
+    <a class="text-link" href="../index.html#publications">Explore my biosignal research ↗</a>
+  </dialog>
+
+  <dialog class="detail-dialog" id="notes-dialog" aria-labelledby="notes-title">
+    <button type="button" class="close-button" data-close aria-label="Close notebook">×</button>
+    <p class="eyebrow">IN THE NOTEBOOK</p><h2 id="notes-title">Questions worth asking.</h2>
+    <div class="notebook-lines"><p>How can a model stay reliable when a biosignal gets noisy?</p><p>How can medical image models adapt to the anatomy they see?</p><p>How can an accurate model fit on a small device?</p></div>
+    <div class="notebook-links"><a href="../index.html#publications">Publications ↗</a><a href="../assets/pdf/XidongWuCV.pdf">Curriculum vitae ↗</a></div>
+  </dialog>
+
+  <dialog class="atlas-dialog" id="atlas-dialog" aria-labelledby="atlas-title">
+    <div class="atlas-topbar"><a class="monogram" href="../index.html" aria-label="Academic homepage">xw<span>.</span></a><span class="eyebrow">02 / CONNECTED PLACES</span><button type="button" class="close-button" data-close aria-label="Close globe">×</button></div>
+    <div class="atlas-layout">
+      <div class="atlas-copy"><p class="eyebrow">TWO CITIES, ONE CURIOSITY</p><h2 id="atlas-title">A world <br>of learning.</h2><p class="dialog-lead">My joint training programme connects Northeastern University and the University of Dundee.</p>
+        <div class="place-buttons" aria-label="Education locations"><button type="button" data-place="shenyang" aria-pressed="true">01 / Shenyang <span>↗</span></button><button type="button" data-place="dundee" aria-pressed="false">02 / Dundee <span>↗</span></button></div>
+        <article class="place-card" aria-live="polite"><span class="eyebrow" id="place-country">CHINA</span><h3 id="place-city">Shenyang</h3><p id="place-description">Northeastern University · School of Medicine. Biomedical engineering and medical signal &amp; image analysis.</p><a id="place-link" href="https://www.neu.edu.cn/" target="_blank" rel="noopener">Visit the university ↗</a></article>
+      </div>
+      <div class="atlas-visual"><div class="atlas-orbit" aria-hidden="true"></div><canvas id="atlas-canvas" tabindex="0" aria-label="Interactive globe. Drag to rotate, use arrow keys to turn, plus or minus to zoom, and Home to reset."></canvas><p class="atlas-fallback" id="atlas-fallback" hidden>The map is unavailable. Explore the two cities using the buttons.</p><div class="atlas-tools"><button type="button" data-globe="out" aria-label="Zoom out">−</button><button type="button" data-globe="reset">Reset</button><button type="button" data-globe="in" aria-label="Zoom in">+</button></div><p class="atlas-help">DRAG TO ROTATE · SCROLL TO ZOOM<br><span>Arrow keys to turn · Home to reset</span></p></div>
+    </div>
+    <div class="atlas-footer"><span>EDUCATION / SHENYANG ↔ DUNDEE</span><span>Map data: <a href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener">Natural Earth</a></span></div>
+  </dialog>
+</body>
+</html>
