@@ -134,7 +134,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   const renderer = rendererFor(canvas, true);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-7, 7, 5, -5, .1, 100);
-  camera.position.set(11, 9, 13); camera.lookAt(0, 2.25, 0);
+  camera.position.set(11, 9, 13); camera.lookAt(0, 2.7, 0);
   const ambient = new THREE.HemisphereLight(0xffffff, 0x87938d, 2.4); scene.add(ambient);
   const sun = new THREE.DirectionalLight(0xfff8e7, 3.2);
   sun.position.set(-5, 12, 7); sun.castShadow = true;
@@ -252,6 +252,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
 
   // The feet and outer sleeves remain on the floor; everything on the top moves together.
   let height = 75, targetHeight = 75, lift = 0, interactionAnimating = false;
+  let heightDirection = 0, heightHoldTime = 0;
   const control = new THREE.Group(); control.position.set(.75, 2.55, 2.19); desktop.add(control);
   box(control, [1.9, .38, .15], [0, 0, 0], C.dark);
   function heightButton(action, label, x, width, texture) {
@@ -277,6 +278,21 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     heightDisplay.ctx.fillText(text, 128, 53); heightDisplay.texture.needsUpdate = true;
   }
   updateHeightDisplay();
+  function applyHeight() {
+    lift = (height - 75) * .032;
+    desktop.position.y = lift;
+    for (const column of columns) { column.scale.y = (2.6 + lift) / 2.6; column.position.y = 1.35 + lift / 2; }
+    onHeight(height, targetHeight); updateHeightDisplay();
+  }
+  function advanceHeightHold() {
+    if (!heightDirection) return;
+    const now = performance.now(), delta = Math.min((now - heightHoldTime) / 1000, .1);
+    heightHoldTime = now;
+    height = THREE.MathUtils.clamp(height + heightDirection * delta * 18, 75, 115);
+    targetHeight = height;
+    if (height === 75 || height === 115) heightDirection = 0;
+    applyHeight();
+  }
   const profiles = { projects: [.08, 0, 0, -.025], signal: [.08, 0, 0, .025], atlas: [.09, 0, .09, 0],
     notes: [.13, 0, .06, -.025], keyboard: [.09, -.045, .025, 0], letter: [.15, -.07, -.04, 0], lamp: [.04, 0, 0, .025], board: [.1, 0, -.04, 0] };
   const reactions = objects.map(group => {
@@ -301,7 +317,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   const surfaces = [];
   // Decorative LineSegments have a world-space picking tolerance much wider
   // than their drawn edges. Pick only visible mesh surfaces, including the
-  // noninteractive desk/board, so neither outlines nor hidden objects steal hits.
+  // noninteractive desktop/supports, so neither outlines nor hidden objects steal hits.
   desk.traverse(node => { if (node.isMesh) surfaces.push(node); });
   let hovered = null, focused = null;
   function pick(event) {
@@ -315,17 +331,37 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     while (object && !object.userData.action) object = object.parent;
     return object;
   }
+  let pressed = null;
+  const isHeightArrow = group => ['desk-up', 'desk-down'].includes(group?.userData.action);
+  function cancelPress() {
+    const heldHeight = isHeightArrow(pressed?.[2]);
+    pressed = null;
+    if (heldHeight) onAction('desk-stop');
+  }
   canvas.addEventListener('pointermove', event => {
     if (event.pointerType === 'touch') return;
     focused = null;
-    hovered = pick(event); canvas.style.cursor = hovered ? 'pointer' : '';
+    hovered = isHeightArrow(pressed?.[2]) ? pressed[2] : pick(event); canvas.style.cursor = hovered ? 'pointer' : '';
     onHover(hovered?.userData.label, event, hovered?.userData.action);
   });
   canvas.addEventListener('pointerleave', () => { hovered = null; canvas.style.cursor = ''; onHover(null); });
-  canvas.addEventListener('pointercancel', () => { pressed = null; hovered = null; canvas.style.cursor = ''; onHover(null); });
-  let pressed = null;
-  canvas.addEventListener('pointerdown', event => { pressed = [event.clientX, event.clientY, pick(event)]; });
+  canvas.addEventListener('pointercancel', () => { cancelPress(); hovered = null; canvas.style.cursor = ''; onHover(null); });
+  canvas.addEventListener('lostpointercapture', cancelPress);
+  window.addEventListener('blur', cancelPress);
+  canvas.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    pressed = [event.clientX, event.clientY, pick(event)];
+    if (isHeightArrow(pressed[2])) {
+      event.preventDefault(); canvas.setPointerCapture(event.pointerId);
+      onAction(pressed[2].userData.action);
+    }
+  });
   canvas.addEventListener('pointerup', event => {
+    if (isHeightArrow(pressed?.[2])) {
+      cancelPress();
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      return;
+    }
     if (pressed && Math.hypot(event.clientX - pressed[0], event.clientY - pressed[1]) < 10 && pressed[2] === pick(event)) {
       const action = pressed[2]?.userData.action;
       if (action) onAction(action);
@@ -336,10 +372,10 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     const width = canvas.clientWidth, height = canvas.clientHeight;
     renderer.setSize(width, height, false);
     const aspect = width / height;
-    const horizontalSpan = Math.max((aspect < 1.2 ? 12 : 17.5) + lift * .8, aspect * (7.1 + lift * 1.25));
+    // Fit the full height range once per viewport. Height changes never move or zoom the camera.
+    const horizontalSpan = Math.max(aspect < 1.2 ? 13.1 : 19, aspect * 8.9);
     camera.left = -horizontalSpan / 2; camera.right = horizontalSpan / 2;
     camera.top = horizontalSpan / aspect / 2; camera.bottom = -camera.top;
-    camera.lookAt(0, 2.25 + lift * .4, 0);
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
   }
@@ -348,13 +384,11 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   return {
     render(time, rate, delta = 1 / 30, reduced = false) {
       interactionAnimating = false;
+      advanceHeightHold();
       const difference = targetHeight - height;
       if (difference) {
         height = reduced || Math.abs(difference) <= delta * 25 ? targetHeight : height + Math.sign(difference) * delta * 25;
-        lift = (height - 75) * .032;
-        desktop.position.y = lift;
-        for (const column of columns) { column.scale.y = (2.6 + lift) / 2.6; column.position.y = 1.35 + lift / 2; }
-        onHeight(height, targetHeight); updateHeightDisplay(); resize();
+        applyHeight();
       }
       for (const reaction of reactions) {
         const active = hovered === reaction.group || focused === reaction.group.userData.action;
@@ -374,13 +408,17 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     },
     get height() { return height; },
     get targetHeight() { return targetHeight; },
-    get isAnimating() { return height !== targetHeight || interactionAnimating; },
-    setHeight(value, immediate = false) {
-      targetHeight = THREE.MathUtils.clamp(value, 75, 115);
-      if (immediate) { height = targetHeight; lift = (height - 75) * .032; desktop.position.y = lift;
-        for (const column of columns) { column.scale.y = (2.6 + lift) / 2.6; column.position.y = 1.35 + lift / 2; }
-        resize(); updateHeightDisplay(); }
+    get isAnimating() { return Boolean(heightDirection) || height !== targetHeight || interactionAnimating; },
+    startHeight(direction) {
+      heightDirection = Math.sign(direction); heightHoldTime = performance.now(); targetHeight = height;
       onHeight(height, targetHeight);
+    },
+    stopHeight() { advanceHeightHold(); heightDirection = 0; targetHeight = height; onHeight(height, targetHeight); },
+    setHeight(value, immediate = false) {
+      heightDirection = 0;
+      targetHeight = THREE.MathUtils.clamp(value, 75, 115);
+      if (immediate) { height = targetHeight; applyHeight(); }
+      else onHeight(height, targetHeight);
     },
     setHover(action) { focused = action; },
     clearHover() { hovered = null; focused = null; canvas.style.cursor = ''; onHover(null); },

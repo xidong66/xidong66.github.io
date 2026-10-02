@@ -16,7 +16,7 @@ dialog{color:var(--ink);background:var(--paper);border:1px solid var(--line)}dia
 .height-label { font-size: 11px; color: var(--muted); }
 .height-adjustment, .height-presets { display: flex; align-items: center; gap: 6px; }
 .height-adjustment button, .height-presets button { min-height: 36px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; font-size: 11px; background: #ffffff3b; }
-.height-adjustment > button:not(.height-readout) { min-width: 36px; font-size: 16px; }
+.height-adjustment > button:not(.height-readout) { min-width: 36px; font-size: 16px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .height-adjustment .height-readout { min-width: 92px; background: #213c48; color: #c5d9a1; font-family: monospace; }
 .height-readout output { font-size: 17px; font-weight: 400; font-variant-numeric: tabular-nums; }
 .height-readout span { margin-left: 6px; font-size: 10px; }

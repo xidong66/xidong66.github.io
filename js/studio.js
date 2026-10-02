@@ -14,6 +14,7 @@ const places = {
 let desk, atlas, graphics, earth, deskLost = false, atlasLost = false;
 let paused = motionQuery.matches, lampOn = false, frozen = false;
 let elapsed = 0, signalTime = 0, lastTime = 0, frameId = 0, selectedPlace = 'singapore';
+let heightHoldSource = null;
 const returnFocus = new WeakMap();
 const dialogs = [...document.querySelectorAll('dialog')];
 
@@ -34,16 +35,44 @@ function heightLabel(height = desk?.height ?? 75, target = desk?.targetHeight ??
 }
 function setDeskHeight(height) {
   if (!desk || deskLost) return;
+  heightHoldSource = null;
   desk.setHeight(height, motionQuery.matches); heightLabel(); requestFrame();
+}
+function startDeskHeight(direction, source) {
+  if (!desk || deskLost) return;
+  heightHoldSource = source; desk.startHeight(direction); requestFrame();
+}
+function stopDeskHeight(source) {
+  if (source && source !== heightHoldSource) return;
+  if (!heightHoldSource) return;
+  heightHoldSource = null; desk?.stopHeight(); requestFrame();
 }
 function adjustDeskHeight(action) {
   if (!desk || deskLost) return;
   if (action === 'desk-toggle') setDeskHeight(Math.abs(desk.height - desk.targetHeight) > .01 ? desk.height : desk.height < 95 ? 115 : 75);
-  else setDeskHeight(desk.targetHeight + (action === 'desk-up' ? 5 : -5));
 }
 $('#desk-height-toggle').addEventListener('click', () => adjustDeskHeight('desk-toggle'));
-$('#desk-lower').addEventListener('click', () => adjustDeskHeight('desk-down'));
-$('#desk-raise').addEventListener('click', () => adjustDeskHeight('desk-up'));
+for (const [selector, direction] of [['#desk-lower', -1], ['#desk-raise', 1]]) {
+  const button = $(selector);
+  button.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    event.preventDefault(); button.focus({ preventScroll: true }); button.setPointerCapture(event.pointerId);
+    startDeskHeight(direction, button);
+  });
+  for (const event of ['pointerup', 'pointercancel', 'lostpointercapture', 'blur']) button.addEventListener(event, () => stopDeskHeight(button));
+  button.addEventListener('keydown', event => {
+    if (![' ', 'Enter'].includes(event.key)) return;
+    event.preventDefault(); if (!event.repeat) startDeskHeight(direction, button);
+  });
+  button.addEventListener('keyup', event => {
+    if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); stopDeskHeight(button); }
+  });
+  // Assistive technologies may activate a button without pointer or key events.
+  button.addEventListener('click', event => { if (event.detail === 0 && desk && !deskLost) setDeskHeight(desk.height + direction); });
+}
+window.addEventListener('pointerup', () => stopDeskHeight());
+window.addEventListener('pointercancel', () => stopDeskHeight());
+window.addEventListener('blur', () => stopDeskHeight());
 document.querySelectorAll('[data-desk-height]').forEach(button => button.addEventListener('click', () => setDeskHeight(Number(button.dataset.deskHeight))));
 
 function syncPlace(id, immediate = false) {
@@ -78,6 +107,7 @@ function initAtlas() {
 function openDialog(id, source) {
   const dialog = $(`#${id}-dialog`);
   if (!dialog || dialog.open) return;
+  stopDeskHeight();
   returnFocus.set(dialog, source || document.activeElement);
   // Only one panel is open at a time, preserving the native dialog focus trap.
   dialogs.forEach(item => { if (item.open) item.close(); });
@@ -92,7 +122,9 @@ function openDialog(id, source) {
 }
 
 function action(name, source) {
-  if (name.startsWith('desk-')) adjustDeskHeight(name);
+  if (name === 'desk-up' || name === 'desk-down') startDeskHeight(name === 'desk-up' ? 1 : -1, 'mesh');
+  else if (name === 'desk-stop') stopDeskHeight('mesh');
+  else if (name === 'desk-toggle') adjustDeskHeight(name);
   else if (name === 'lamp') {
     lampOn = !lampOn; desk?.setLamp(lampOn);
     const button = $('[data-action="lamp"]'); button.setAttribute('aria-pressed', String(lampOn));
@@ -223,6 +255,7 @@ function frame(now) {
   if ((atlasDialog.open && atlas && !atlasLost) || (desk && !deskLost && !dialogs.some(dialog => dialog.open) && (desk.isAnimating || !paused)) || (!paused && graphics && signalDialog.open && !frozen)) requestFrame();
 }
 document.addEventListener('visibilitychange', () => {
+  stopDeskHeight();
   if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; }
   lastTime = 0; requestFrame();
 });
@@ -260,6 +293,7 @@ async function start() {
     earth = await graphics.loadEarth();
     desk = graphics.createDesk($('#desk-canvas'), earth, action, showHint, () => {
       deskLost = true; scene.classList.remove('ready');
+      stopDeskHeight();
       $('#desk-height-controls').hidden = true;
       showStatus('status.lost');
     }, heightLabel);

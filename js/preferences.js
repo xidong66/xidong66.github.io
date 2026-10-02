@@ -47,7 +47,7 @@
     'studio.board': ['Circuit board', '电路板'],
     'desk.height': ['Desk height', '桌面高度'], 'desk.lower': ['Lower the desk', '降低桌面'], 'desk.raise': ['Raise the desk', '升高桌面'],
     'desk.presets': ['Desk height presets', '桌面高度预设'], 'desk.sitting': ['Sitting', '坐姿'], 'desk.standing': ['Standing', '站姿'],
-    'desk.help': ['Tap the height to switch or stop.', '点击高度数字切换，升降中再点可停止。'],
+    'desk.help': ['Hold an arrow to adjust; release to stop.', '按住箭头持续升降，松开即停。'],
     'desk.toggleHelp': ['Switch sitting or standing; press again to stop.', '点击切换坐姿或站姿，升降中点击停止。'],
     'studio.pause': ['Pause motion', '暂停动画'], 'studio.resume': ['Resume motion', '继续动画'],
     'studio.afterword': ['Medical signals tell stories.', '医学信号，诉说生命的故事。'],
