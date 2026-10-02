@@ -135,7 +135,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-7, 7, 5, -5, .1, 100);
   camera.position.set(11, 9, 13); camera.lookAt(0, 2.25, 0);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x87938d, 2.4));
+  const ambient = new THREE.HemisphereLight(0xffffff, 0x87938d, 2.4); scene.add(ambient);
   const sun = new THREE.DirectionalLight(0xfff8e7, 3.2);
   sun.position.set(-5, 12, 7); sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
@@ -280,7 +280,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   }
   canvas.addEventListener('pointermove', event => {
     hovered = pick(event); canvas.style.cursor = hovered ? 'pointer' : '';
-    onHover(hovered?.userData.label, event);
+    onHover(hovered?.userData.label, event, hovered?.userData.action);
   });
   canvas.addEventListener('pointerleave', () => { hovered = null; onHover(null); });
   let pressed = null;
@@ -312,6 +312,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
     },
     setLamp(on) { lampLight.intensity = on ? 13 : 0; bulbMaterial.color.set(on ? 0xffe6a7 : 0xcfcfc0); },
     setTerminal(text) { terminalMessage = text.replace(/[\r\n\t]/g, ' ').slice(0, 58); },
+    setTheme(dark) { ambient.intensity = dark ? 1.2 : 2.4; sun.intensity = dark ? 1.6 : 3.2; floor.material.opacity = dark ? .28 : .12; renderer.render(scene, camera); },
     restore() { resize(); },
   };
 }
@@ -320,7 +321,7 @@ export function createAtlas(canvas, earth, places, onSelect, onLost) {
   const renderer = rendererFor(canvas);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 1, .1, 100); camera.position.z = 7.8;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x697d7b, 2.5));
+  const ambient = new THREE.HemisphereLight(0xffffff, 0x697d7b, 2.5); scene.add(ambient);
   const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-3, 4, 5); scene.add(sun);
   const world = new THREE.Group(); scene.add(world);
   world.add(new THREE.Mesh(new THREE.SphereGeometry(1.78, 80, 64), new THREE.MeshStandardMaterial({ map: earth.texture, roughness: .9 })));
@@ -330,7 +331,7 @@ export function createAtlas(canvas, earth, places, onSelect, onLost) {
     const lat = rad(place.lat), lon = rad(place.lon);
     const direction = new THREE.Vector3(Math.cos(lon) * Math.cos(lat), Math.sin(lat), -Math.sin(lon) * Math.cos(lat));
     const group = new THREE.Group(); group.userData.place = id;
-    const pin = new THREE.Mesh(new THREE.SphereGeometry(.037, 16, 12), new THREE.MeshBasicMaterial({ color: id === 'shenyang' ? 0xb9694b : 0x294e69 }));
+    const pin = new THREE.Mesh(new THREE.SphereGeometry(.037, 16, 12), new THREE.MeshBasicMaterial({ color: id === 'singapore' ? 0xb9694b : id === 'shenyang' ? 0x527986 : 0x294e69 }));
     pin.position.copy(direction).multiplyScalar(1.88); group.add(pin);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(.082, .013, 8, 36), pin.material);
     ring.position.copy(direction).multiplyScalar(1.805); ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction); group.add(ring);
@@ -386,7 +387,7 @@ export function createAtlas(canvas, earth, places, onSelect, onLost) {
   canvas.addEventListener('keydown', event => {
     const actions = { ArrowLeft: () => targetY -= .12, ArrowRight: () => targetY += .12,
       ArrowUp: () => targetX = Math.max(-1.1, targetX - .1), ArrowDown: () => targetX = Math.min(1.1, targetX + .1),
-      '+': () => changeZoom(-.4), '=': () => changeZoom(-.4), '-': () => changeZoom(.4), Home: () => { focus('shenyang'); zoom = 7.8; } };
+      '+': () => changeZoom(-.4), '=': () => changeZoom(-.4), '-': () => changeZoom(.4), Home: () => { focus('singapore'); zoom = 7.8; } };
     if (actions[event.key]) { event.preventDefault(); actions[event.key](); }
   });
   function resize() {
@@ -397,7 +398,7 @@ export function createAtlas(canvas, earth, places, onSelect, onLost) {
   }
   new ResizeObserver(resize).observe(canvas);
   canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); onLost(); });
-  focus('shenyang', true);
+  focus('singapore', true);
   return {
     render(reduced) {
       const ease = reduced || dragging ? 1 : .12;
@@ -408,6 +409,7 @@ export function createAtlas(canvas, earth, places, onSelect, onLost) {
     },
     focus,
     resize,
-    control(action) { if (action === 'reset') { focus('shenyang'); zoom = 7.8; } else changeZoom(action === 'in' ? -.5 : .5); },
+    control(action) { if (action === 'reset') { focus('singapore'); zoom = 7.8; } else changeZoom(action === 'in' ? -.5 : .5); },
+    setTheme(dark) { ambient.intensity = dark ? 1.6 : 2.5; sun.intensity = dark ? 1.4 : 2.3; renderer.render(scene, camera); },
   };
 }

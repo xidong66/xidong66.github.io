@@ -21,5 +21,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check js/citations.js
+          node --check js/preferences-init.js
+          node --check js/preferences.js
           node --check js/studio.js
           node --check js/studio-scene.js

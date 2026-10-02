@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html data-page="home" lang="en">
  <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <script src="js/preferences-init.js">
+  </script>
   <title>
-   Xidong Wu
+   Xidong Wu · PhD student at NUS
   </title>
-  <meta content="Xidong Wu's academic homepage: biomedical engineering, medical signal and image analysis, publications, education, and academic service." name="description"/>
+  <meta content="Xidong Wu, PhD student at the National University of Singapore (NUS). Research in biosignal classification, medical imaging, and efficient AI deployment." name="description"/>
   <meta content="Xidong Wu" name="author"/>
-  <meta content="Xidong Wu — Academic Homepage" property="og:title"/>
+  <meta content="Xidong Wu · PhD student at NUS" property="og:title"/>
   <meta content="Research in biomedical engineering, medical signal analysis, and medical imaging." property="og:description"/>
   <meta content="website" property="og:type"/>
   <meta content="en_US" property="og:locale"/>
@@ -22,22 +24,26 @@
   <link href="assets/img/favicon1.ico" rel="icon" type="image/x-icon"/>
   <script defer="" src="js/citations.js">
   </script>
+  <link href="css/preferences.css" rel="stylesheet"/>
+  <script defer="" src="js/preferences.js">
+  </script>
+  <meta content="#f4f2eb" name="theme-color"/>
  </head>
  <body>
-  <a class="skip-link" href="#main-content">
+  <a class="skip-link" data-i18n="home.skip" href="#main-content">
    Skip to content
   </a>
   <div class="pure-g" id="layout">
    <aside class="sidebar pure-u-1 pure-u-md-1-4">
     <div class="header">
-     <h1 class="brand-title">
+     <h1 class="brand-title" data-i18n="home.name">
       Xidong Wu
      </h1>
-     <h2 class="brand-tagline">
-      Undergraduate
+     <h2 class="brand-tagline" data-i18n="home.role">
+      PhD student
      </h2>
-     <h2 class="brand-tagline">
-      Northeastern University &amp; University of Dundee
+     <h2 class="brand-tagline" data-i18n="home.nus">
+      National University of Singapore
      </h2>
      <nav aria-label="Profile links" class="nav">
       <ul class="nav-list">
@@ -45,7 +51,7 @@
         <span aria-hidden="true" class="nav-item-separator">
          //
         </span>
-        <a href="https://scholar.google.com/citations?hl=zh-CN&amp;user=TGx3icUAAAAJ">
+        <a data-i18n="home.scholar" href="https://scholar.google.com/citations?hl=zh-CN&amp;user=TGx3icUAAAAJ">
          Google Scholar
         </a>
        </li>
@@ -53,7 +59,7 @@
         <span aria-hidden="true" class="nav-item-separator">
          //
         </span>
-        <a href="mailto:xidong03@163.com">
+        <a data-i18n="home.email" href="mailto:xidong03@163.com">
          Email
         </a>
        </li>
@@ -61,7 +67,7 @@
         <span aria-hidden="true" class="nav-item-separator">
          //
         </span>
-        <a href="assets/pdf/XidongWuCV.pdf">
+        <a data-i18n="home.resume" href="assets/pdf/XidongWuCV.pdf">
          Resume
         </a>
        </li>
@@ -69,7 +75,7 @@
         <span aria-hidden="true" class="nav-item-separator">
          //
         </span>
-        <a href="https://kydwteam.github.io">
+        <a data-i18n="home.team" href="https://kydwteam.github.io">
          My Team
         </a>
        </li>
@@ -82,32 +88,86 @@
         </a>
        </li>
        <li class="nav-item">
-        <span aria-hidden="true" class="nav-item-separator">//</span>
-        <a href="studio/">Research Studio</a>
+        <span aria-hidden="true" class="nav-item-separator">
+         //
+        </span>
+        <a data-i18n="home.studio" href="studio/">
+         Research Studio
+        </a>
        </li>
       </ul>
      </nav>
     </div>
    </aside>
    <main class="content pure-u-1 pure-u-md-3-4" id="main-content" tabindex="-1">
+    <div class="site-preferences home-preferences" hidden="">
+     <div class="site-clock">
+      <span data-i18n="control.singapore">
+       Singapore
+      </span>
+      <span aria-hidden="true" class="clock-dot">
+       ●
+      </span>
+      <time data-singapore-time="" datetime="2026-10-02T00:00:00Z">
+       --:--:--
+      </time>
+      <span class="clock-zone">
+       UTC+8
+      </span>
+     </div>
+     <div aria-label="Color theme" class="preference-group" data-i18n-aria-label="control.palette" role="group">
+      <span aria-hidden="true">
+       [
+      </span>
+      <button aria-pressed="true" data-i18n="control.light" data-theme-choice="light" type="button">
+       Light
+      </button>
+      <span aria-hidden="true">
+       |
+      </span>
+      <button aria-pressed="false" data-i18n="control.dark" data-theme-choice="dark" type="button">
+       Dark
+      </button>
+      <span aria-hidden="true">
+       ]
+      </span>
+     </div>
+     <div aria-label="Language" class="preference-group" data-i18n-aria-label="control.language" role="group">
+      <span aria-hidden="true">
+       [
+      </span>
+      <button aria-pressed="true" data-language="en" lang="en" type="button">
+       EN
+      </button>
+      <span aria-hidden="true">
+       |
+      </span>
+      <button aria-pressed="false" data-language="zh" lang="zh-CN" type="button">
+       中
+      </button>
+      <span aria-hidden="true">
+       ]
+      </span>
+     </div>
+    </div>
     <div class="posts">
      <section aria-labelledby="about-title" class="post" id="about">
       <header class="post-header">
-       <h2 class="post-title" id="about-title">
+       <h2 class="post-title" data-i18n="home.about" id="about-title">
         About
        </h2>
       </header>
       <img alt="Portrait of Xidong Wu" class="profile-photo" height="280" src="assets/img/xidong.jpg" width="280"/>
-      <p>
-       Currently, I am in the joint training program between Northeastern University School of Medicine and the University of Dundee in the UK, and I am a student majoring in Biomedical Engineering. Biomedical engineering is a highly cutting-edge and interdisciplinary field that integrates knowledge systems from multiple disciplines such as medicine, biology, and engineering. It is committed to tackling complex challenges in the healthcare field and contributing to the cause of human health. My research focuses on medical signal and image analysis, and utilizes artificial intelligence algorithms to carry out computer-aided diagnosis and treatment decision-making related work.
+      <p data-i18n="home.bio">
+       I am a PhD student at the National University of Singapore (NUS). My research focuses on medical signal and image analysis, using artificial intelligence for biosignal classification, medical image segmentation, and efficient deployment. Previously, I studied Biomedical Engineering through the joint training programme between Northeastern University and the University of Dundee.
       </p>
-      <p>
-       The research projects I have participated in mainly cover two directions. One is the construction of an electrocardiogram signal classification model and the deployment of embedded devices. At present, I am committed to building an open source sharing platform aimed at unifying evaluation standards, building the industry's largest benchmark, and promoting the standardization and normalization of the field of electrocardiogram signal analysis. Secondly, it is to explore the application of large-scale models such as SAM and CLIP in the field of medical imaging, including image segmentation and cross disciplinary research with genomics. By combining advanced artificial intelligence technology with medical image analysis, we expect to make breakthrough progress in precision medicine and personalized treatment, providing stronger technical support for medical diagnosis and treatment.
+      <p data-i18n="home.research">
+       My work covers two main directions: electrocardiogram signal classification and deployment on embedded devices, and the application of models such as SAM and CLIP to medical imaging. I am also working toward an open-source platform for standardized evaluation of ECG analysis methods, while exploring connections between medical imaging and genomics.
       </p>
      </section>
      <section aria-labelledby="publications-title" class="post" id="publications">
       <header class="post-header">
-       <h2 class="post-title" id="publications-title">
+       <h2 class="post-title" data-i18n="home.publications" id="publications-title">
         Publications
        </h2>
       </header>
@@ -330,7 +390,7 @@
         </strong>
        </span>
        <br/>
-       <span class="publication-status">
+       <span class="publication-status" data-i18n="home.review">
         [Under Review]
        </span>
        <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5311460">
@@ -367,7 +427,7 @@
         </strong>
        </span>
        <br/>
-       <span class="publication-status">
+       <span class="publication-status" data-i18n="home.review">
         [Under Review]
        </span>
       </article>
@@ -400,27 +460,52 @@
        </a>
       </article>
       <p class="author-note">
-       <i>
+       <i data-i18n="home.authors">
         #: Co-first author; ✳: Corresponding author
        </i>
       </p>
      </section>
      <section aria-labelledby="honors-title" class="post" id="honors">
       <header class="post-header">
-       <h2 class="post-title" id="honors-title">
+       <h2 class="post-title" data-i18n="home.honors" id="honors-title">
         Honors and Awards
        </h2>
       </header>
-      <pre>Aug 2024: Northeast University third class scholarship
-Mar 2024: Northeast University Innovation Individual Award
-Aug 2023: Northeast University Second Class Scholarship</pre>
+      <pre data-i18n="home.honorsText">Aug 2024: Northeastern University Third-Class Scholarship
+Mar 2024: Northeastern University Innovation Individual Award
+Aug 2023: Northeastern University Second-Class Scholarship</pre>
      </section>
      <section aria-labelledby="education-title" class="post" id="education">
       <header class="post-header">
-       <h2 class="post-title" id="education-title">
+       <h2 class="post-title" data-i18n="home.education" id="education-title">
         Education
        </h2>
       </header>
+      <table class="education-table">
+       <tbody>
+        <tr>
+         <td class="education-logo">
+          <span aria-label="NUS" class="education-mark">
+           NUS
+          </span>
+         </td>
+         <td>
+          <a href="https://www.nus.edu.sg/">
+           <b data-i18n="home.nus">
+            National University of Singapore
+           </b>
+          </a>
+          <br/>
+          <b data-i18n="home.role">
+           PhD student
+          </b>
+          <i data-i18n="home.current">
+           Current
+          </i>
+         </td>
+        </tr>
+       </tbody>
+      </table>
       <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
        <tbody>
         <tr>
@@ -429,13 +514,13 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
          </td>
          <td valign="middle" width="75%">
           <a href="https://www.neu.edu.cn/">
-           <b>
+           <b data-i18n="home.neu">
             Northeastern University
            </b>
           </a>
           <br/>
-          <b>
-           Undergraduate Course
+          <b data-i18n="home.undergraduate">
+           Undergraduate studies
           </b>
           <i>
            2022 - 2026
@@ -453,13 +538,13 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
          </td>
          <td valign="middle" width="75%">
           <a href="https://www.dundee.ac.uk/">
-           <b>
+           <b data-i18n="home.dundee">
             University of Dundee
            </b>
           </a>
           <br/>
-          <b>
-           Undergraduate Course
+          <b data-i18n="home.undergraduate">
+           Undergraduate studies
           </b>
           <i>
            2022 - 2026
@@ -471,77 +556,77 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
      </section>
      <section aria-labelledby="academic-services-title" class="post" id="academic-services">
       <header class="post-header">
-       <h2 class="post-title" id="academic-services-title">
+       <h2 class="post-title" data-i18n="home.services" id="academic-services-title">
         Academic Services
        </h2>
       </header>
       <div class="journal-container">
        <div class="journal-item">
-        <img alt="CurrentNeuropharmacology logo" loading="lazy" src="assets/img/logo/CurrentNeuropharmacology.jpg" width="60">
-         <div>
-          <a href="https://www.eurekaselect.com/journal/32">
-           <b>
-            Current Neuropharmacology
-           </b>
-          </a>
-          <br>
-           <b>
-            Reviewer
-           </b>
-          </div>
-        </div>
-       <div class="journal-item">
-        <img alt="CMI logo" loading="lazy" src="assets/img/logo/CMI.jpg" width="60">
-         <div>
-          <a href="https://www.sciencedirect.com/org/journal/current-medical-imaging">
-           <b>
-            Current Medical Imaging
-           </b>
-          </a>
-          <br>
-           <b>
-            Reviewer
-           </b>
-          </div>
-        </div>
-       <div class="journal-item">
-        <img alt="BSPC logo" loading="lazy" src="assets/img/logo/BSPC.jpg" width="60">
-         <div>
-          <a href="https://www.sciencedirect.com/journal/biomedical-signal-processing-and-control">
-           <b>
-            Biomedical Signal Processing and Control
-           </b>
-          </a>
-          <br>
-           <b>
-            Reviewer
-           </b>
-          </div>
-        </div>
-       <div class="journal-item">
-        <img alt="miccai2025 logo" loading="lazy" src="assets/img/logo/miccai2025.png" width="60"/>
+        <img alt="CurrentNeuropharmacology logo" loading="lazy" src="assets/img/logo/CurrentNeuropharmacology.jpg" width="60"/>
         <div>
-         <a href="https://miccai-workshop.github.io/CMMCA2025/">
+         <a href="https://www.eurekaselect.com/journal/32">
           <b>
-           MICCAI 2025: CMMCA Workshop
+           Current Neuropharmacology
           </b>
          </a>
-         <br>
+         <br/>
+         <b data-i18n="home.reviewer">
+          Reviewer
+         </b>
+        </div>
+       </div>
+       <div class="journal-item">
+        <img alt="CMI logo" loading="lazy" src="assets/img/logo/CMI.jpg" width="60"/>
+        <div>
+         <a href="https://www.sciencedirect.com/org/journal/current-medical-imaging">
           <b>
+           Current Medical Imaging
+          </b>
+         </a>
+         <br/>
+         <b data-i18n="home.reviewer">
+          Reviewer
+         </b>
+        </div>
+       </div>
+       <div class="journal-item">
+        <img alt="BSPC logo" loading="lazy" src="assets/img/logo/BSPC.jpg" width="60"/>
+        <div>
+         <a href="https://www.sciencedirect.com/journal/biomedical-signal-processing-and-control">
+          <b>
+           Biomedical Signal Processing and Control
+          </b>
+         </a>
+         <br/>
+         <b data-i18n="home.reviewer">
+          Reviewer
+         </b>
+        </div>
+       </div>
+       <div class="journal-item">
+        <img alt="miccai2025 logo" loading="lazy" src="assets/img/logo/miccai2025.png" width="60">
+         <div>
+          <a href="https://miccai-workshop.github.io/CMMCA2025/">
+           <b>
+            MICCAI 2025: CMMCA Workshop
+           </b>
+          </a>
+          <br/>
+          <b data-i18n="home.reviewer">
            Reviewer
           </b>
          </div>
        </div>
        <div class="journal-item">
-        <img alt="eaai logo" loading="lazy" src="assets/img/logo/eaai.jpg" width="60"/>
-        <div>
-         <a href="https://www.journals.elsevier.com/engineering-applications-of-artificial-intelligence">
-          <b>
-           Engineering Applications of Artificial Intelligence
-          </b>
-         </a>
-         <br>
-          <b>
+        <img alt="eaai logo" loading="lazy" src="assets/img/logo/eaai.jpg" width="60">
+         <div>
+          <a href="https://www.journals.elsevier.com/engineering-applications-of-artificial-intelligence">
+           <b>
+            Engineering Applications of Artificial Intelligence
+           </b>
+          </a>
+          <br/>
+          <b data-i18n="home.reviewer">
            Reviewer
           </b>
          </div>
@@ -550,17 +635,19 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
      </section>
      <section aria-labelledby="personal-news-title" class="post" id="personal-news">
       <header class="post-header">
-       <h2 class="post-title" id="personal-news-title">
+       <h2 class="post-title" data-i18n="home.news" id="personal-news-title">
         Personal News
        </h2>
       </header>
       <p>
        🎉
-       <strong>
+       <strong data-i18n="home.newsDate">
         Feb 2025:
        </strong>
-       A feature about my research achievements and academic work was published on the
-       <a href="http://www.mbie.neu.edu.cn/2025/0225/c562a277826/page.htm" rel="noopener noreferrer" target="_blank">
+       <span data-i18n="home.newsIntro">
+        A feature about my research achievements and academic work was published on the
+       </span>
+       <a data-i18n="home.newsSource" href="http://www.mbie.neu.edu.cn/2025/0225/c562a277826/page.htm" rel="noopener noreferrer" target="_blank">
         official website of the School of Biomedical Engineering, Northeastern University
        </a>
        .
@@ -568,7 +655,7 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
      </section>
      <section aria-labelledby="skills-title" class="post" id="skills">
       <header class="post-header">
-       <h2 class="post-title" id="skills-title">
+       <h2 class="post-title" data-i18n="home.skills" id="skills-title">
         Skills
        </h2>
       </header>
@@ -601,11 +688,11 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
     </div>
     <footer class="footer">
      <hr class="thin"/>
-     <a href="#layout">
+     <a data-i18n="home.top" href="#layout">
       Back to top
      </a>
-     <p>
-      © 2023, Xidong Wu. All rights reserved.
+     <p data-i18n="home.copyright">
+      © 2026, Xidong Wu. All rights reserved.
      </p>
     </footer>
    </main>
@@ -613,15 +700,15 @@ Aug 2023: Northeast University Second Class Scholarship</pre>
   <p aria-live="polite" class="visually-hidden" id="citation-status" role="status">
   </p>
   <dialog aria-labelledby="citation-dialog-title" id="citation-dialog">
-   <h2 id="citation-dialog-title">
+   <h2 data-i18n="citation.title" id="citation-dialog-title">
     BibTeX citation
    </h2>
-   <p>
+   <p data-i18n="citation.help">
     Copy the citation below, or use the download link on the publication.
    </p>
-   <textarea aria-label="BibTeX citation" id="citation-text" readonly="" rows="12"></textarea>
+   <textarea aria-label="BibTeX citation" data-i18n-aria-label="citation.title" id="citation-text" readonly="" rows="12"></textarea>
    <form method="dialog">
-    <button type="submit">
+    <button data-i18n="citation.close" type="submit">
      Close
     </button>
    </form>

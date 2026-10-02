@@ -23,6 +23,7 @@ class HomepageParser(HTMLParser):
         self.stylesheets = []
         self.errors = []
         self.citation_count = 0
+        self.translation_keys = []
 
     def handle_decl(self, declaration):
         if declaration.lower() == 'doctype html':
@@ -30,6 +31,7 @@ class HomepageParser(HTMLParser):
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
+        self.translation_keys.extend(attrs[key] for key in ('data-i18n', 'data-i18n-placeholder', 'data-i18n-aria-label') if key in attrs)
         self.counts[tag] += 1
         if tag == 'section' and 'section' in self.stack:
             self.errors.append('Homepage sections must be siblings')
@@ -87,6 +89,8 @@ def check_reference(reference, base, errors, homepage_ids=None):
 def main():
     errors = []
     summaries = []
+    catalog = ROOT / 'js/preferences.js'
+    translation_keys = set(re.findall(r"'([\w.]+)'\s*:\s*\[", catalog.read_text(encoding='utf-8'))) if catalog.exists() else set()
     for relative in ('index.html', 'studio/index.html'):
         page = ROOT / relative
         if not page.is_file():
@@ -102,6 +106,9 @@ def main():
                 parser.errors.append(f'Expected one {tag}, found {parser.counts[tag]}')
         for reference in parser.references:
             check_reference(reference, page.parent, parser.errors, parser.ids)
+        for key in parser.translation_keys:
+            if key not in translation_keys:
+                parser.errors.append(f'Missing translation: {key}')
         # Only validate stylesheets loaded by these pages, not archived exports.
         for stylesheet in parser.stylesheets:
             parsed = urlsplit(stylesheet)

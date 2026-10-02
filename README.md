@@ -1,6 +1,6 @@
 # Xidong Wu — Academic Homepage
 
-吴熙东的个人学术主页，展示研究方向、论文、教育经历、学术服务和个人动态。
+吴熙东的个人学术主页，目前为新加坡国立大学（NUS）博士研究生，展示研究方向、论文、教育经历、学术服务和个人动态。
 
 - GitHub Pages：<https://xidong66.github.io/>
 - 自定义域名配置：`CNAME` 中的 `wuxidong.com`。使用前请核对域名 DNS 和仓库 Pages 设置。
@@ -14,6 +14,9 @@ index.html                 首页和个人资料
 css/redlounge.css           原有主题样式
 css/site.css                首页布局、手机适配和引用弹窗样式
 js/citations.js             BibTeX 复制与下载降级处理
+js/preferences-init.js      首屏深浅色设置，避免刷新时主题闪烁
+js/preferences.js           中英文、深浅色、新加坡时钟和共享翻译
+css/preferences.css         偏好控件和时钟样式
 studio/index.html           交互式研究工作台（/studio/）
 css/studio.css              工作台与地球仪布局
 js/studio.js                工作台弹窗、交互和动画控制
@@ -48,6 +51,10 @@ python -m http.server 8000 --bind 127.0.0.1
 
 请通过 HTTP 预览。直接双击 HTML 会影响外部资源加载和引用文件读取。首页使用 Pure CSS、Google Fonts 和 ClustrMaps 外部资源，需要网络；第三方资源不可用时，字体会回退到本地字体。
 
+主页与工作台顶部可切换 `[Light | Dark]` 和 `[EN | 中]`；选择会在刷新及页面间跳转时保留。首次访问使用系统深浅色设置和英文界面。正文、导航、教育经历、弹窗和工作台提示均支持中文；论文题目、期刊名称、作者和 BibTeX 保持正式出版写法。新加坡时钟固定使用 `Asia/Singapore`（UTC+8），每秒更新，不随访客所在地变化。
+
+翻译统一维护在 `js/preferences.js`，页面通过 `data-i18n` 标记引用；动态工作台消息通过 `SitePreferences.t()` 读取。新增院系、导师或入学时间前请核实信息；当前 NUS 教育条目只显示博士生身份与在读状态。
+
 ## 更新内容
 
 1. 在 `index.html` 中按 `about`、`publications`、`education` 等 section ID 定位内容。
@@ -61,6 +68,8 @@ python -m http.server 8000 --bind 127.0.0.1
 ```bash
 python tools/check_site.py
 node --check js/citations.js
+node --check js/preferences-init.js
+node --check js/preferences.js
 node --check js/studio.js
 node --check js/studio-scene.js
 ```

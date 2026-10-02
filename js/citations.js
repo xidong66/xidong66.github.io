@@ -26,7 +26,7 @@
                 const citation = await response.text();
                 try {
                     await navigator.clipboard.writeText(citation);
-                    notify('BibTeX copied to clipboard.');
+                    notify(window.SitePreferences?.t('citation.copied') || 'BibTeX copied to clipboard.');
                 } catch {
                     text.value = citation;
                     if (!dialog.open) dialog.showModal();
@@ -34,7 +34,7 @@
                     text.select();
                 }
             } catch {
-                notify('Unable to load BibTeX. Please download the citation.');
+                notify(window.SitePreferences?.t('citation.failed') || 'Unable to load BibTeX. Please download the citation.');
                 const download = document.createElement('a');
                 download.href = link.href;
                 download.download = '';
