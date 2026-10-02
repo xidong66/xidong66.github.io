@@ -29,7 +29,7 @@ LOCATIONS = [
 
 
 def globe_html(source):
-    return source.replace('<html data-page="studio" lang="en">', '<html data-page="studio" data-atlas-page="true" lang="en">').replace('../', '../../').replace('Research Workbench · Xidong Wu', 'Personal Atlas · Xidong Wu')
+    return source.replace('<html data-page="studio" lang="en">', '<html data-page="studio" data-atlas-page="true" lang="en">').replace('../', '../../').replace('<base href="/studio/"/>', '<base href="/studio/globe/"/>').replace('Research Workbench · Xidong Wu', 'Personal Atlas · Xidong Wu')
 
 
 def main():
