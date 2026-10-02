@@ -25,6 +25,27 @@ motionLabel();
 motionQuery.addEventListener('change', event => { paused = event.matches; motionLabel(); requestFrame(); });
 $('#motion-toggle').addEventListener('click', () => { paused = !paused; motionLabel(); requestFrame(); });
 
+function heightLabel(height = desk?.height ?? 75, target = desk?.targetHeight ?? 75) {
+  $('#desk-height-output').value = height.toFixed(1);
+  $('#desk-height-toggle').setAttribute('aria-label', `${t('desk.height', 'Desk height')}: ${height.toFixed(1)} cm. ${t('desk.toggleHelp', 'Switch sitting or standing; press again to stop.')}`);
+  document.querySelectorAll('[data-desk-height]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.deskHeight) === target)));
+  $('#desk-lower').disabled = target <= 75;
+  $('#desk-raise').disabled = target >= 115;
+}
+function setDeskHeight(height) {
+  if (!desk || deskLost) return;
+  desk.setHeight(height, motionQuery.matches); heightLabel(); requestFrame();
+}
+function adjustDeskHeight(action) {
+  if (!desk || deskLost) return;
+  if (action === 'desk-toggle') setDeskHeight(Math.abs(desk.height - desk.targetHeight) > .01 ? desk.height : desk.height < 95 ? 115 : 75);
+  else setDeskHeight(desk.targetHeight + (action === 'desk-up' ? 5 : -5));
+}
+$('#desk-height-toggle').addEventListener('click', () => adjustDeskHeight('desk-toggle'));
+$('#desk-lower').addEventListener('click', () => adjustDeskHeight('desk-down'));
+$('#desk-raise').addEventListener('click', () => adjustDeskHeight('desk-up'));
+document.querySelectorAll('[data-desk-height]').forEach(button => button.addEventListener('click', () => setDeskHeight(Number(button.dataset.deskHeight))));
+
 function syncPlace(id, immediate = false) {
   selectedPlace = id;
   const place = places[id];
@@ -61,6 +82,7 @@ function openDialog(id, source) {
   // Only one panel is open at a time, preserving the native dialog focus trap.
   dialogs.forEach(item => { if (item.open) item.close(); });
   dialog.showModal();
+  desk?.clearHover();
   hint.hidden = true;
   if (id === 'atlas') {
     if (location.hash !== '#atlas') history.pushState(null, '', '#atlas');
@@ -70,14 +92,22 @@ function openDialog(id, source) {
 }
 
 function action(name, source) {
-  if (name === 'lamp') {
+  if (name.startsWith('desk-')) adjustDeskHeight(name);
+  else if (name === 'lamp') {
     lampOn = !lampOn; desk?.setLamp(lampOn);
     const button = $('[data-action="lamp"]'); button.setAttribute('aria-pressed', String(lampOn));
     showStatus(lampOn ? 'status.lampOn' : 'status.lampOff');
     requestFrame();
-  } else openDialog(name, source || $(`[data-action="${name}"]`));
+  } else openDialog(name === 'board' ? 'projects' : name, source || $(`[data-action="${name}"]`));
 }
 document.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', () => action(button.dataset.action, button)));
+document.querySelectorAll('.object-controls [data-action]').forEach(button => {
+  const activate = () => { desk?.setHover(button.dataset.action); requestFrame(); };
+  const deactivate = () => { desk?.setHover(null); requestFrame(); };
+  button.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') activate(); });
+  button.addEventListener('pointerleave', deactivate);
+  button.addEventListener('focus', activate); button.addEventListener('blur', deactivate);
+});
 document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
 dialogs.forEach(dialog => {
   dialog.addEventListener('close', () => {
@@ -159,6 +189,10 @@ $('#letter-copy').addEventListener('click', async () => {
 });
 
 function showHint(label, event, action) {
+  requestFrame();
+  document.querySelectorAll('.object-controls [data-action]').forEach(button => {
+    button.dataset.hovered = String(button.dataset.action === action);
+  });
   hint.hidden = !label;
   if (!label) return;
   hint.dataset.objectAction = action || '';
@@ -184,9 +218,9 @@ function frame(now) {
   lastTime = now;
   if (!paused) { elapsed += delta; if (!frozen) signalTime += delta; }
   if (atlasDialog.open && atlas && !atlasLost) atlas.render(motionQuery.matches);
-  else if (desk && !deskLost && !dialogs.some(dialog => dialog.open)) desk.render(elapsed, Number($('#heart-rate').value));
+  else if (desk && !deskLost && !dialogs.some(dialog => dialog.open)) desk.render(elapsed, Number($('#heart-rate').value), delta, motionQuery.matches);
   paintSignal();
-  if ((atlasDialog.open && atlas && !atlasLost) || (!paused && ((desk && !deskLost && !dialogs.some(dialog => dialog.open)) || (graphics && signalDialog.open && !frozen)))) requestFrame();
+  if ((atlasDialog.open && atlas && !atlasLost) || (desk && !deskLost && !dialogs.some(dialog => dialog.open) && (desk.isAnimating || !paused)) || (!paused && graphics && signalDialog.open && !frozen)) requestFrame();
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { cancelAnimationFrame(frameId); frameId = 0; }
@@ -200,7 +234,7 @@ function letterInstruction() {
   $('#letter-instruction').textContent = t(key, $('#letter-instruction').textContent);
 }
 function refreshLanguage() {
-  motionLabel(); signalLabel(); letterInstruction(); syncPlace(selectedPlace, true);
+  motionLabel(); heightLabel(); signalLabel(); letterInstruction(); syncPlace(selectedPlace, true);
   if (status.dataset.message) showStatus(status.dataset.message);
   else showStatus('status.loading');
   const feedback = $('#letter-feedback');
@@ -226,12 +260,14 @@ async function start() {
     earth = await graphics.loadEarth();
     desk = graphics.createDesk($('#desk-canvas'), earth, action, showHint, () => {
       deskLost = true; scene.classList.remove('ready');
+      $('#desk-height-controls').hidden = true;
       showStatus('status.lost');
-    });
+    }, heightLabel);
     $('#desk-canvas').addEventListener('webglcontextrestored', () => {
-      deskLost = false; scene.classList.add('ready'); desk.restore(); showStatus('status.restored'); requestFrame();
+      deskLost = false; scene.classList.add('ready'); $('#desk-height-controls').hidden = false; desk.restore(); showStatus('status.restored'); requestFrame();
     });
     scene.classList.add('ready');
+    $('#desk-height-controls').hidden = false; heightLabel();
     showStatus(earth.available ? 'status.ready' : 'status.mapless');
     desk.setLamp(lampOn); desk.setTheme(window.SitePreferences?.theme === 'dark'); requestFrame();
     if (atlasDialog.open) initAtlas();

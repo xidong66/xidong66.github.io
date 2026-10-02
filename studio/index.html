@@ -204,6 +204,10 @@
         ✉
        </span>
       </button>
+      <button data-action="board" data-i18n="studio.board" data-i18n-mode="text" type="button">
+       Circuit board
+       <span>⌁</span>
+      </button>
       <button aria-pressed="false" data-action="lamp" data-i18n="studio.lamp" data-i18n-mode="text" type="button">
        Lamp
        <span>
@@ -214,6 +218,21 @@
      <button aria-pressed="false" class="motion-button" id="motion-toggle" type="button">
       Pause motion
      </button>
+    </div>
+    <div class="desk-height-controls" hidden="" id="desk-height-controls">
+     <span class="height-label" data-i18n="desk.height">Desk height</span>
+     <div class="height-adjustment">
+      <button aria-label="Lower the desk" data-i18n-aria-label="desk.lower" id="desk-lower" type="button">↓</button>
+      <button aria-label="Switch sitting or standing; press again to stop." class="height-readout" id="desk-height-toggle" type="button">
+       <output aria-live="off" id="desk-height-output">75.0</output><span>cm</span>
+      </button>
+      <button aria-label="Raise the desk" data-i18n-aria-label="desk.raise" id="desk-raise" type="button">↑</button>
+     </div>
+     <div aria-label="Desk height presets" class="height-presets" data-i18n-aria-label="desk.presets">
+      <button aria-pressed="true" data-desk-height="75" data-i18n="desk.sitting" type="button">Sitting</button>
+      <button aria-pressed="false" data-desk-height="115" data-i18n="desk.standing" type="button">Standing</button>
+     </div>
+     <span class="height-help" data-i18n="desk.help">Tap the height to switch or stop.</span>
     </div>
    </div>
    <div class="afterword">

@@ -130,7 +130,7 @@ function rendererFor(canvas, shadows = false) {
   return renderer;
 }
 
-export function createDesk(canvas, earth, onAction, onHover, onLost) {
+export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = () => {}) {
   const renderer = rendererFor(canvas, true);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-7, 7, 5, -5, .1, 100);
@@ -144,19 +144,21 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.ShadowMaterial({ opacity: .12 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.position.y = .03; scene.add(floor);
   const desk = new THREE.Group(); scene.add(desk);
-  box(desk, [8.5, .2, 4.25], [0, 2.75, 0], 0xd3d3c2);
-  box(desk, [8.48, .045, 4.23], [0, 2.866, 0], 0xe6e1d0);
+  const desktop = new THREE.Group(); desk.add(desktop);
+  const columns = [], objects = [];
+  box(desktop, [8.5, .2, 4.25], [0, 2.75, 0], 0xd3d3c2);
+  box(desktop, [8.48, .045, 4.23], [0, 2.866, 0], 0xe6e1d0);
   for (const x of [-3.2, 3.2]) {
-    box(desk, [.28, 2.6, .32], [x, 1.35, -.3], C.metal);
+    columns.push(box(desk, [.28, 2.6, .32], [x, 1.35, -.3], C.metal));
     box(desk, [.42, 1.2, .46], [x, .7, -.3], 0xc6ccc5);
     box(desk, [.55, .15, 2.7], [x, .12, -.3], C.metal);
     for (const z of [-1.5, .9]) box(desk, [.55, .07, .3], [x, .035, z], C.ink);
   }
-  box(desk, [6.5, .22, .24], [0, 1.9, -.3], C.metal);
+  box(desktop, [6.5, .22, .24], [0, 1.9, -.3], C.metal);
 
   function object(action, label, position) {
     const group = new THREE.Group(); group.position.set(...position);
-    group.userData = { action, label }; desk.add(group); return group;
+    group.userData = { action, label }; group.name = action; desktop.add(group); objects.push(group); return group;
   }
   const computer = object('projects', 'Computer / research projects', [-.75, 2.89, -1.05]);
   cylinder(computer, .5, .1, [0, .05, .02], C.metal);
@@ -176,7 +178,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
     }
   }
   box(keyboard, [.77, .05, .13], [0, .2, .35], C.paper);
-  cable(desk, [[.35, 2.92, 1.15], [.7, 2.94, .5], [.6, 2.94, -.6], [-.4, 2.96, -1.05]]);
+  cable(desktop, [[.35, 2.92, 1.15], [.7, 2.94, .5], [.6, 2.94, -.6], [-.4, 2.96, -1.05]]);
 
   const scope = object('signal', 'Oscilloscope / synthetic ECG', [1.4, 2.89, -.6]);
   box(scope, [2.05, 1.23, 1.13], [0, .66, 0], C.ivory);
@@ -192,7 +194,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   rod(scope, [-.63, 1.31, 0], [-.63, 1.46, 0], .045);
   rod(scope, [.63, 1.31, 0], [.63, 1.46, 0], .045);
   rod(scope, [-.63, 1.46, 0], [.63, 1.46, 0], .05);
-  cable(desk, [[2.1, 3.1, .07], [2.6, 2.94, .4], [2.5, 2.94, 1.3], [1.8, 2.96, 1.2]], 0x637f7a);
+  cable(desktop, [[2.1, 3.1, .07], [2.6, 2.94, .4], [2.5, 2.94, 1.3], [1.8, 2.96, 1.2]], 0x637f7a);
 
   const notebook = object('notes', 'Notebook / research questions', [-3.1, 2.92, 1.1]);
   notebook.rotation.y = -.22;
@@ -227,7 +229,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(.15, 16, 12), bulbMaterial); bulb.position.set(-.8, 1.76, -.15); lamp.add(bulb);
   const lampLight = new THREE.PointLight(0xffcc80, 0, 5, 2); lampLight.position.copy(bulb.position); lamp.add(lampLight);
 
-  const pcb = new THREE.Group(); pcb.position.set(1.25, 2.92, .8); pcb.rotation.y = -.12; desk.add(pcb);
+  const pcb = object('board', 'Circuit board / embedded AI', [1.25, 2.92, .8]); pcb.rotation.y = -.12;
   box(pcb, [1.35, .065, .85], [0, .035, 0], 0x6e9290);
   box(pcb, [.48, .1, .45], [-.12, .115, 0], C.dark);
   for (let i = 0; i < 9; i++) for (const z of [-.29, .29]) box(pcb, [.024, .02, .12], [-.32 + i * .052, .09, z], C.paper);
@@ -248,6 +250,41 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   stationery.texture.needsUpdate = true;
   panel(envelope, [1.43, .91], [0, .044, 0], stationery.texture).rotation.x = -Math.PI / 2;
 
+  // The feet and outer sleeves remain on the floor; everything on the top moves together.
+  let height = 75, targetHeight = 75, lift = 0, interactionAnimating = false;
+  const control = new THREE.Group(); control.position.set(.75, 2.55, 2.19); desktop.add(control);
+  box(control, [1.9, .38, .15], [0, 0, 0], C.dark);
+  function heightButton(action, label, x, width, texture) {
+    const group = new THREE.Group(); group.position.x = x; group.userData = { action, label }; control.add(group);
+    box(group, [width, .27, .07], [0, 0, .095], action === 'desk-toggle' ? 0x152e35 : C.paper);
+    panel(group, [width - .04, .23], [0, 0, .133], texture);
+    return group;
+  }
+  const heightDisplay = drawing(256, 72);
+  heightButton('desk-toggle', 'Desk height / sit, stand or stop', -.39, .93, heightDisplay.texture);
+  for (const [action, label, x, arrow] of [['desk-down', 'Lower the desk', .31, '↓'], ['desk-up', 'Raise the desk', .7, '↑']]) {
+    const icon = drawing(72, 72); icon.ctx.fillStyle = '#ebe5d4'; icon.ctx.fillRect(0, 0, 72, 72);
+    icon.ctx.fillStyle = '#263e49'; icon.ctx.font = '48px sans-serif'; icon.ctx.textAlign = 'center'; icon.ctx.fillText(arrow, 36, 53); icon.texture.needsUpdate = true;
+    heightButton(action, label, x, .31, icon.texture);
+  }
+  let displayedHeight;
+  function updateHeightDisplay() {
+    const text = height.toFixed(1);
+    if (text === displayedHeight) return;
+    displayedHeight = text;
+    heightDisplay.ctx.fillStyle = '#152e35'; heightDisplay.ctx.fillRect(0, 0, 256, 72);
+    heightDisplay.ctx.fillStyle = '#c5d9a1'; heightDisplay.ctx.font = 'bold 45px monospace'; heightDisplay.ctx.textAlign = 'center';
+    heightDisplay.ctx.fillText(text, 128, 53); heightDisplay.texture.needsUpdate = true;
+  }
+  updateHeightDisplay();
+  const profiles = { projects: [.08, 0, 0, -.025], signal: [.08, 0, 0, .025], atlas: [.09, 0, .09, 0],
+    notes: [.13, 0, .06, -.025], keyboard: [.09, -.045, .025, 0], letter: [.15, -.07, -.04, 0], lamp: [.04, 0, 0, .025], board: [.1, 0, -.04, 0] };
+  const reactions = objects.map(group => {
+    const edges = [], materials = [];
+    group.traverse(node => { if (node.isLineSegments) edges.push(node.material); if (node.isMesh && node.material.emissive) materials.push(node.material); });
+    return { group, position: group.position.clone(), rotation: group.rotation.clone(), amount: 0, edges, materials };
+  });
+
   let terminalMessage = 'click to explore';
   function updateTerminal(time) {
     const { ctx } = terminal;
@@ -266,7 +303,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
   // than their drawn edges. Pick only visible mesh surfaces, including the
   // noninteractive desk/board, so neither outlines nor hidden objects steal hits.
   desk.traverse(node => { if (node.isMesh) surfaces.push(node); });
-  let hovered = null;
+  let hovered = null, focused = null;
   function pick(event) {
     const rect = canvas.getBoundingClientRect();
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
@@ -279,10 +316,13 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
     return object;
   }
   canvas.addEventListener('pointermove', event => {
+    if (event.pointerType === 'touch') return;
+    focused = null;
     hovered = pick(event); canvas.style.cursor = hovered ? 'pointer' : '';
     onHover(hovered?.userData.label, event, hovered?.userData.action);
   });
-  canvas.addEventListener('pointerleave', () => { hovered = null; onHover(null); });
+  canvas.addEventListener('pointerleave', () => { hovered = null; canvas.style.cursor = ''; onHover(null); });
+  canvas.addEventListener('pointercancel', () => { pressed = null; hovered = null; canvas.style.cursor = ''; onHover(null); });
   let pressed = null;
   canvas.addEventListener('pointerdown', event => { pressed = [event.clientX, event.clientY, pick(event)]; });
   canvas.addEventListener('pointerup', event => {
@@ -296,20 +336,54 @@ export function createDesk(canvas, earth, onAction, onHover, onLost) {
     const width = canvas.clientWidth, height = canvas.clientHeight;
     renderer.setSize(width, height, false);
     const aspect = width / height;
-    const horizontalSpan = aspect < 1.2 ? 12 : 17.5;
+    const horizontalSpan = Math.max((aspect < 1.2 ? 12 : 17.5) + lift * .8, aspect * (7.1 + lift * 1.25));
     camera.left = -horizontalSpan / 2; camera.right = horizontalSpan / 2;
     camera.top = horizontalSpan / aspect / 2; camera.bottom = -camera.top;
+    camera.lookAt(0, 2.25 + lift * .4, 0);
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
   }
   new ResizeObserver(resize).observe(canvas); resize();
   canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); onLost(); });
   return {
-    render(time, rate) {
+    render(time, rate, delta = 1 / 30, reduced = false) {
+      interactionAnimating = false;
+      const difference = targetHeight - height;
+      if (difference) {
+        height = reduced || Math.abs(difference) <= delta * 25 ? targetHeight : height + Math.sign(difference) * delta * 25;
+        lift = (height - 75) * .032;
+        desktop.position.y = lift;
+        for (const column of columns) { column.scale.y = (2.6 + lift) / 2.6; column.position.y = 1.35 + lift / 2; }
+        onHeight(height, targetHeight); updateHeightDisplay(); resize();
+      }
+      for (const reaction of reactions) {
+        const active = hovered === reaction.group || focused === reaction.group.userData.action;
+        const target = active ? 1 : 0;
+        reaction.amount = reduced ? target : THREE.MathUtils.damp(reaction.amount, target, 16, delta);
+        if (Math.abs(reaction.amount - target) < .001) reaction.amount = target;
+        else interactionAnimating = true;
+        const amount = reduced ? 0 : reaction.amount, profile = profiles[reaction.group.userData.action];
+        reaction.group.position.y = reaction.position.y + profile[0] * amount;
+        reaction.group.rotation.set(reaction.rotation.x + profile[1] * amount, reaction.rotation.y + profile[2] * amount, reaction.rotation.z + profile[3] * amount);
+        for (const edge of reaction.edges) { edge.opacity = .4 + reaction.amount * .48; edge.color.set(active ? 0x527f90 : C.ink); }
+        for (const material of reaction.materials) { material.emissive.set(0x416d80); material.emissiveIntensity = reaction.amount * .14; }
+      }
       smallEarth.rotation.y = -1.8 + time * .07;
       updateTerminal(time); drawSignal(trace.ctx, 512, 320, time, rate); trace.texture.needsUpdate = true;
       renderer.render(scene, camera);
     },
+    get height() { return height; },
+    get targetHeight() { return targetHeight; },
+    get isAnimating() { return height !== targetHeight || interactionAnimating; },
+    setHeight(value, immediate = false) {
+      targetHeight = THREE.MathUtils.clamp(value, 75, 115);
+      if (immediate) { height = targetHeight; lift = (height - 75) * .032; desktop.position.y = lift;
+        for (const column of columns) { column.scale.y = (2.6 + lift) / 2.6; column.position.y = 1.35 + lift / 2; }
+        resize(); updateHeightDisplay(); }
+      onHeight(height, targetHeight);
+    },
+    setHover(action) { focused = action; },
+    clearHover() { hovered = null; focused = null; canvas.style.cursor = ''; onHover(null); },
     setLamp(on) { lampLight.intensity = on ? 13 : 0; bulbMaterial.color.set(on ? 0xffe6a7 : 0xcfcfc0); },
     setTerminal(text) { terminalMessage = text.replace(/[\r\n\t]/g, ' ').slice(0, 58); },
     setTheme(dark) { ambient.intensity = dark ? 1.2 : 2.4; sun.intensity = dark ? 1.6 : 3.2; floor.material.opacity = dark ? .28 : .12; renderer.render(scene, camera); },
