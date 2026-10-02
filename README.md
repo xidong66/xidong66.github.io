@@ -57,6 +57,8 @@ python -m http.server 8000 --bind 127.0.0.1
 
 ## 更新内容
 
+旅行地球仪入口为 `/studio/globe/`，也可点击工作台的地球仪进入。照片按地点保存在 `travel/`；往已有文件夹添加 JPG 后运行 `python tools/build_travel_atlas.py` 更新索引。添加新地点时，先在该脚本的 `LOCATIONS` 中补充中英文名称、国家及地点坐标。修改 `studio/index.html` 后也运行该脚本，保持地球仪直达页同步。照片保持原文件，按选中的地点加载。
+
 1. 在 `index.html` 中按 `about`、`publications`、`education` 等 section ID 定位内容。
 2. 添加论文时，复制一个 `<article class="publication">`，填写已核实的标题、作者、发表信息和链接。录用或审稿状态用文字展示。
 3. 将引用保存到 `assets/bibtex/引用键.bib`，用 `<a href="assets/bibtex/引用键.bib" data-citation download>[BibTeX]</a>` 引用。点击会复制到剪贴板；浏览器拒绝复制时显示可手动复制的弹窗；禁用 JavaScript 时仍可下载文件。
@@ -72,6 +74,8 @@ node --check js/preferences-init.js
 node --check js/preferences.js
 node --check js/studio.js
 node --check js/studio-scene.js
+node --check js/travel-globe.js
+node --check js/travel-data.js
 ```
 
 Python 检查无需第三方依赖，涵盖首页标签闭合、重复 ID、图片说明、本地链接、加载的 CSS 资源和 BibTeX 基本格式。Node 检查用于 JavaScript 语法；Node 不是网站运行依赖。

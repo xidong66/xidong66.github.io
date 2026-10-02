@@ -7,6 +7,7 @@ from pathlib import Path
 import json
 import re
 from urllib.parse import unquote, urlsplit
+from build_travel_atlas import globe_html
 
 ROOT = Path(__file__).resolve().parents[1]
 VOID_TAGS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
@@ -91,7 +92,7 @@ def main():
     summaries = []
     catalog = ROOT / 'js/preferences.js'
     translation_keys = set(re.findall(r"'([\w.]+)'\s*:\s*\[", catalog.read_text(encoding='utf-8'))) if catalog.exists() else set()
-    for relative in ('index.html', 'studio/index.html'):
+    for relative in ('index.html', 'studio/index.html', 'studio/globe/index.html'):
         page = ROOT / relative
         if not page.is_file():
             errors.append(f'Missing page: {relative}')
@@ -120,7 +121,7 @@ def main():
                     check_reference(url, path.parent, parser.errors)
         errors.extend(f'{relative}: {error}' for error in parser.errors)
         summaries.append(f'{relative}: {len(parser.references)} references, {parser.citation_count} citations')
-    for module in ('js/studio.js', 'js/studio-scene.js', 'js/vendor/three/three.module.js'):
+    for module in ('js/studio.js', 'js/studio-scene.js', 'js/travel-data.js', 'js/travel-globe.js', 'js/vendor/three/three.module.js'):
         path = ROOT / module
         if not path.is_file():
             errors.append(f'Missing module: {module}')
@@ -130,6 +131,28 @@ def main():
         for reference in imports:
             check_reference(reference, path.parent, errors)
     check_reference('js/vendor/three/LICENSE', ROOT, errors)
+    try:
+        atlas_page = (ROOT / 'studio/globe/index.html').read_text(encoding='utf-8')
+        if atlas_page != globe_html((ROOT / 'studio/index.html').read_text(encoding='utf-8')):
+            errors.append('Direct atlas entry is stale: run python tools/build_travel_atlas.py')
+        places = json.loads((ROOT / 'js/travel-data.js').read_text(encoding='utf-8').split('export const travelPlaces = ', 1)[1].rstrip(';\n'))
+        if len({place['id'] for place in places}) != len(places):
+            errors.append('Travel atlas has duplicate place IDs')
+        indexed = []
+        for place in places:
+            if not (-90 <= place['lat'] <= 90 and -180 <= place['lon'] <= 180):
+                errors.append(f'Invalid travel coordinates: {place["id"]}')
+            if len(place['names']) != 2 or len(place['countries']) != 2:
+                errors.append(f'Missing bilingual travel label: {place["id"]}')
+            for photo in place['photos']:
+                check_reference(photo['path'], ROOT, errors)
+                indexed.append(photo['path'])
+        originals = {p.relative_to(ROOT).as_posix() for p in (ROOT / 'travel').glob('*/*.jpg')}
+        if set(indexed) != originals or len(indexed) != len(originals):
+            errors.append('Travel photo index is stale or duplicated: run python tools/build_travel_atlas.py')
+        summaries.append(f'travel: {len(places)} places, {len(indexed)} photographs')
+    except (OSError, ValueError, KeyError, IndexError, TypeError) as error:
+        errors.append(f'Travel atlas cannot be checked: {error}')
     try:
         data = json.loads((ROOT / 'assets/studio/countries.geojson').read_text(encoding='utf-8'))
         if data.get('type') != 'FeatureCollection' or not data.get('features'):

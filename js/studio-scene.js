@@ -75,8 +75,8 @@ export function drawSignal(ctx, width, height, time, rate = 72, detail = false) 
 function earthDrawing() {
   const result = drawing(2048, 1024);
   const { ctx, canvas } = result;
-  ctx.fillStyle = '#c5dcda'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#819f9b55'; ctx.lineWidth = 1.2;
+  ctx.fillStyle = '#e2e4d7'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#88967e44'; ctx.lineWidth = 1.2;
   for (let lon = -180; lon <= 180; lon += 30) {
     const x = (lon + 180) / 360 * canvas.width;
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -95,8 +95,9 @@ export async function loadEarth() {
     if (!response.ok) throw new Error(`Map HTTP ${response.status}`);
     const data = await response.json();
     const { ctx } = map;
-    ctx.fillStyle = '#779795'; ctx.strokeStyle = '#d0dfd3'; ctx.lineWidth = 1.3;
-    for (const feature of data.features) {
+    ctx.strokeStyle = '#64725f88'; ctx.lineWidth = 1.25;
+    for (const [index, feature] of data.features.entries()) {
+      ctx.fillStyle = ['#b9c7ac', '#c6d0b9', '#acbea2', '#ccd3be', '#b1c3b2'][index % 5];
       const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
       if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon') continue;
       for (const polygon of polygons) {
@@ -130,7 +131,7 @@ function rendererFor(canvas, shadows = false) {
   return renderer;
 }
 
-export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = () => {}) {
+export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = () => {}, places = {}) {
   const renderer = rendererFor(canvas, true);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-7, 7, 5, -5, .1, 100);
@@ -215,7 +216,12 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   const globeMount = new THREE.Group(); globeMount.position.set(0, 1.08, 0); globeMount.rotation.z = rad(-23.4); littleGlobe.add(globeMount);
   const smallEarth = new THREE.Mesh(new THREE.SphereGeometry(.65, 48, 32), new THREE.MeshStandardMaterial({ map: earth.texture, roughness: .85 }));
   globeMount.add(smallEarth);
-  const meridian = new THREE.Mesh(new THREE.TorusGeometry(.73, .025, 8, 80), material(C.ink)); globeMount.add(meridian);
+  for (const place of Object.values(places)) {
+    const direction = new THREE.Vector3(Math.cos(rad(place.lon)) * Math.cos(rad(place.lat)), Math.sin(rad(place.lat)), -Math.sin(rad(place.lon)) * Math.cos(rad(place.lat)));
+    rod(smallEarth, direction.clone().multiplyScalar(.65).toArray(), direction.clone().multiplyScalar(.7).toArray(), .004, C.ink);
+    const pin = new THREE.Mesh(new THREE.SphereGeometry(.014, 8, 6), material(place.education ? 0x517984 : 0xb66150)); pin.position.copy(direction).multiplyScalar(.705); smallEarth.add(pin);
+  }
+  const meridian = new THREE.Mesh(new THREE.TorusGeometry(.73, .018, 8, 80, Math.PI), material(C.ink)); meridian.rotation.z = Math.PI / 2; globeMount.add(meridian);
   rod(globeMount, [0, -.82, 0], [0, .82, 0], .025, C.ink);
 
   const lamp = object('lamp', 'Lamp / switch the light', [3.2, 2.89, -1]);
@@ -407,6 +413,12 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
       renderer.render(scene, camera);
     },
     get height() { return height; },
+    getGlobeBounds() {
+      scene.updateMatrixWorld(true);
+      const point = smallEarth.getWorldPosition(new THREE.Vector3()).project(camera), rect = canvas.getBoundingClientRect();
+      const radius = .65 / (camera.right - camera.left) * rect.width;
+      return { x: rect.left + (point.x + 1) * rect.width / 2, y: rect.top + (1 - point.y) * rect.height / 2, size: radius * 2 };
+    },
     get targetHeight() { return targetHeight; },
     get isAnimating() { return Boolean(heightDirection) || height !== targetHeight || interactionAnimating; },
     startHeight(direction) {
@@ -429,99 +441,4 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   };
 }
 
-export function createAtlas(canvas, earth, places, onSelect, onLost) {
-  const renderer = rendererFor(canvas);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(34, 1, .1, 100); camera.position.z = 7.8;
-  const ambient = new THREE.HemisphereLight(0xffffff, 0x697d7b, 2.5); scene.add(ambient);
-  const sun = new THREE.DirectionalLight(0xffffff, 2.3); sun.position.set(-3, 4, 5); scene.add(sun);
-  const world = new THREE.Group(); scene.add(world);
-  world.add(new THREE.Mesh(new THREE.SphereGeometry(1.78, 80, 64), new THREE.MeshStandardMaterial({ map: earth.texture, roughness: .9 })));
-  const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(1.81, 64, 48), new THREE.MeshBasicMaterial({ color: 0x86b1b7, transparent: true, opacity: .07, side: THREE.BackSide })); world.add(atmosphere);
-  const pins = [];
-  for (const [id, place] of Object.entries(places)) {
-    const lat = rad(place.lat), lon = rad(place.lon);
-    const direction = new THREE.Vector3(Math.cos(lon) * Math.cos(lat), Math.sin(lat), -Math.sin(lon) * Math.cos(lat));
-    const group = new THREE.Group(); group.userData.place = id;
-    const pin = new THREE.Mesh(new THREE.SphereGeometry(.037, 16, 12), new THREE.MeshBasicMaterial({ color: id === 'singapore' ? 0xb9694b : id === 'shenyang' ? 0x527986 : 0x294e69 }));
-    pin.position.copy(direction).multiplyScalar(1.88); group.add(pin);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(.082, .013, 8, 36), pin.material);
-    ring.position.copy(direction).multiplyScalar(1.805); ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction); group.add(ring);
-    rod(group, direction.clone().multiplyScalar(1.78).toArray(), direction.clone().multiplyScalar(1.88).toArray(), .012, C.ink);
-    world.add(group); pins.push(group);
-  }
-  let zoom = 7.8, targetX = 0, targetY = 0;
-  let dragging = false, moved = false, last = null;
-  const pointers = new Map();
-  let pinch = 0;
-  function focus(id, immediate = false) {
-    const place = places[id]; targetX = rad(place.lat * .65); targetY = rad(-place.lon - 90);
-    // Choose the nearest equivalent rotation so city switching takes the shorter path.
-    targetY = world.rotation.y + THREE.MathUtils.euclideanModulo(targetY - world.rotation.y + Math.PI, Math.PI * 2) - Math.PI;
-    if (immediate) { world.rotation.x = targetX; world.rotation.y = targetY; }
-  }
-  function changeZoom(delta) { zoom = THREE.MathUtils.clamp(zoom + delta, 5.5, 11); }
-  canvas.addEventListener('pointerdown', event => {
-    canvas.focus({ preventScroll: true }); canvas.setPointerCapture(event.pointerId);
-    pointers.set(event.pointerId, [event.clientX, event.clientY]);
-    dragging = true; moved = false; last = [event.clientX, event.clientY]; pinch = 0;
-  });
-  canvas.addEventListener('pointermove', event => {
-    if (!pointers.has(event.pointerId)) return;
-    pointers.set(event.pointerId, [event.clientX, event.clientY]);
-    if (pointers.size === 2) {
-      const [a, b] = [...pointers.values()]; const distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
-      if (pinch) changeZoom((pinch - distance) * .018);
-      pinch = distance; moved = true; return;
-    }
-    const dx = event.clientX - last[0], dy = event.clientY - last[1];
-    if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
-    targetY += dx * .006; targetX = THREE.MathUtils.clamp(targetX + dy * .004, -1.1, 1.1);
-    world.rotation.set(targetX, targetY, 0); last = [event.clientX, event.clientY];
-  });
-  const raycaster = new THREE.Raycaster();
-  canvas.addEventListener('pointerup', event => {
-    pointers.delete(event.pointerId); dragging = pointers.size > 0;
-    if (dragging) last = [...pointers.values()][0];
-    if (!moved) {
-      const rect = canvas.getBoundingClientRect();
-      raycaster.setFromCamera(new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1), camera);
-      // Include the sphere so pins on the far hemisphere cannot be selected through it.
-      const first = raycaster.intersectObjects(world.children, true).find(hit => hit.object.isMesh);
-      let object = first?.object;
-      while (object && !object.userData.place) object = object.parent;
-      if (object?.userData.place) onSelect(object.userData.place);
-    }
-    pinch = 0;
-  });
-  canvas.addEventListener('pointercancel', event => { pointers.delete(event.pointerId); dragging = false; pinch = 0; });
-  canvas.addEventListener('wheel', event => { event.preventDefault(); changeZoom(event.deltaY * .004); }, { passive: false });
-  canvas.addEventListener('keydown', event => {
-    const actions = { ArrowLeft: () => targetY -= .12, ArrowRight: () => targetY += .12,
-      ArrowUp: () => targetX = Math.max(-1.1, targetX - .1), ArrowDown: () => targetX = Math.min(1.1, targetX + .1),
-      '+': () => changeZoom(-.4), '=': () => changeZoom(-.4), '-': () => changeZoom(.4), Home: () => { focus('singapore'); zoom = 7.8; } };
-    if (actions[event.key]) { event.preventDefault(); actions[event.key](); }
-  });
-  function resize() {
-    const width = canvas.clientWidth, height = canvas.clientHeight;
-    if (!width || !height) return;
-    renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
-    renderer.render(scene, camera);
-  }
-  new ResizeObserver(resize).observe(canvas);
-  canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); onLost(); });
-  focus('singapore', true);
-  return {
-    render(reduced) {
-      const ease = reduced || dragging ? 1 : .12;
-      world.rotation.x += (targetX - world.rotation.x) * ease;
-      world.rotation.y += (targetY - world.rotation.y) * ease;
-      camera.position.z += (zoom - camera.position.z) * ease;
-      renderer.render(scene, camera);
-    },
-    focus,
-    resize,
-    control(action) { if (action === 'reset') { focus('singapore'); zoom = 7.8; } else changeZoom(action === 'in' ? -.5 : .5); },
-    setTheme(dark) { ambient.intensity = dark ? 1.6 : 2.5; sun.intensity = dark ? 1.4 : 2.3; renderer.render(scene, camera); },
-  };
-}
+export { createAtlas } from './travel-globe.js';

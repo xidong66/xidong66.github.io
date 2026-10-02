@@ -1,9 +1,11 @@
+import { travelPlaces } from './travel-data.js';
+
 const $ = selector => document.querySelector(selector);
 const t = (key, fallback) => window.SitePreferences?.t(key) ?? fallback;
 const scene = $('#desk-scene'), status = $('#scene-status'), hint = $('#object-hint');
 const atlasDialog = $('#atlas-dialog'), signalDialog = $('#signal-dialog');
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
-const places = {
+const educationPlaces = {
   singapore: { lat: 1.3521, lon: 103.8198, countryKey: 'atlas.countrySingapore', cityKey: 'atlas.singapore', descriptionKey: 'atlas.descriptionSingapore',
     country: 'SINGAPORE', city: 'Singapore', description: 'National University of Singapore (NUS) · PhD student · 2027 – Present.', url: 'https://www.nus.edu.sg/' },
   shenyang: { lat: 41.8057, lon: 123.4315, country: 'CHINA', city: 'Shenyang',
@@ -11,6 +13,11 @@ const places = {
   dundee: { lat: 56.462, lon: -2.9707, country: 'UNITED KINGDOM', city: 'Dundee',
     countryKey: 'atlas.countryUK', cityKey: 'atlas.dundee', descriptionKey: 'atlas.descriptionDundee', description: 'University of Dundee · Degree of Bachelor of Engineering, Biomedical Engineering · 2022 – 2026 · First Class Honours. Joint training with Northeastern University.', url: 'https://www.dundee.ac.uk/' },
 };
+const places = Object.fromEntries(travelPlaces.map(place => [place.id, { ...place, ...educationPlaces[place.id], education: Boolean(educationPlaces[place.id]) }]));
+const benchUrl = new URL('../studio/', import.meta.url), globeUrl = new URL('globe/', benchUrl);
+const directAtlas = document.documentElement.dataset.atlasPage === 'true';
+const photoDialog = $('#photo-dialog');
+let galleryPlace = null, photoIndex = 0, atlasOrigin = null, closingAtlas = false;
 let desk, atlas, graphics, earth, deskLost = false, atlasLost = false;
 let paused = motionQuery.matches, lampOn = false, frozen = false;
 let elapsed = 0, signalTime = 0, lastTime = 0, frameId = 0, selectedPlace = 'singapore';
@@ -75,24 +82,106 @@ window.addEventListener('pointercancel', () => stopDeskHeight());
 window.addEventListener('blur', () => stopDeskHeight());
 document.querySelectorAll('[data-desk-height]').forEach(button => button.addEventListener('click', () => setDeskHeight(Number(button.dataset.deskHeight))));
 
-function syncPlace(id, immediate = false) {
-  selectedPlace = id;
-  const place = places[id];
-  $('#place-country').textContent = t(place.countryKey, place.country);
-  $('#place-city').textContent = t(place.cityKey, place.city);
-  $('#place-description').textContent = t(place.descriptionKey, place.description);
-  $('#place-link').href = place.url;
-  document.querySelectorAll('[data-place]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.place === id)));
-  atlas?.focus(id, immediate || motionQuery.matches);
-  requestFrame();
+const localized = values => values[window.SitePreferences?.language === 'zh' ? 1 : 0];
+const photoCount = place => `${place.photos.length} ${t('travel.photographs', 'PHOTOGRAPHS')}`;
+const photoUrl = photo => new URL(`../${photo.path}`, import.meta.url).href;
+function atlasTitle() { document.title = `${t('travel.atlas', 'Personal atlas')} · Xidong Wu`; }
+function renderPlaceIndex() {
+  const index = $('.place-buttons');
+  if (index.children.length !== travelPlaces.length) index.replaceChildren(...travelPlaces.map(place => {
+    const button = document.createElement('button'); button.type = 'button'; button.dataset.place = place.id; return button;
+  }));
+  for (const button of index.children) button.textContent = `${localized(places[button.dataset.place].names)} · ${places[button.dataset.place].photos.length}`;
+  $('#atlas-summary').textContent = `${travelPlaces.length} ${t('travel.places', 'PLACES')} · ${travelPlaces.reduce((count, place) => count + place.photos.length, 0)} ${t('travel.photographs', 'PHOTOGRAPHS')}`;
 }
+function renderPhoto() {
+  const place = places[galleryPlace]; if (!place || !place.photos.length) return;
+  const photo = place.photos[photoIndex], name = localized(place.names), src = photoUrl(photo);
+  const image = $('#photo-image'); image.alt = `${name} · ${photoIndex + 1} / ${place.photos.length}`;
+  if (image.src !== src) { $('#photo-error').hidden = true; image.src = src; }
+  $('#photo-name').textContent = name;
+  $('#photo-counter').textContent = `${String(photoIndex + 1).padStart(2, '0')} / ${String(place.photos.length).padStart(2, '0')}`;
+  for (const id of ['photo-previous', 'photo-next', 'photo-full-previous', 'photo-full-next']) $(`#${id}`).disabled = place.photos.length < 2;
+  const thumbnails = $('#photo-thumbnails');
+  if (thumbnails.dataset.place !== place.id) {
+    thumbnails.dataset.place = place.id;
+    thumbnails.replaceChildren(...place.photos.map((item, index) => {
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.photo = index;
+      const thumb = document.createElement('img'); thumb.loading = 'lazy'; thumb.decoding = 'async'; thumb.src = photoUrl(item); thumb.alt = ''; button.append(thumb); return button;
+    }));
+  }
+  for (const button of thumbnails.children) {
+    button.setAttribute('aria-pressed', String(Number(button.dataset.photo) === photoIndex));
+    button.setAttribute('aria-label', `${name} · ${Number(button.dataset.photo) + 1} / ${place.photos.length}`);
+  }
+  if (photoDialog.open) {
+    $('#photo-full-image').src = src; $('#photo-full-image').alt = image.alt;
+    $('#photo-full-title').textContent = image.alt; $('#photo-full-caption').textContent = image.alt;
+  }
+}
+function changePhoto(delta) {
+  const place = places[galleryPlace]; if (!place?.photos.length) return;
+  photoIndex = (photoIndex + delta + place.photos.length) % place.photos.length; renderPhoto();
+}
+for (const id of ['photo-previous', 'photo-full-previous']) $(`#${id}`).addEventListener('click', () => changePhoto(-1));
+for (const id of ['photo-next', 'photo-full-next']) $(`#${id}`).addEventListener('click', () => changePhoto(1));
+$('#photo-thumbnails').addEventListener('click', event => {
+  const button = event.target.closest('[data-photo]'); if (button) { photoIndex = Number(button.dataset.photo); renderPhoto(); }
+});
+$('#photo-open').addEventListener('click', () => {
+  if (!places[galleryPlace]?.photos.length) return;
+  returnFocus.set(photoDialog, $('#photo-open')); photoDialog.showModal(); renderPhoto();
+});
+photoDialog.addEventListener('keydown', event => {
+  if (['ArrowLeft', 'ArrowRight'].includes(event.key)) { event.preventDefault(); changePhoto(event.key === 'ArrowRight' ? 1 : -1); }
+});
+$('#photo-image').addEventListener('error', () => { $('#photo-error').hidden = false; });
+$('#photo-image').addEventListener('load', () => { $('#photo-error').hidden = true; });
+$('#postcard-close').addEventListener('click', () => { galleryPlace = null; $('#atlas-postcard').hidden = true; $('#atlas-canvas').focus(); });
+function syncPlace(id, immediate = false, reveal = false) {
+  const place = places[id]; if (!place) return;
+  selectedPlace = id;
+  $('#place-country').textContent = localized(place.countries);
+  $('#place-city').textContent = localized(place.names);
+  $('#place-native').textContent = place.names[window.SitePreferences?.language === 'zh' ? 0 : 1];
+  $('#place-coordinates').textContent = `${Math.abs(place.lat).toFixed(2)}° ${place.lat < 0 ? 'S' : 'N'} / ${Math.abs(place.lon).toFixed(2)}° ${place.lon < 0 ? 'W' : 'E'}`;
+  $('#place-description').textContent = place.descriptionKey ? t(place.descriptionKey, place.description) : t('travel.albumDescription', 'A few moments from my travels, kept in photographs.');
+  $('#place-link').hidden = !place.url; if (place.url) $('#place-link').href = place.url;
+  $('#place-photo-count').textContent = photoCount(place);
+  if (reveal) { if (galleryPlace !== id) photoIndex = 0; galleryPlace = id; $('#atlas-postcard').hidden = false; }
+  if (galleryPlace === id) renderPhoto();
+  document.querySelectorAll('[data-place]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.place === id)));
+  atlas?.focus(id, immediate || motionQuery.matches); requestFrame();
+}
+function showPinHint(id, event) {
+  const tooltip = $('#atlas-pin-hint'); tooltip.hidden = !id;
+  if (!id || !event) return;
+  tooltip.textContent = `${localized(places[id].names)} · ${photoCount(places[id])}`;
+  const rect = $('.atlas-visual').getBoundingClientRect();
+  tooltip.style.left = `${Math.max(8, Math.min(event.clientX - rect.left + 12, rect.width - tooltip.offsetWidth - 8))}px`;
+  tooltip.style.top = `${Math.max(8, event.clientY - rect.top - 36)}px`;
+}
+async function animateAtlas(reverse = false) {
+  if (motionQuery.matches) return;
+  const canvas = $('#atlas-canvas'), rect = canvas.getBoundingClientRect();
+  const origin = atlasOrigin || { x: rect.left + rect.width / 2, y: rect.top + rect.height * .47, size: rect.width * .48 };
+  const small = { transform: `translate(${origin.x - rect.left - rect.width / 2}px, ${origin.y - rect.top - rect.height * .47}px) scale(${Math.min(1, origin.size / (rect.width * .6))})`, opacity: .15 };
+  const full = { transform: 'translate(0, 0) scale(1)', opacity: 1 };
+  const animation = canvas.animate(reverse ? [full, small] : [small, full], { duration: reverse ? 420 : 850, easing: 'cubic-bezier(.22,.8,.25,1)' });
+  try { await animation.finished; } catch { /* A closed or resized panel may cancel the transition. */ }
+}
+async function closeAtlas() {
+  if (closingAtlas || !atlasDialog.open) return;
+  closingAtlas = true; await animateAtlas(true); atlasDialog.close(); closingAtlas = false;
+}
+atlasDialog.addEventListener('cancel', event => { event.preventDefault(); closeAtlas(); });
 
 function initAtlas() {
   if (!atlas && graphics && earth) {
     try {
-      atlas = graphics.createAtlas($('#atlas-canvas'), earth, places, syncPlace, () => {
+      atlas = graphics.createAtlas($('#atlas-canvas'), earth, places, id => syncPlace(id, false, true), () => {
         atlasLost = true; $('#atlas-fallback').hidden = false;
-      });
+      }, showPinHint);
       $('#atlas-canvas').addEventListener('webglcontextrestored', () => { atlasLost = false; $('#atlas-fallback').hidden = true; atlas.resize(); requestFrame(); });
       syncPlace(selectedPlace, true);
       atlas.setTheme(window.SitePreferences?.theme === 'dark');
@@ -101,6 +190,7 @@ function initAtlas() {
   $('#atlas-fallback').hidden = Boolean(atlas && !atlasLost);
   if (!atlas) $('#atlas-canvas').style.visibility = 'hidden';
   else { $('#atlas-canvas').style.visibility = ''; atlas.resize(); }
+  if (atlas && atlasDialog.dataset.entered !== 'true') { atlasDialog.dataset.entered = 'true'; animateAtlas(); }
   requestFrame();
 }
 
@@ -111,12 +201,13 @@ function openDialog(id, source) {
   returnFocus.set(dialog, source || document.activeElement);
   // Only one panel is open at a time, preserving the native dialog focus trap.
   dialogs.forEach(item => { if (item.open) item.close(); });
+  if (id === 'atlas') { atlasOrigin = directAtlas ? null : desk?.getGlobeBounds(); atlasDialog.dataset.entered = 'false'; }
   dialog.showModal();
   desk?.clearHover();
   hint.hidden = true;
   if (id === 'atlas') {
-    if (location.hash !== '#atlas') history.pushState(null, '', '#atlas');
-    initAtlas();
+    if (location.pathname !== globeUrl.pathname) history.pushState(null, '', globeUrl.pathname);
+    atlasTitle(); initAtlas();
   }
   requestFrame();
 }
@@ -140,11 +231,17 @@ document.querySelectorAll('.object-controls [data-action]').forEach(button => {
   button.addEventListener('pointerleave', deactivate);
   button.addEventListener('focus', activate); button.addEventListener('blur', deactivate);
 });
-document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => {
+  const dialog = button.closest('dialog'); if (dialog === atlasDialog) closeAtlas(); else dialog.close();
+}));
 dialogs.forEach(dialog => {
   dialog.addEventListener('close', () => {
-    if (dialog === atlasDialog && location.hash === '#atlas') history.replaceState(null, '', `${location.pathname}${location.search}`);
-    if (!dialogs.some(item => item.open)) returnFocus.get(dialog)?.focus({ preventScroll: true });
+    if (dialog === atlasDialog) {
+      if (directAtlas) { location.assign(benchUrl.href); return; }
+      if (location.pathname === globeUrl.pathname || location.hash === '#atlas') history.replaceState(null, '', benchUrl.pathname);
+      document.title = `${t('studio.documentTitle', 'Research Workbench')} · Xidong Wu`;
+    }
+    if (dialog === photoDialog || !dialogs.some(item => item.open)) returnFocus.get(dialog)?.focus({ preventScroll: true });
     lastTime = 0; requestFrame();
   });
   dialog.addEventListener('click', event => {
@@ -154,7 +251,9 @@ dialogs.forEach(dialog => {
     }
   });
 });
-document.querySelectorAll('[data-place]').forEach(button => button.addEventListener('click', () => syncPlace(button.dataset.place)));
+$('.place-buttons').addEventListener('click', event => {
+  const button = event.target.closest('[data-place]'); if (button) syncPlace(button.dataset.place, false, true);
+});
 document.querySelectorAll('[data-globe]').forEach(button => button.addEventListener('click', () => {
   if (button.dataset.globe === 'reset') syncPlace('singapore');
   atlas?.control(button.dataset.globe); requestFrame();
@@ -267,7 +366,8 @@ function letterInstruction() {
   $('#letter-instruction').textContent = t(key, $('#letter-instruction').textContent);
 }
 function refreshLanguage() {
-  motionLabel(); heightLabel(); signalLabel(); letterInstruction(); syncPlace(selectedPlace, true);
+  renderPlaceIndex(); motionLabel(); heightLabel(); signalLabel(); letterInstruction(); syncPlace(selectedPlace, true);
+  if (atlasDialog.open) atlasTitle();
   if (status.dataset.message) showStatus(status.dataset.message);
   else showStatus('status.loading');
   const feedback = $('#letter-feedback');
@@ -283,7 +383,11 @@ window.addEventListener('xw:themechange', () => {
   requestFrame();
 });
 window.addEventListener('hashchange', () => {
-  if (location.hash === '#atlas') openDialog('atlas');
+  if (location.hash === '#atlas' || location.pathname === globeUrl.pathname) openDialog('atlas');
+  else if (atlasDialog.open) atlasDialog.close();
+});
+window.addEventListener('popstate', () => {
+  if (location.pathname === globeUrl.pathname || location.hash === '#atlas') openDialog('atlas');
   else if (atlasDialog.open) atlasDialog.close();
 });
 
@@ -296,7 +400,7 @@ async function start() {
       stopDeskHeight();
       $('#desk-height-controls').hidden = true;
       showStatus('status.lost');
-    }, heightLabel);
+    }, heightLabel, places);
     $('#desk-canvas').addEventListener('webglcontextrestored', () => {
       deskLost = false; scene.classList.add('ready'); $('#desk-height-controls').hidden = false; desk.restore(); showStatus('status.restored'); requestFrame();
     });
@@ -311,6 +415,6 @@ async function start() {
     if (atlasDialog.open) initAtlas();
   }
 }
-if (location.hash === '#atlas') openDialog('atlas');
+if (directAtlas || location.hash === '#atlas') openDialog('atlas');
 refreshLanguage();
 start();

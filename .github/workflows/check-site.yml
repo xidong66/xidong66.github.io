@@ -25,3 +25,5 @@ jobs:
           node --check js/preferences.js
           node --check js/studio.js
           node --check js/studio-scene.js
+          node --check js/travel-globe.js
+          node --check js/travel-data.js
