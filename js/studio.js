@@ -5,11 +5,11 @@ const atlasDialog = $('#atlas-dialog'), signalDialog = $('#signal-dialog');
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
 const places = {
   singapore: { lat: 1.3521, lon: 103.8198, countryKey: 'atlas.countrySingapore', cityKey: 'atlas.singapore', descriptionKey: 'atlas.descriptionSingapore',
-    country: 'SINGAPORE', city: 'Singapore', description: 'National University of Singapore (NUS) · PhD student. My current academic home.', url: 'https://www.nus.edu.sg/' },
+    country: 'SINGAPORE', city: 'Singapore', description: 'National University of Singapore (NUS) · PhD student · 2027 – Present.', url: 'https://www.nus.edu.sg/' },
   shenyang: { lat: 41.8057, lon: 123.4315, country: 'CHINA', city: 'Shenyang',
-    countryKey: 'atlas.countryChina', cityKey: 'atlas.shenyang', descriptionKey: 'atlas.descriptionShenyang', description: 'Northeastern University · Previous undergraduate studies in Biomedical Engineering, through the joint training programme with Dundee.', url: 'https://www.neu.edu.cn/' },
+    countryKey: 'atlas.countryChina', cityKey: 'atlas.shenyang', descriptionKey: 'atlas.descriptionShenyang', description: 'Northeastern University · Degree of Bachelor of Engineering, Biomedical Engineering · 2022 – 2026 · Grade: 88/100. Joint training with Dundee.', url: 'https://www.neu.edu.cn/' },
   dundee: { lat: 56.462, lon: -2.9707, country: 'UNITED KINGDOM', city: 'Dundee',
-    countryKey: 'atlas.countryUK', cityKey: 'atlas.dundee', descriptionKey: 'atlas.descriptionDundee', description: 'University of Dundee · Previous undergraduate joint training with Northeastern University.', url: 'https://www.dundee.ac.uk/' },
+    countryKey: 'atlas.countryUK', cityKey: 'atlas.dundee', descriptionKey: 'atlas.descriptionDundee', description: 'University of Dundee · Degree of Bachelor of Engineering, Biomedical Engineering · 2022 – 2026 · First Class Honours. Joint training with Northeastern University.', url: 'https://www.dundee.ac.uk/' },
 };
 let desk, atlas, graphics, earth, deskLost = false, atlasLost = false;
 let paused = motionQuery.matches, lampOn = false, frozen = false;

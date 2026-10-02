@@ -36,15 +36,33 @@ a:hover, .footer a:hover { color: var(--xw-ink, #293e46); }
 .sidebar .nav-item a { font-size: .9rem; }
 .publication-status, .author-note { color: var(--xw-muted, #69797d); }
 .author-note { border-color: var(--xw-line, #d4dcd8); }
-.education-table { width: 100%; border-spacing: 0; margin: 0 0 20px; }
-.education-logo { width: 10%; min-width: 65px; vertical-align: top; text-align: center; padding: 3px; }
-.education-mark { display: inline-grid; place-items: center; width: 60px; height: 60px; border: 1px solid var(--xw-line); border-radius: 50%; font: 700 15px Arial,sans-serif; letter-spacing: 1px; color: var(--xw-accent); }
+.education-list { display: grid; gap: 1.75rem; margin: .5rem 0 1.5rem; }
+.education-entry { display: grid; grid-template-columns: 132px minmax(0, 1fr); align-items: center; gap: 24px; }
+.education-logo { position: relative; display: grid; place-items: center; width: 132px; height: 90px; overflow: hidden; background: #fff; border-radius: 8px; }
+.education-logo img { display: block; width: 116px; height: auto; max-height: 74px; object-fit: contain; }
+.education-logo--neu img { width: 72px; }
+/* The supplied NUS image has broad white margins. Show its full mark at the same visual scale as the other logos. */
+.education-logo--nus img { position: absolute; left: 50%; top: 50%; width: 164px; max-width: none; max-height: none; transform: translate(-50%, -50%); }
+.education-details { min-width: 0; }
+.education-school { margin: 0 0 .4rem; font-size: 1rem; line-height: 1.4; }
+.education-details p { margin: .15rem 0; line-height: 1.45; }
+.education-programme { font-size: .9rem; }
+.education-specialism, .education-result, .education-period { font-size: .85rem; }
+.education-details .education-period { margin-top: .4rem; color: var(--xw-muted); font-variant-numeric: tabular-nums; }
 #citation-dialog, #citation-text { background: var(--xw-paper, #fff); color: var(--xw-ink, #002147); border-color: var(--xw-line); }
 #citation-dialog button { padding: 8px 16px; border: 1px solid var(--xw-line); background: var(--xw-paper); color: var(--xw-ink); }
 .skip-link { background: var(--xw-paper); }
 html[data-theme=dark] .sidebar { background: #192e3a; }
 html[data-theme=dark] .sidebar h1.brand-title, html[data-theme=dark] .sidebar .brand-tagline, html[data-theme=dark] .sidebar .nav-item a { color: #d8e8ed; }
 html[data-theme=dark] .profile-photo { filter: brightness(.9); }
-html[data-theme=dark] .journal-item img, html[data-theme=dark] #education img { background: #e9eeea; border-radius: 3px; }
+html[data-theme=dark] .journal-item img { background: #e9eeea; border-radius: 3px; }
 html[lang=zh-CN] h1.brand-title { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; font-size: 3.4rem; }
-@media(max-width:30rem) { .education-logo { width: 70px; } .education-table td { font-size: .85rem; } }
+@media(max-width:30rem) {
+ .education-entry { grid-template-columns: 90px minmax(0, 1fr); gap: 14px; }
+ .education-logo { width: 90px; height: 68px; }
+ .education-logo img { width: 82px; max-height: 56px; }
+ .education-logo--neu img { width: 56px; }
+ .education-logo--nus img { width: 112px; max-height: none; }
+ .education-school { font-size: .9rem; }
+ .education-programme, .education-specialism, .education-result, .education-period { font-size: .8rem; }
+}
