@@ -168,7 +168,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   box(computer, [2.1, 1.63, .1], [0, 1.15, .42], 0xb8cac9);
   box(computer, [1.83, 1.22, .04], [0, 1.22, .486], C.dark);
   const terminal = drawing(640, 420);
-  panel(computer, [1.72, 1.11], [0, 1.24, .511], terminal.texture);
+  const computerScreen = panel(computer, [1.72, 1.11], [0, 1.24, .511], terminal.texture);
   for (let i = 0; i < 6; i++) box(computer, [.028, .15, .04], [-.66 + i * .065, .53, .49], C.ink);
   cylinder(computer, .045, .035, [.81, .55, .51], C.blue).rotation.x = Math.PI / 2;
   const keyboard = object('keyboard', 'Keyboard / research terminal', [-.6, 2.89, 1.35]);
@@ -327,6 +327,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   desk.traverse(node => { if (node.isMesh) surfaces.push(node); });
   let hovered = null, focused = null;
   function pick(event) {
+    if (portalRect) return null;
     const rect = canvas.getBoundingClientRect();
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
@@ -338,6 +339,42 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     return object;
   }
   let pressed = null;
+  let cameraFlight = null, portalRect = null, homeView = null, cameraFocus = null;
+  const benchPosition = camera.position.clone(), benchQuaternion = camera.quaternion.clone();
+  function cameraPose(position, target, up, zoom) {
+    const sample = new THREE.OrthographicCamera(); sample.position.copy(position); sample.up.copy(up); sample.lookAt(target);
+    return { position, quaternion: sample.quaternion.clone(), up, zoom };
+  }
+  function flyCamera(to, immediate = false, duration = 950) {
+    cameraFlight?.resolve(false); cameraFlight = null;
+    if (immediate) { camera.position.copy(to.position); camera.quaternion.copy(to.quaternion); camera.up.copy(to.up); camera.zoom = to.zoom; camera.updateProjectionMatrix(); renderer.render(scene, camera); return Promise.resolve(true); }
+    return new Promise(resolve => {
+      cameraFlight = { from: { position: camera.position.clone(), quaternion: camera.quaternion.clone(), zoom: camera.zoom }, to, start: performance.now(), duration, resolve };
+    });
+  }
+  function advanceCamera() {
+    if (!cameraFlight) return;
+    const flight = cameraFlight, progress = Math.min(1, (performance.now() - flight.start) / flight.duration);
+    const ease = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+    camera.position.lerpVectors(flight.from.position, flight.to.position, ease);
+    camera.quaternion.slerpQuaternions(flight.from.quaternion, flight.to.quaternion, ease);
+    camera.zoom = THREE.MathUtils.lerp(flight.from.zoom, flight.to.zoom, ease); camera.updateProjectionMatrix();
+    if (progress === 1) { camera.up.copy(flight.to.up); cameraFlight = null; flight.resolve(true); }
+  }
+  function framingZoom(width, height) { return (camera.right - camera.left) / Math.max(width, height * canvas.clientWidth / canvas.clientHeight); }
+  function homePose() {
+    const rect = canvas.getBoundingClientRect(), original = portalRect;
+    const pixels = original.width / original.span, right = new THREE.Vector3(1, 0, 0).applyQuaternion(benchQuaternion), up = new THREE.Vector3(0, 1, 0).applyQuaternion(benchQuaternion);
+    const shift = right.multiplyScalar((rect.left + rect.width / 2 - original.left - original.width / 2) / pixels)
+      .add(up.multiplyScalar((original.top + original.height / 2 - rect.top - rect.height / 2) / pixels));
+    return { position: benchPosition.clone().add(shift), quaternion: benchQuaternion.clone(), up: new THREE.Vector3(0, 1, 0), zoom: (camera.right - camera.left) / (rect.width / pixels) };
+  }
+  function screenRect() {
+    scene.updateMatrixWorld(true); const rect = canvas.getBoundingClientRect();
+    const corners = [[-.86, -.555, 0], [.86, .555, 0]].map(p => computerScreen.localToWorld(new THREE.Vector3(...p)).project(camera));
+    return { x: rect.left + (corners[0].x + 1) * rect.width / 2, y: rect.top + (1 - corners[1].y) * rect.height / 2,
+      width: (corners[1].x - corners[0].x) * rect.width / 2, height: (corners[1].y - corners[0].y) * rect.height / 2 };
+  }
   const isHeightArrow = group => ['desk-up', 'desk-down'].includes(group?.userData.action);
   function cancelPress() {
     const heldHeight = isHeightArrow(pressed?.[2]);
@@ -383,6 +420,8 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     camera.left = -horizontalSpan / 2; camera.right = horizontalSpan / 2;
     camera.top = horizontalSpan / aspect / 2; camera.bottom = -camera.top;
     camera.updateProjectionMatrix();
+    if (portalRect && cameraFocus && !cameraFlight) camera.zoom = framingZoom(...({ projects: [2.7, 2.15], atlas: [2.25, 2.35], letter: [3.2, 3] }[cameraFocus]));
+    camera.updateProjectionMatrix();
     renderer.render(scene, camera);
   }
   new ResizeObserver(resize).observe(canvas); resize();
@@ -390,6 +429,7 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
   return {
     render(time, rate, delta = 1 / 30, reduced = false) {
       interactionAnimating = false;
+      advanceCamera();
       advanceHeightHold();
       const difference = targetHeight - height;
       if (difference) {
@@ -416,11 +456,29 @@ export function createDesk(canvas, earth, onAction, onHover, onLost, onHeight = 
     getGlobeBounds() {
       scene.updateMatrixWorld(true);
       const point = smallEarth.getWorldPosition(new THREE.Vector3()).project(camera), rect = canvas.getBoundingClientRect();
-      const radius = .65 / (camera.right - camera.left) * rect.width;
+      const radius = .65 * camera.zoom / (camera.right - camera.left) * rect.width;
       return { x: rect.left + (point.x + 1) * rect.width / 2, y: rect.top + (1 - point.y) * rect.height / 2, size: radius * 2 };
     },
     get targetHeight() { return targetHeight; },
-    get isAnimating() { return Boolean(heightDirection) || height !== targetHeight || interactionAnimating; },
+    get isAnimating() { return Boolean(cameraFlight || heightDirection) || height !== targetHeight || interactionAnimating; },
+    get isCameraAnimating() { return Boolean(cameraFlight); },
+    getScreenRect: screenRect,
+    beginPortal() { const rect = canvas.getBoundingClientRect(); portalRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height, span: camera.right - camera.left }; },
+    matchPortal() { resize(); homeView = homePose(); return flyCamera(homeView, true); },
+    focusObject(action, immediate = false) {
+      cameraFocus = action; scene.updateMatrixWorld(true);
+      const up = new THREE.Vector3(0, 1, 0); let target, position;
+      if (action === 'projects') { target = computerScreen.getWorldPosition(new THREE.Vector3()); position = target.clone().add(new THREE.Vector3(0, 0, 13)); }
+      else if (action === 'atlas') { target = smallEarth.getWorldPosition(new THREE.Vector3()); position = target.clone().add(new THREE.Vector3(0, .45, 13)); }
+      else { target = envelope.getWorldPosition(new THREE.Vector3()); position = target.clone().add(new THREE.Vector3(0, 12, .02)); up.set(0, 0, -1); }
+      return flyCamera(cameraPose(position, target, up, framingZoom(...({ projects: [2.7, 2.15], atlas: [2.25, 2.35], letter: [3.2, 3] }[action]))), immediate);
+    },
+    returnToBench(immediate = false) { cameraFocus = null; return flyCamera(homeView || { position: benchPosition, quaternion: benchQuaternion, up: new THREE.Vector3(0, 1, 0), zoom: 1 }, immediate, 850); },
+    endPortal() { cameraFocus = null; portalRect = null; homeView = null; cameraFlight?.resolve(false); cameraFlight = null; camera.position.copy(benchPosition); camera.quaternion.copy(benchQuaternion); camera.up.set(0, 1, 0); camera.zoom = 1; resize(); },
+    playEntrance(immediate = false) {
+      if (!immediate) { camera.position.set(16, 12, 19); camera.lookAt(0, 2.7, 0); camera.zoom = .7; }
+      return flyCamera({ position: benchPosition, quaternion: benchQuaternion, up: new THREE.Vector3(0, 1, 0), zoom: 1 }, immediate, 1200);
+    },
     startHeight(direction) {
       heightDirection = Math.sign(direction); heightHoldTime = performance.now(); targetHeight = height;
       onHeight(height, targetHeight);

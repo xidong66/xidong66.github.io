@@ -20,6 +20,11 @@
   </script>
  </head>
  <body>
+  <dialog aria-label="Welcome to the research studio" class="studio-entrance" data-phase="greeting" id="studio-entrance">
+   <div class="entrance-name"><p class="entrance-hello" data-i18n="entrance.hello">Hello</p><p class="entrance-introducing" data-i18n="entrance.introducing">I'm</p><p aria-live="off" class="entrance-word">Hello</p></div>
+   <button data-i18n="entrance.skip" id="entrance-skip" type="button">Skip intro ↗</button>
+  </dialog>
+  <div class="view-transition" hidden="" id="view-transition"><span id="view-transition-label">Moving closer…</span><button data-i18n="entrance.cancel" id="view-transition-cancel" type="button">Cancel</button></div>
   <a class="skip-link" data-i18n="studio.skip" href="#workbench">
    Skip to workbench
   </a>
@@ -311,118 +316,56 @@ Type help to get started.</pre>
    </form>
   </dialog>
   <dialog aria-labelledby="letter-title" class="letter-dialog" data-state="draft" id="letter-dialog">
-   <button aria-label="Close letter" class="close-button" data-close="" data-i18n-aria-label="a11y.letter" type="button">
-    ×
-   </button>
-   <div class="letter-layout">
+   <div class="letter-bar">
+    <span class="letter-bar-title"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path d="M3 6h18v13H3ZM3 6l9 7 9-7M3 19l6-6M21 19l-6-6" fill="none" stroke="currentColor" stroke-width="1.2"/></svg><span data-i18n="letter.eyebrow">A LITTLE LETTER</span></span>
+    <div class="site-preferences letter-preferences" hidden="">
+     <div aria-label="Color theme" class="preference-group" data-i18n-aria-label="control.palette" role="group"><button aria-pressed="true" data-i18n="control.light" data-theme-choice="light" type="button">Light</button><span aria-hidden="true">|</span><button aria-pressed="false" data-i18n="control.dark" data-theme-choice="dark" type="button">Dark</button></div>
+     <div aria-label="Language" class="preference-group" data-i18n-aria-label="control.language" role="group"><button aria-pressed="true" data-language="en" lang="en" type="button">EN</button><span aria-hidden="true">|</span><button aria-pressed="false" data-language="zh" lang="zh-CN" type="button">中</button></div>
+    </div>
+    <button aria-label="Close letter" class="letter-back" data-close="" data-i18n-aria-label="a11y.letter" type="button"><span data-i18n="stationery.back">Back</span><span aria-hidden="true">×</span></button>
+   </div>
+   <div class="letter-layout" id="letter-draft-layout">
     <div class="letter-intro">
-     <p class="eyebrow" data-i18n="letter.eyebrow">
-      A LITTLE LETTER / 一封小信
-     </p>
-     <h2 id="letter-title">
-      <span data-i18n="letter.good">
-       Good ideas
-      </span>
-      <br/>
-      <span data-i18n="letter.start">
-       start with
-      </span>
-      <em data-i18n="letter.hello">
-       hello.
-      </em>
-     </h2>
-     <p class="dialog-lead" data-i18n="letter.intro">
-      A research question, a collaboration, or just a hello. There is room for all of them.
-     </p>
-     <p class="letter-instruction" id="letter-instruction">
-      Write a note, fold it, then finish sending in your email app.
-     </p>
+     <p class="eyebrow" data-i18n="stationery.note">01 / A NOTE</p>
+     <h2 data-i18n="stationery.title" id="letter-title">A few words,
+a good beginning.</h2>
+     <p class="dialog-lead" data-i18n="stationery.intro">An idea, a question, or a little hello. Make yourself at home.</p>
+     <svg aria-hidden="true" class="letter-scribble" width="150" height="70" viewBox="0 0 150 70"><path d="M7 17c1 47 65 44 65 19 0-33-31-22-24-4 7 18 45 9 82 2m-15-7 15 7-12 13" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>
     </div>
     <div class="letter-desk">
      <form class="letter-paper" id="letter-form">
-      <div class="letter-recipient">
-       <div>
-        <span class="eyebrow" data-i18n="letter.to">
-         TO / 收件人
-        </span>
-        <p>
-         xidong03@163.com
-        </p>
-       </div>
-       <span aria-hidden="true" class="monogram">
-        xw
-        <span>
-         .
-        </span>
-       </span>
-      </div>
-      <label class="letter-subject-label" data-i18n="letter.subject" for="letter-subject">
-       SUBJECT / 主题
-      </label>
-      <input data-i18n-placeholder="letter.subjectPlaceholder" id="letter-subject" maxlength="120" name="subject" placeholder="What is on your mind?" required="" type="text"/>
-      <p class="letter-greeting" data-i18n="letter.greeting">
-       Hi Xidong,
-      </p>
-      <label class="sr-only" data-i18n="letter.bodyLabel" for="letter-body">
-       Your message / 信的正文
-      </label>
+      <div class="letter-recipient"><div><span class="eyebrow" data-i18n="letter.to">TO</span><p>xidong03@163.com</p></div><span aria-hidden="true" class="monogram">xw<span>.</span></span></div>
+      <div class="letter-subject-row"><label class="letter-subject-label" data-i18n="letter.subject" for="letter-subject">SUBJECT</label><input data-i18n-placeholder="letter.subjectPlaceholder" id="letter-subject" maxlength="120" name="subject" placeholder="What is on your mind?" required="" type="text"/></div>
+      <p class="letter-greeting" data-i18n="letter.greeting">Hi Xidong,</p>
+      <label class="sr-only" data-i18n="letter.bodyLabel" for="letter-body">Your message</label>
       <textarea data-i18n-placeholder="letter.bodyPlaceholder" id="letter-body" maxlength="2000" name="body" placeholder="I have been thinking about…" required=""></textarea>
-      <div class="letter-meta">
-       <span data-i18n="letter.short">
-        A few words are enough.
-       </span>
-       <output for="letter-body" id="letter-count">
-        0 / 2000
-       </output>
-      </div>
-      <button class="letter-primary" data-i18n="letter.fold" data-i18n-mode="text" type="submit">
-       Fold the letter / 把信折好
-       <span aria-hidden="true">
-        ↗
-       </span>
-      </button>
+      <p class="letter-signoff" data-i18n="stationery.signoff">Looking forward to hearing from you,</p><span aria-hidden="true" class="signature-line"></span>
+      <div class="letter-meta"><span data-i18n="letter.short">A few words are enough.</span><output for="letter-body" id="letter-count">0 / 2000</output></div>
      </form>
-     <div class="sealed-letter" hidden="" id="sealed-letter">
-      <div aria-hidden="true" class="paper-envelope">
-       <div class="envelope-fold">
-       </div>
-       <span class="wax-seal">
-        xw.
-       </span>
-       <span class="envelope-address" data-i18n="letter.address">
-        TO XIDONG WU
-       </span>
-      </div>
-      <p class="eyebrow" data-i18n="letter.ready">
-       READY FOR YOUR EMAIL APP
-      </p>
-      <h3 id="sealed-subject">
-      </h3>
-      <p class="dialog-lead" data-i18n="letter.readyHelp">
-       Your letter is folded. Open your email app to review it and send.
-      </p>
-      <a class="letter-primary" data-i18n="letter.open" href="mailto:xidong03@163.com" id="letter-mailto">
-       Open email app / 打开邮件应用 ↗
-      </a>
-      <div class="letter-secondary">
-       <button data-i18n="letter.edit" id="letter-edit" type="button">
-        Unfold &amp; edit / 展开修改
-       </button>
-       <button data-i18n="letter.copy" id="letter-copy" type="button">
-        Copy letter / 复制信件
-       </button>
-      </div>
-      <p class="letter-feedback" id="letter-feedback" role="status">
-      </p>
-      <textarea aria-label="Letter text for manual copying" class="manual-copy" data-i18n-aria-label="letter.copyLabel" hidden="" id="letter-copy-text" readonly=""></textarea>
-     </div>
     </div>
+    <div aria-hidden="true" class="pencil-display"><svg width="80" height="320" viewBox="0 0 80 320"><defs><linearGradient id="pencil-shade"><stop stop-color="#d6d9cc"/><stop offset=".5" stop-color="#fffef6"/><stop offset="1" stop-color="#d9ddcf"/></linearGradient></defs><g transform="rotate(10 40 160)"><path d="M27 24 40 15 53 24 53 258 40 292 27 258Z" fill="url(#pencil-shade)" stroke="#a9b2a3" stroke-width=".8"/><path d="M27 24 40 30 53 24 51 10 40 4 29 10Z" fill="#56624b"/><path d="M27 258 40 266 53 258 40 292Z" fill="#efeddf" stroke="#b8bda9" stroke-width=".8"/><path d="m37 283 3 12 3-12Z" fill="#3e4e43"/><path d="M40 30v235" stroke="#c4cabd" stroke-width=".8"/></g><ellipse cx="40" cy="308" rx="20" ry="3" fill="#9ba995" opacity=".12"/></svg><span>a little hello.</span></div>
    </div>
+   <div class="letter-draft-actions" id="letter-draft-actions"><div aria-hidden="true" class="desk-eraser"><span></span></div><p data-i18n="stationery.foldHelp">Fold your note, then leave your mark.</p><button class="letter-primary" data-i18n="letter.fold" form="letter-form" id="letter-fold-button" type="submit">Fold the letter ↗</button></div>
+   <div class="sealed-letter" hidden="" id="sealed-letter">
+    <div class="seal-intro"><p class="eyebrow" data-i18n="stationery.sealStep">02 / YOUR SEAL</p><h2 data-i18n="stationery.sealTitle">Leave a little mark.</h2><p data-i18n="stationery.dragHelp">Drag the stamp onto the wax and release.</p></div>
+    <div aria-hidden="true" class="postal-envelope" id="postal-envelope">
+     <div class="envelope-back"><div class="envelope-lining"></div><div class="envelope-left"></div><div class="envelope-right"></div><div class="envelope-bottom"></div><div class="postal-flap" id="postal-flap"></div><span class="postal-wax" id="wax-target"><span id="wax-impression">xw.</span></span></div>
+     <div class="envelope-front"><span class="envelope-micro">A LITTLE CORRESPONDENCE / XW</span><span class="postage-stamp">✳<small>XW · POST</small></span><span class="envelope-to" data-i18n="letter.to">TO</span><strong>xidong03@163.com</strong><span class="envelope-dedication">a little hello, from me to you.</span><div class="postal-mark" id="postal-mark"><span>WUXIDONG · POST</span><time id="letter-post-date"></time><span>WITH CARE</span></div></div>
+    </div>
+    <button aria-label="Drag the stamp onto the wax" class="stamp-tool" data-i18n-aria-label="stationery.dragStamp" id="letter-stamp-tool" type="button"><svg aria-hidden="true" width="82" height="146" viewBox="0 0 82 146"><defs><linearGradient id="stamp-handle"><stop stop-color="#3c463a"/><stop offset=".4" stop-color="#69715b"/><stop offset="1" stop-color="#333d32"/></linearGradient><linearGradient id="stamp-metal"><stop stop-color="#869598"/><stop offset=".42" stop-color="#e4ebec"/><stop offset=".65" stop-color="#c1cecc"/><stop offset="1" stop-color="#6b7c7f"/></linearGradient></defs><ellipse cx="41" cy="139" rx="26" ry="4" fill="#293e46" opacity=".13"/><path d="M30 112V78C30 65 18 53 18 32 18 4 64 4 64 32 64 53 52 65 52 78v34Z" fill="url(#stamp-handle)" stroke="#414c3e" stroke-width=".8"/><path d="M30 22c-5 13-4 25 2 32" fill="none" stroke="#b4c1aa" stroke-width="1.5" opacity=".5"/><path d="m19 109-6 24q28 13 56 0l-6-24q-22-8-44 0Z" fill="url(#stamp-metal)" stroke="#829293" stroke-width="1"/><ellipse cx="41" cy="133" rx="28" ry="7" fill="#738485"/></svg></button>
+    <div class="seal-actions" id="seal-actions"><button data-i18n="letter.edit" id="letter-edit" type="button">Unfold &amp; edit</button><span aria-hidden="true">/</span><button data-i18n="stationery.stamp" id="letter-stamp" type="button">Stamp &amp; release the pigeon ↗</button></div>
+    <div class="seal-result" hidden="" id="seal-result"><p class="eyebrow" data-i18n="stationery.deliveryStep">03 / A LITTLE FLIGHT</p><h3 data-i18n="stationery.departed" id="letter-delivery-title">The carrier is on its way.</h3><p class="dialog-lead" data-i18n="letter.readyHelp">Open your email app, review your letter, and send.</p><h4 id="sealed-subject"></h4><a class="letter-primary" data-i18n="letter.open" href="mailto:xidong03@163.com" id="letter-mailto">Open email app ↗</a><div class="letter-secondary"><button data-i18n="letter.copy" id="letter-copy" type="button">Copy letter</button><button data-i18n="stationery.replay" id="letter-replay" type="button">Watch the flight again</button><button data-i18n="letter.edit" id="letter-edit-again" type="button">Unfold &amp; edit</button></div><p class="letter-feedback" id="letter-feedback" role="status"></p><textarea aria-label="Letter text for manual copying" class="manual-copy" data-i18n-aria-label="letter.copyLabel" hidden="" id="letter-copy-text" readonly=""></textarea></div>
+   </div>
+   <div aria-hidden="true" class="letter-fold-layer" hidden="" id="letter-fold-layer"></div>
+   <div aria-hidden="true" class="carrier-pigeon" hidden="" id="carrier-pigeon"><svg width="220" height="170" viewBox="0 0 220 170"><defs><linearGradient id="pigeon-body"><stop stop-color="#fbfcf7"/><stop offset="1" stop-color="#c3cfc5"/></linearGradient></defs><g class="pigeon-wing pigeon-wing-back"><path d="M103 90 23 4 8 45 45 86 83 111Z" fill="#c3cec4" stroke="#7d948b" stroke-width="1"/><path d="m23 4 28 60 32 38M8 45l58 44" fill="none" stroke="#e8eee6" stroke-width="2"/></g><path d="m64 104-51 20 44 9 35-23Z" fill="#bac7bd" stroke="#7d948b" stroke-width="1"/><path d="M60 99q28-48 66-26l31-13 17 17-26 37q-35 26-76 4Z" fill="url(#pigeon-body)" stroke="#7d948b" stroke-width="1"/><path d="m114 86 37-45q19-18 34-7l8 27-32 19-10 32Z" fill="#edf1e9" stroke="#7d948b" stroke-width="1"/><path d="m193 52 18 9-18 6Z" fill="#b59675" stroke="#8a806b" stroke-width="1"/><circle cx="181" cy="47" r="3" fill="#354d4b"/><circle cx="182" cy="46" r=".8" fill="#fff"/><path d="m153 84 17-13M143 89l22-17" stroke="#8ba6a0" stroke-width="3" opacity=".6"/><g class="pigeon-wing pigeon-wing-front"><path d="M121 99 49 21 20 54 51 95 86 117Z" fill="#f7f8f0" stroke="#7d948b" stroke-width="1"/><path d="m49 21 30 64 21 18M20 54l57 42M30 68l45 33" fill="none" stroke="#bccabf" stroke-width="1.3"/></g><path d="m106 124-5 15m16-18-5 18m-17-1 11 1m1-1 11 1" fill="none" stroke="#b6997c" stroke-width="2"/><g id="pigeon-cargo" opacity="0"><path d="M82 138h44v27H82Z" fill="#f4eddb" stroke="#a7997b"/><path d="m82 138 22 15 22-15m-44 27 15-14m29 14-15-14" fill="none" stroke="#bbaf94"/><circle cx="104" cy="153" r="4" fill="#b7a676"/></g></svg></div>
+   <p class="letter-instruction" id="letter-instruction" role="status">Write a note, fold it, then finish sending in your email app.</p>
+   <div class="letter-footer"><span data-i18n="stationery.footer">From your corner of the world to mine.</span><span data-i18n="stationery.persist">Your words stay here until you leave or reload.</span></div>
   </dialog>
   <dialog aria-labelledby="projects-title" class="detail-dialog" id="projects-dialog">
    <button aria-label="Close projects" class="close-button" data-close="" data-i18n-aria-label="a11y.projects" type="button">
-    ×
+    <span data-i18n="entrance.back">← Back to the desk</span>
    </button>
+   <div class="monitor-content" id="monitor-content">
    <p class="eyebrow" data-i18n="studio.atComputer">
     ON THE COMPUTER
    </p>
@@ -481,6 +424,7 @@ Type help to get started.</pre>
       </span>
      </div>
     </a>
+   </div>
    </div>
   </dialog>
   <dialog aria-labelledby="signal-title" class="detail-dialog" id="signal-dialog">

@@ -27,3 +27,6 @@ jobs:
           node --check js/studio-scene.js
           node --check js/travel-globe.js
           node --check js/travel-data.js
+          node --check js/studio-animation.js
+          node --check js/studio-entrance.js
+          node --check js/studio-letter.js

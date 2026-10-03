@@ -21,6 +21,9 @@ studio/index.html           交互式研究工作台（/studio/）
 css/studio.css              工作台与地球仪布局
 js/studio.js                工作台弹窗、交互和动画控制
 js/studio-scene.js          原创 Three.js 桌面、地球仪和合成 ECG
+js/studio-entrance.js       多语言问候入场与书桌镜头
+js/studio-letter.js         折纸、火漆盖戳和信鸽送信动画
+js/studio-animation.js      可取消且支持减少动态效果的动画工具
 js/vendor/three/            本地 Three.js 0.180.0 与 MIT 许可证
 assets/studio/              Natural Earth 公共领域地图数据
 assets/bibtex/              可下载的 BibTeX 引用，每篇论文一个文件
@@ -74,6 +77,9 @@ node --check js/preferences-init.js
 node --check js/preferences.js
 node --check js/studio.js
 node --check js/studio-scene.js
+node --check js/studio-entrance.js
+node --check js/studio-letter.js
+node --check js/studio-animation.js
 node --check js/travel-globe.js
 node --check js/travel-data.js
 ```

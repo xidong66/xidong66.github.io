@@ -1,4 +1,6 @@
 import { travelPlaces } from './travel-data.js';
+import { createStudioEntrance } from './studio-entrance.js';
+import { createLetterComposer } from './studio-letter.js';
 
 const $ = selector => document.querySelector(selector);
 const t = (key, fallback) => window.SitePreferences?.t(key) ?? fallback;
@@ -24,6 +26,32 @@ let elapsed = 0, signalTime = 0, lastTime = 0, frameId = 0, selectedPlace = 'sin
 let heightHoldSource = null;
 const returnFocus = new WeakMap();
 const dialogs = [...document.querySelectorAll('dialog')];
+let viewToken = 0, portalPanel = null, viewBusy = false;
+let returningFromAtlas = false;
+try { returningFromAtlas = sessionStorage.getItem('xw.studioReturn') === '1'; sessionStorage.removeItem('xw.studioReturn'); } catch { /* Navigation works without storage. */ }
+const entrance = createStudioEntrance({ dialog: $('#studio-entrance'), motion: motionQuery,
+  skip: directAtlas || location.hash === '#atlas' || returningFromAtlas, requestFrame, translate: t });
+
+function alignMonitor() {
+  if (portalPanel !== 'projects' || !desk || deskLost) return;
+  const rect = desk.getScreenRect(), panel = $('#monitor-content');
+  Object.assign(panel.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` });
+}
+async function returnCamera() {
+  if (!portalPanel) return;
+  const ticket = ++viewToken; viewBusy = true; portalPanel = null;
+  $('#view-transition').hidden = true; const flight = desk?.returnToBench(motionQuery.matches || deskLost); requestFrame();
+  await flight; if (ticket !== viewToken) return;
+  scene.classList.remove('is-cinematic'); document.documentElement.classList.remove('studio-focus');
+  $('#monitor-content').removeAttribute('style');
+  desk?.endPortal(); document.documentElement.dataset.view = 'bench'; viewBusy = false; requestFrame();
+}
+async function cancelView() {
+  if (!viewBusy || !portalPanel) return;
+  await returnCamera();
+}
+$('#view-transition-cancel').addEventListener('click', cancelView);
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && viewBusy && portalPanel) { event.preventDefault(); cancelView(); } });
 
 function motionLabel() {
   $('#motion-toggle').textContent = paused ? t('studio.resume', 'Resume motion') : t('studio.pause', 'Pause motion');
@@ -194,15 +222,30 @@ function initAtlas() {
   requestFrame();
 }
 
-function openDialog(id, source) {
+async function openDialog(id, source) {
   const dialog = $(`#${id}-dialog`);
-  if (!dialog || dialog.open) return;
+  if (!dialog || dialog.open || viewBusy) return;
   stopDeskHeight();
+  entrance.skip();
   returnFocus.set(dialog, source || document.activeElement);
   // Only one panel is open at a time, preserving the native dialog focus trap.
   dialogs.forEach(item => { if (item.open) item.close(); });
+  if (['projects', 'atlas', 'letter'].includes(id) && desk && !deskLost && !directAtlas) {
+    const ticket = ++viewToken; viewBusy = true; portalPanel = id;
+    desk.clearHover(); desk.beginPortal(); scene.classList.add('is-cinematic'); document.documentElement.classList.add('studio-focus');
+    document.documentElement.dataset.view = `moving-${id}`; desk.matchPortal();
+    $('#view-transition-label').textContent = t(`entrance.${id}`, 'Moving closer…'); $('#view-transition').hidden = false;
+    const flight = desk.focusObject(id, motionQuery.matches); requestFrame(); await flight;
+    if (ticket !== viewToken) return;
+    $('#view-transition').hidden = true; viewBusy = false; document.documentElement.dataset.view = id;
+    if (id === 'projects') alignMonitor();
+  }
   if (id === 'atlas') { atlasOrigin = directAtlas ? null : desk?.getGlobeBounds(); atlasDialog.dataset.entered = 'false'; }
   dialog.showModal();
+  if (id === 'letter') {
+    const paper = $('#letter-form');
+    if (!motionQuery.matches && !paper.hidden) paper.animate([{ opacity: 0, transform: 'perspective(1000px) rotateX(32deg) scale(.62) translateY(90px)' }, { opacity: 1, transform: 'perspective(1000px) rotateX(0) scale(1) translateY(0)' }], { duration: 900, easing: 'cubic-bezier(.22,.8,.25,1)' });
+  }
   desk?.clearHover();
   hint.hidden = true;
   if (id === 'atlas') {
@@ -236,11 +279,13 @@ document.querySelectorAll('[data-close]').forEach(button => button.addEventListe
 }));
 dialogs.forEach(dialog => {
   dialog.addEventListener('close', () => {
+    if (dialog.open) return;
     if (dialog === atlasDialog) {
-      if (directAtlas) { location.assign(benchUrl.href); return; }
+      if (directAtlas) { try { sessionStorage.setItem('xw.studioReturn', '1'); } catch { /* Optional entrance skip. */ } location.assign(benchUrl.href); return; }
       if (location.pathname === globeUrl.pathname || location.hash === '#atlas') history.replaceState(null, '', benchUrl.pathname);
       document.title = `${t('studio.documentTitle', 'Research Workbench')} · Xidong Wu`;
     }
+    if (portalPanel === dialog.id.replace('-dialog', '')) returnCamera().then(() => returnFocus.get(dialog)?.focus({ preventScroll: true }));
     if (dialog === photoDialog || !dialogs.some(item => item.open)) returnFocus.get(dialog)?.focus({ preventScroll: true });
     lastTime = 0; requestFrame();
   });
@@ -284,40 +329,7 @@ $('#terminal-form').addEventListener('submit', event => {
   requestFrame();
 });
 
-const letterForm = $('#letter-form'), sealedLetter = $('#sealed-letter');
-function letterText() { return `To: xidong03@163.com\nSubject: ${$('#letter-subject').value.trim()}\n\n${$('#letter-body').value}`; }
-$('#letter-body').addEventListener('input', event => { $('#letter-count').value = `${event.target.value.length} / 2000`; });
-letterForm.addEventListener('submit', event => {
-  event.preventDefault();
-  const subject = $('#letter-subject').value.trim(), body = $('#letter-body').value;
-  if (!subject || !body.trim()) {
-    const field = !subject ? $('#letter-subject') : $('#letter-body');
-    field.setCustomValidity(t('letter.validation', 'Please write a few words.')); field.reportValidity(); return;
-  }
-  $('#sealed-subject').textContent = subject;
-  $('#letter-mailto').href = `mailto:xidong03@163.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  $('#letter-dialog').dataset.state = 'sealed'; letterForm.hidden = true; sealedLetter.hidden = false;
-  letterInstruction();
-  $('#letter-feedback').textContent = ''; $('#letter-copy-text').hidden = true;
-  $('#letter-mailto').focus({ preventScroll: true });
-});
-['#letter-subject', '#letter-body'].forEach(selector => $(selector).addEventListener('input', event => event.target.setCustomValidity('')));
-$('#letter-edit').addEventListener('click', () => {
-  $('#letter-dialog').dataset.state = 'draft'; letterForm.hidden = false; sealedLetter.hidden = true;
-  letterInstruction();
-  $('#letter-body').focus({ preventScroll: true });
-});
-$('#letter-copy').addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText(letterText());
-    $('#letter-feedback').dataset.message = 'letter.copied';
-    $('#letter-feedback').textContent = t('letter.copied', 'Letter copied. Paste it into your preferred email app.');
-  } catch {
-    const field = $('#letter-copy-text'); field.value = letterText(); field.hidden = false; field.focus(); field.select();
-    $('#letter-feedback').dataset.message = 'letter.manual';
-    $('#letter-feedback').textContent = t('letter.manual', 'Select and copy your letter below.');
-  }
-});
+const letterComposer = createLetterComposer({ dialog: $('#letter-dialog'), motion: motionQuery, translate: t });
 
 function showHint(label, event, action) {
   requestFrame();
@@ -349,9 +361,9 @@ function frame(now) {
   lastTime = now;
   if (!paused) { elapsed += delta; if (!frozen) signalTime += delta; }
   if (atlasDialog.open && atlas && !atlasLost) atlas.render(motionQuery.matches);
-  else if (desk && !deskLost && !dialogs.some(dialog => dialog.open)) desk.render(elapsed, Number($('#heart-rate').value), delta, motionQuery.matches);
+  else if (desk && !deskLost && (desk.isCameraAnimating || portalPanel === 'projects' || !dialogs.some(dialog => dialog.open))) { desk.render(elapsed, Number($('#heart-rate').value), delta, motionQuery.matches); alignMonitor(); }
   paintSignal();
-  if ((atlasDialog.open && atlas && !atlasLost) || (desk && !deskLost && !dialogs.some(dialog => dialog.open) && (desk.isAnimating || !paused)) || (!paused && graphics && signalDialog.open && !frozen)) requestFrame();
+  if ((atlasDialog.open && atlas && !atlasLost) || (desk && !deskLost && (desk.isCameraAnimating || portalPanel === 'projects' || (!dialogs.some(dialog => dialog.open) && (desk.isAnimating || !paused)))) || (!paused && graphics && signalDialog.open && !frozen)) requestFrame();
 }
 document.addEventListener('visibilitychange', () => {
   stopDeskHeight();
@@ -362,8 +374,7 @@ window.addEventListener('resize', requestFrame);
 function showStatus(key) { status.dataset.message = key; status.textContent = t(key, status.textContent); }
 function signalLabel() { $('#signal-toggle').textContent = frozen ? t('studio.resumeTrace', 'Resume trace') : t('studio.freeze', 'Freeze trace'); }
 function letterInstruction() {
-  const key = $('#letter-dialog').dataset.state === 'sealed' ? 'letter.sealedInstruction' : 'letter.draftInstruction';
-  $('#letter-instruction').textContent = t(key, $('#letter-instruction').textContent);
+  letterComposer.refresh();
 }
 function refreshLanguage() {
   renderPlaceIndex(); motionLabel(); heightLabel(); signalLabel(); letterInstruction(); syncPlace(selectedPlace, true);
@@ -400,6 +411,10 @@ async function start() {
       stopDeskHeight();
       $('#desk-height-controls').hidden = true;
       showStatus('status.lost');
+      entrance.skip();
+      const pendingPanel = viewBusy && portalPanel;
+      if (portalPanel) returnCamera().then(() => { if (pendingPanel) openDialog(pendingPanel); });
+      else desk?.endPortal();
     }, heightLabel, places);
     $('#desk-canvas').addEventListener('webglcontextrestored', () => {
       deskLost = false; scene.classList.add('ready'); $('#desk-height-controls').hidden = false; desk.restore(); showStatus('status.restored'); requestFrame();
@@ -408,10 +423,12 @@ async function start() {
     $('#desk-height-controls').hidden = false; heightLabel();
     showStatus(earth.available ? 'status.ready' : 'status.mapless');
     desk.setLamp(lampOn); desk.setTheme(window.SitePreferences?.theme === 'dark'); requestFrame();
+    await entrance.play(desk);
     if (atlasDialog.open) initAtlas();
   } catch (error) {
     console.warn('Using the illustrated workbench.', error.message);
     showStatus('status.unavailable');
+    entrance.play(null);
     if (atlasDialog.open) initAtlas();
   }
 }

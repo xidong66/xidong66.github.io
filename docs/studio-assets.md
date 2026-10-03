@@ -10,6 +10,10 @@ The desk models, signal animation, page layout, and interaction code are origina
 
 ## Updating the studio
 
+- Entry plays multilingual greetings followed by a camera reveal of the bench. Skip, Escape, direct atlas links, returning from the atlas, and reduced motion bypass the introduction. `js/studio-entrance.js` owns this sequence; `js/studio-animation.js` supplies cancellable animations.
+- The computer, globe, and envelope use actual Three.js camera flights, including when ambient motion is paused. The monitor content follows the projected screen bounds; the envelope leads to an overhead stationery page. Returning restores the original bench pose and fixed-foot height framing. A Cancel control handles interrupted camera flights; unavailable WebGL uses HTML panels.
+- `js/studio-letter.js` controls the stationery sequence: three paper panels fold, enter an envelope, and receive a wax seal. Drag the stamp onto the wax, or use the keyboard / stamp button. An original inline SVG pigeon picks up the envelope and flies away. This is a visual sequence: the final mailto link still requires the visitor to confirm delivery in their own email application. It always targets `xidong03@163.com`. Closing a busy animation cancels it safely, preserves the draft, and restores a stable state; reduced motion skips the movement. Clipboard failure reveals selectable letter text.
+
 - Entry page: `studio/index.html`; styling: `css/studio.css`.
 - Project links and descriptions are accessible HTML in the project dialog. Keep them consistent with the publications on `index.html`.
 - Education descriptions are in `educationPlaces` in `js/studio.js`. Singapore / NUS is the current PhD location, confirmed by the author; Shenyang and Dundee represent previous undergraduate joint training. The travel atlas combines those descriptions with the author's supplied photo folders. Reset / Home returns to Singapore.

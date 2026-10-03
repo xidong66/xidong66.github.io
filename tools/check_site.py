@@ -121,7 +121,7 @@ def main():
                     check_reference(url, path.parent, parser.errors)
         errors.extend(f'{relative}: {error}' for error in parser.errors)
         summaries.append(f'{relative}: {len(parser.references)} references, {parser.citation_count} citations')
-    for module in ('js/studio.js', 'js/studio-scene.js', 'js/travel-data.js', 'js/travel-globe.js', 'js/vendor/three/three.module.js'):
+    for module in ('js/studio.js', 'js/studio-scene.js', 'js/studio-animation.js', 'js/studio-entrance.js', 'js/studio-letter.js', 'js/travel-data.js', 'js/travel-globe.js', 'js/vendor/three/three.module.js'):
         path = ROOT / module
         if not path.is_file():
             errors.append(f'Missing module: {module}')
