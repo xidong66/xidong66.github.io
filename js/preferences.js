@@ -5,6 +5,8 @@
     'control.singapore': ['Singapore', '新加坡'], 'control.palette': ['Color theme', '颜色主题'],
     'control.language': ['Language', '语言'], 'control.clock': ['Singapore time (UTC+8)', '新加坡时间（UTC+8）'],
     'home.name': ['Xidong Wu', '吴熙东'], 'home.role': ['PhD student', '博士研究生'],
+    'home.profileRole': ['Undergraduate student', '本科生'],
+    'home.profileUniversities': ['Northeastern University / University of Dundee', '东北大学 / 英国邓迪大学'],
     'home.nus': ['National University of Singapore', '新加坡国立大学（NUS）'],
     'home.about': ['About', '关于我'], 'home.publications': ['Publications', '论文成果'],
     'home.honors': ['Honors and Awards', '荣誉与奖励'], 'home.education': ['Education', '教育经历'],
@@ -13,8 +15,8 @@
     'home.team': ['My Team', '研究团队'], 'home.studio': ['Research Studio', '研究工作台'],
     'home.scholar': ['Google Scholar', '谷歌学术'], 'home.skip': ['Skip to content', '跳到正文'],
     'home.bio': [
-      'I am a PhD student at the National University of Singapore (NUS). My research focuses on medical signal and image analysis, using artificial intelligence for biosignal classification, medical image segmentation, and efficient deployment. Previously, I studied Biomedical Engineering through the joint training programme between Northeastern University and the University of Dundee.',
-      '我目前是新加坡国立大学（NUS）的博士研究生，研究聚焦医学信号与图像分析，探索人工智能在生理信号分类、医学图像分割及高效部署中的应用。此前，我在东北大学与英国邓迪大学的联合培养项目中学习生物医学工程。'],
+      'I am an undergraduate student studying Biomedical Engineering through the joint training programme between Northeastern University and the University of Dundee. My research focuses on medical signal and image analysis, using artificial intelligence for biosignal classification, medical image segmentation, and efficient deployment.',
+      '我目前是东北大学与英国邓迪大学生物医学工程联合培养项目的本科生，研究聚焦医学信号与图像分析，探索人工智能在生理信号分类、医学图像分割及高效部署中的应用。'],
     'home.research': [
       'My work covers two main directions: electrocardiogram signal classification and deployment on embedded devices, and the application of models such as SAM and CLIP to medical imaging. I am also working toward an open-source platform for standardized evaluation of ECG analysis methods, while exploring connections between medical imaging and genomics.',
       '我的工作主要涵盖两个方向：心电信号分类及嵌入式设备部署，以及 SAM、CLIP 等模型在医学图像中的应用。同时，我致力于构建用于心电分析方法标准化评估的开源平台，并探索医学图像与基因组学之间的交叉研究。'],
@@ -176,7 +178,7 @@
     }
     document.querySelectorAll('[data-language]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.language === language)));
     const studio = root.dataset.page === 'studio';
-    document.title = language === 'zh' ? `吴熙东 · ${studio ? '研究工作台' : 'NUS 博士生'}` : `Xidong Wu · ${studio ? 'Research Workbench' : 'PhD student at NUS'}`;
+    document.title = language === 'zh' ? `吴熙东 · ${studio ? '研究工作台' : '本科生'}` : `Xidong Wu · ${studio ? 'Research Workbench' : 'Undergraduate student'}`;
     window.dispatchEvent(new CustomEvent('xw:languagechange', { detail: { language } }));
   }
   function applyTheme(value) {
