@@ -15,7 +15,8 @@ body { margin: 0; padding: 0; }
 .journal-item img { width: 60px; height: auto; margin-right: 10px; flex-shrink: 0; }
 .journal-item a { color: #007bff; text-decoration: none; }
 .journal-item a:hover { text-decoration: underline; }
-.visitor-map { width: 180px; max-width: 100%; margin: 2rem auto; }
+.visitor-map { width: 200px; max-width: 100%; margin: 2rem auto; }
+.visitor-intro, .visitor-stats { text-align: center; font-size: 0.85rem; }
 .skip-link { position: absolute; left: 1rem; top: -10rem; padding: 0.75rem; background: #fff; z-index: 10; }
 .skip-link:focus { top: 1rem; }
 a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid #002147; outline-offset: 3px; }

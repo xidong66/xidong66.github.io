@@ -4,6 +4,10 @@ import { createLetterComposer } from './studio-letter.js';
 
 const $ = selector => document.querySelector(selector);
 const t = (key, fallback) => window.SitePreferences?.t(key) ?? fallback;
+$('.visitor-details')?.addEventListener('toggle', event => {
+  // The external widget checks viewport visibility on scroll, including when its menu opens.
+  if (event.target.open) window.dispatchEvent(new Event('scroll'));
+});
 const scene = $('#desk-scene'), status = $('#scene-status'), hint = $('#object-hint');
 const atlasDialog = $('#atlas-dialog'), signalDialog = $('#signal-dialog');
 const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');

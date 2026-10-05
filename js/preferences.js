@@ -14,6 +14,9 @@
     'home.skills': ['Skills', '技能'], 'home.email': ['Email', '邮箱'], 'home.resume': ['Resume', '简历'],
     'home.team': ['My Team', '研究团队'], 'home.studio': ['Research Studio', '研究工作台'],
     'home.scholar': ['Google Scholar', '谷歌学术'], 'home.skip': ['Skip to content', '跳到正文'],
+    'visitors.title': ['Visitors', '访客'],
+    'visitors.intro': ['Visitors from around the world.', '来自世界各地的访客。'],
+    'visitors.stats': ['View visitor statistics ↗', '查看访客统计 ↗'],
     'home.bio': [
       'I am an undergraduate student studying Biomedical Engineering through the joint training programme between Northeastern University and the University of Dundee. My research focuses on medical signal and image analysis, using artificial intelligence for biosignal classification, medical image segmentation, and efficient deployment.',
       '我目前是东北大学与英国邓迪大学生物医学工程联合培养项目的本科生，研究聚焦医学信号与图像分析，探索人工智能在生理信号分类、医学图像分割及高效部署中的应用。'],

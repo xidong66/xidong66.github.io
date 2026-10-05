@@ -70,6 +70,10 @@ python -m http.server 8000 --bind 127.0.0.1
 
 ## 验证
 
+访客统计使用作者提供的 MapMyVisitors Globe 代码，已替换旧 ClustrMaps 组件。首页底部的「访客」区块和 Research Studio 页脚的「访客」菜单可打开 [统计面板](https://mapmyvisitors.com/web/1c8np)。首页、工作台和地球仪直达页各自加载同一站点的组件；数据由 MapMyVisitors 保存，登录自己的账号可查看服务提供的详细记录。它显示 IP 推测的地区、访问时间和来源，不能确认访客真实姓名，VPN 等也可能影响地点。组件异步加载，外部服务被拦截时不会影响网页其他功能。工作台内不刷新页面的镜头切换不额外计为一次页面加载。
+
+2026-10-06 接入检查：地球仪和统计面板均可访问，但服务的 `globe_call_home.js` 和 `widget_call_home.js` 返回 HTML 页面，导致浏览器以 `ERR_BLOCKED_BY_ORB` 拦截统计脚本。组件显示正常不代表访问已被记录；尚未验证真实数据入库，需由该服务修复接口，或更换可用统计服务。
+
 ```bash
 python tools/check_site.py
 node --check js/citations.js
