@@ -1,6 +1,6 @@
 # Xidong Wu — Academic Homepage
 
-吴熙东的个人学术主页，目前为新加坡国立大学（NUS）博士研究生，展示研究方向、论文、教育经历、学术服务和个人动态。
+吴熙东的个人学术主页，目前为新加坡国立大学（NUS）博士研究生，研究方向为医学世界模型，展示论文、教育经历、学术服务和个人动态。
 
 - GitHub Pages：<https://xidong66.github.io/>
 - 自定义域名配置：`CNAME` 中的 `wuxidong.com`。使用前请核对域名 DNS 和仓库 Pages 设置。

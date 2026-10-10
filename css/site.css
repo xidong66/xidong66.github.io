@@ -13,6 +13,7 @@ body { margin: 0; padding: 0; }
 .journal-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px; }
 .journal-item { display: flex; align-items: center; min-width: 0; }
 .journal-item img { width: 60px; height: auto; margin-right: 10px; flex-shrink: 0; }
+.journal-item .journal-logo--transparent { background: #fff; border-radius: 2px; padding: 3px; box-sizing: border-box; }
 .journal-item a { color: #007bff; text-decoration: none; }
 .journal-item a:hover { text-decoration: underline; }
 .visitor-map { width: 200px; max-width: 100%; margin: 2rem auto; }
