@@ -54,7 +54,7 @@ python -m http.server 8000 --bind 127.0.0.1
 
 首页侧栏的 **Research Studio** 可进入研究工作台，也可以直接打开 <http://127.0.0.1:8000/studio/>。点击桌面上的电脑、示波器、地球仪、笔记本、键盘、信封或灯，或使用画面下方的按钮。地球仪支持拖动、缩放和城市切换；ECG 是可调心率的合成演示。键盘可输入简单命令探索工作台。信封可以填写信件、折好、展开修改，并通过邮件客户端给 `xidong03@163.com` 发信；页面不自动投递邮件。工作台的库与地图均在本地，无运行时外部请求。实现与素材来源见 [工作台维护说明](docs/studio-assets.md)。
 
-请通过 HTTP 预览。直接双击 HTML 会影响外部资源加载和引用文件读取。首页使用 Pure CSS、Google Fonts 和 ClustrMaps 外部资源，需要网络；第三方资源不可用时，字体会回退到本地字体。
+请通过 HTTP 预览。直接双击 HTML 会影响外部资源加载和引用文件读取。首页使用 Pure CSS、Google Fonts 和 MapMyVisitors 外部资源，需要网络；第三方资源不可用时，字体会回退到本地字体。
 
 主页与工作台顶部可切换 `[Light | Dark]` 和 `[EN | 中]`；选择会在刷新及页面间跳转时保留。首次访问使用系统深浅色设置和英文界面。正文、导航、教育经历、弹窗和工作台提示均支持中文；论文题目、期刊名称、作者和 BibTeX 保持正式出版写法。新加坡时钟固定使用 `Asia/Singapore`（UTC+8），每秒更新，不随访客所在地变化。
 
@@ -76,7 +76,7 @@ python -m http.server 8000 --bind 127.0.0.1
 
 访客统计使用作者提供的 MapMyVisitors Globe 代码，已替换旧 ClustrMaps 组件。首页底部的「访客」区块和 Research Studio 页脚的「访客」菜单可打开 [统计面板](https://mapmyvisitors.com/web/1c8np)。首页、工作台和地球仪直达页各自加载同一站点的组件；数据由 MapMyVisitors 保存，登录自己的账号可查看服务提供的详细记录。它显示 IP 推测的地区、访问时间和来源，不能确认访客真实姓名，VPN 等也可能影响地点。组件异步加载，外部服务被拦截时不会影响网页其他功能。工作台内不刷新页面的镜头切换不额外计为一次页面加载。
 
-2026-10-06 接入检查：地球仪和统计面板均可访问，但服务的 `globe_call_home.js` 和 `widget_call_home.js` 返回 HTML 页面，导致浏览器以 `ERR_BLOCKED_BY_ORB` 拦截统计脚本。组件显示正常不代表访问已被记录；尚未验证真实数据入库，需由该服务修复接口，或更换可用统计服务。
+2026-10-15 修复检查：原 Globe 安装代码的 `d=nyX-HbZJnQf5EJzYS1mOjtKbE6rkg_f0VfdFgGuEn-w` 无法被统计接口正确识别，返回 HTML 并触发 `ERR_BLOCKED_BY_ORB`；官方演示正常，并非服务整体失效。作者重新提供的 Map 安装代码使用 `d=Tn83ecPXDYR7S_JyG92ZdNVBKcnTLERyhBRxkBhcBkw`，该标识也被 Globe 接口接受，返回本站编号 `2250709`（`1c8np`），统计面板已出现真实测试访问。因此三处页面仍加载 `globe.js`，统一使用有效标识；不额外安装隐藏 Map 或图片计数器，避免重复计数。Globe 仍是服务提供的 Beta 组件，不能仅凭该标签判断故障原因。
 
 ```bash
 python tools/check_site.py
