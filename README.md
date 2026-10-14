@@ -17,6 +17,8 @@ js/citations.js             BibTeX 复制与下载降级处理
 js/preferences-init.js      首屏深浅色设置，避免刷新时主题闪烁
 js/preferences.js           中英文、深浅色、新加坡时钟和共享翻译
 css/preferences.css         偏好控件和时钟样式
+js/home-bug.js              首页线框虫子、可恢复文字效果与信鸽捉虫
+css/home-bug.css            Bug/Fix 控件、文字效果和信鸽样式
 studio/index.html           交互式研究工作台（/studio/）
 css/studio.css              工作台与地球仪布局
 js/studio.js                工作台弹窗、交互和动画控制
@@ -56,6 +58,8 @@ python -m http.server 8000 --bind 127.0.0.1
 
 主页与工作台顶部可切换 `[Light | Dark]` 和 `[EN | 中]`；选择会在刷新及页面间跳转时保留。首次访问使用系统深浅色设置和英文界面。正文、导航、教育经历、弹窗和工作台提示均支持中文；论文题目、期刊名称、作者和 BibTeX 保持正式出版写法。新加坡时钟固定使用 `Asia/Singapore`（UTC+8），每秒更新，不随访客所在地变化。
 
+首页顶部另有 `[Bug | Fix]`：点击 Bug 召唤霓虹线框蜘蛛，爬行并随机拉伸、旋转、着色可见词句；点击 Fix 或按 Escape，写信页的同款信鸽会叼走虫子，再恢复文字。视觉参考 [rybinfx 的 Web Crawlers](https://www.buildertools.sh/inspiration/web-crawlers)，采用本项目原创 Canvas 与文字覆盖层实现，未引入参考站代码或视频素材。原文、链接和排版保持可恢复，最多保留 36 处文字效果；切换语言时清除旧文字效果，关闭页面时清理，后台标签暂停绘制。减少动态效果模式使用轻微静态文字变化，并短暂显示信鸽捉虫画面后直接恢复。
+
 翻译统一维护在 `js/preferences.js`，页面通过 `data-i18n` 标记引用；动态工作台消息通过 `SitePreferences.t()` 读取。新增院系、导师或入学时间前请核实信息；当前 NUS 教育条目只显示博士生身份与在读状态。
 
 ## 更新内容
@@ -79,6 +83,7 @@ python tools/check_site.py
 node --check js/citations.js
 node --check js/preferences-init.js
 node --check js/preferences.js
+node --check js/home-bug.js
 node --check js/studio.js
 node --check js/studio-scene.js
 node --check js/studio-entrance.js

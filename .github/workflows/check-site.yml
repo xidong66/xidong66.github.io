@@ -23,6 +23,7 @@ jobs:
           node --check js/citations.js
           node --check js/preferences-init.js
           node --check js/preferences.js
+          node --check js/home-bug.js
           node --check js/studio.js
           node --check js/studio-scene.js
           node --check js/travel-globe.js

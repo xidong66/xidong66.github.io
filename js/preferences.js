@@ -4,6 +4,12 @@
     'control.light': ['Light', '浅色'], 'control.dark': ['Dark', '深色'],
     'control.singapore': ['Singapore', '新加坡'], 'control.palette': ['Color theme', '颜色主题'],
     'control.language': ['Language', '语言'], 'control.clock': ['Singapore time (UTC+8)', '新加坡时间（UTC+8）'],
+    'bug.controls': ['Playful text effects', '文字趣味效果'],
+    'bug.summon': ['Summon a text bug', '召唤文字虫子'], 'bug.fix': ['Send a pigeon to fix the text', '派信鸽捉虫并恢复文字'],
+    'bug.active': ['A little bug is rearranging the words. Press Fix or Escape to call the pigeon.', '虫子正在扰乱文字。点击 Fix 或按 Escape 可召唤信鸽。'],
+    'bug.rescue': ['The carrier pigeon is coming to catch the bug.', '信鸽正在飞来捉虫。'],
+    'bug.restoring': ['The bug is gone. The words are returning to their places.', '虫子已被叼走，文字正在恢复。'],
+    'bug.done': ['The pigeon has carried the bug away. All text is restored.', '信鸽已叼走虫子，文字已全部恢复。'],
     'home.name': ['Xidong Wu', '吴熙东'], 'home.role': ['PhD student', '博士研究生'],
     // Profile aliases also support visitors returning with cached homepage HTML.
     'home.profileRole': ['PhD student', '博士研究生'],
