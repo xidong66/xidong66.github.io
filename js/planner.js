@@ -1,4 +1,5 @@
 import { plannerConfig } from './planner-config.js';
+import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
 import { addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-task-list';
 
 const $ = (id) => document.getElementById(id);
@@ -418,8 +419,22 @@ async function applySession(session) {
   pollTimer = setInterval(() => { if (!document.hidden && !state.busy) loadData(); }, 30000);
 }
 async function init() {
+  $('check-connection').disabled = false;
+  $('browser-hint').hidden = !/MicroMessenger/i.test(navigator.userAgent);
+  $('check-connection').addEventListener('click', async () => {
+    $('check-connection').disabled = true;
+    const result = $('connection-result');
+    result.hidden = false; result.dataset.state = 'checking'; result.textContent = '正在检测登录服务（最多约 8 秒）…';
+    try {
+      const diagnosis = await checkLoginConnection(plannerConfig);
+      result.dataset.state = diagnosis.state; result.textContent = diagnosis.message;
+    } finally { $('check-connection').disabled = false; }
+  });
   if (!window.supabase || !window.FullCalendar) { $('login-error').textContent = '页面组件加载失败，请刷新重试。'; $('login-submit').disabled = true; return; }
-  client = window.supabase.createClient(plannerConfig.url, plannerConfig.publishableKey, { auth: { storageKey: 'xidong-planner-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+  client = window.supabase.createClient(plannerConfig.url, plannerConfig.publishableKey, {
+    auth: { storageKey: 'xidong-planner-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    global: { fetch: (input, options) => new URL(input instanceof Request ? input.url : input).pathname.startsWith('/auth/v1/') ? authFetchWithTimeout(input, options) : fetch(input, options) },
+  });
   $('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); $('login-submit').disabled = true; $('login-error').textContent = '';
     try {
@@ -427,7 +442,7 @@ async function init() {
       if (error) throw error;
       $('login-password').value = '';
       await applySession(data.session);
-    } catch (error) { $('login-error').textContent = errorMessage(error); }
+    } catch (error) { $('login-error').textContent = loginErrorMessage(error, navigator.onLine); }
     finally { $('login-submit').disabled = false; }
   });
   $('sign-out').addEventListener('click', async () => {
@@ -474,7 +489,7 @@ async function init() {
   window.addEventListener('offline', () => { syncStatus('当前离线，联网后继续同步', true); });
   $('login-submit').disabled = false;
   const { data, error } = await client.auth.getSession();
-  if (error) $('login-error').textContent = errorMessage(error);
+  if (error) $('login-error').textContent = loginErrorMessage(error, navigator.onLine);
   else await applySession(data.session);
 }
-init().catch(() => { $('login-error').textContent = '初始化失败，请刷新页面重试。'; });
+init().catch((error) => { $('login-error').textContent = loginErrorMessage(error, navigator.onLine); $('login-submit').disabled = true; });

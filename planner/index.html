@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-task-list-2">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-login-check">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-task-list-2"></script>
+  <script type="module" src="../js/planner.js?v=20261016-login-check"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -28,6 +28,9 @@
         <label for="login-email">邮箱</label><input id="login-email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required>
         <label for="login-password">密码</label><input id="login-password" name="password" type="password" autocomplete="current-password" required>
         <p id="login-error" class="error" role="alert"></p><button class="primary" id="login-submit" type="submit" disabled>登录日程 <span aria-hidden="true">→</span></button>
+        <p id="browser-hint" class="browser-hint" hidden>你正在微信内打开。若登录失败，可点右上角“…”选择在浏览器中打开，再用 Safari 或 Chrome 登录。</p>
+        <div class="connection-tools"><button id="check-connection" class="quiet" type="button" disabled>登录遇到问题？检测连接</button></div>
+        <p id="connection-result" class="connection-result" role="status" aria-live="polite" hidden></p>
         <p class="login-footnote">使用计划网站的邮箱和密码。<br>首次使用需先由站主创建账号。</p>
       </form>
     </section>

@@ -55,6 +55,7 @@
 - 点击“导出备份”获得包含全部任务和单次记录的 JSON。该文件含个人日程，请自行妥善保存。本版没有网页导入功能，可由维护者恢复。
 - 免费项目连续一周无活动可能暂停，需登录 Dashboard 恢复。免费方案不含自动备份，建议定期导出。[套餐说明](https://supabase.com/pricing)
 - 本版未接入 Outlook 数据、系统后台通知或到点推送。
+- 登录页提供“检测连接”，只使用公开项目配置检查邮箱登录接口，不发送输入的邮箱、密码或会话凭据。微信内置浏览器会显示系统浏览器打开提示。检测成功仅证明该接口可达，不等于账号验证成功；检测失败也不能单凭结果断定是某地区的网络封锁。认证请求最长等待约 15 秒，连接检测最长约 8 秒。
 - 页面使用本地固定版本 FullCalendar 和 Supabase JS，版本与 MIT 许可证在 `js/vendor/planner/`。不加载主页的第三方访客统计。
 
 ## 验证命令
@@ -64,7 +65,9 @@ python tools/check_site.py
 node --check js/planner.js
 node --check js/planner-config.js
 node --check js/planner-model.mjs
+node --check js/planner-auth.mjs
 node --test tools/planner-model.test.mjs
+node --test tools/planner-auth.test.mjs
 ```
 
 自动验证不替代运行 SQL 后的真实账号与跨设备验收。

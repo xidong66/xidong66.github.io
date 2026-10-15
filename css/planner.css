@@ -19,6 +19,10 @@
 .danger-primary:hover{background:#903b35}
 
 /* Let the calendar use the window, with enough room for each day's tasks. */
+.connection-tools{text-align:center;margin-top:12px}
+.connection-tools .quiet{font-size:11px;text-decoration:underline;text-underline-offset:3px}
+.browser-hint,.connection-result{font-size:11px;line-height:1.9;border-radius:6px;padding:10px 12px;margin:12px 0 0;overflow-wrap:anywhere;background:var(--soft);color:#68795e}
+.connection-result[data-state=error]{background:#fbede7;color:var(--danger)}
 .agenda-list>.task-card:first-child{margin-top:8px}
 .agenda-list .task-card{padding:10px 11px;margin-bottom:4px;border-radius:5px;gap:10px}
 .agenda-list .task-name{font-size:13px;line-height:1.55}
