@@ -38,7 +38,7 @@ function canEdit() {
 }
 function setBusy(value) {
   state.busy = value;
-  for (const id of ['save-task', 'delete-task', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
+  for (const id of ['save-task', 'delete-task', 'toggle-completion', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
   document.querySelectorAll('.task-check').forEach((button) => { button.disabled = value; });
   // Prevent closing a form midway through a write, including the Escape key.
   $('close-dialog').disabled = value;
@@ -260,6 +260,11 @@ function updateFormVisibility() {
   $('task-time').disabled = !timed;
   $('task-duration').disabled = !timed;
   const single = isSingleEdit();
+  $('task-completion-row').hidden = !state.edit || (state.edit.task.repeat !== 'none' && !single);
+  if (state.edit) {
+    $('task-completion-date').textContent = `${state.edit.item.date} 这一次`;
+    $('toggle-completion').textContent = state.edit.item.completed ? '恢复为未完成' : '标记为完成';
+  }
   $('repeat-fields').hidden = single;
   const repeating = $('task-repeat').value !== 'none';
   $('repeat-interval-wrap').hidden = !repeating;
@@ -269,6 +274,12 @@ function updateFormVisibility() {
   $('weekdays').hidden = $('task-repeat').value !== 'weekly';
 }
 function closeDialog() { if (!state.busy) $('task-dialog').close(); }
+async function toggleEditCompletion() {
+  if (!canEdit() || !state.edit) return;
+  if (state.editConflict) { $('task-error').textContent = '请关闭弹窗并重新打开后再操作。'; return; }
+  const item = state.edit.item;
+  await mutate(() => saveException(item, { completed: !item.completed }), item.completed ? '已恢复待办' : '本次任务已完成', { dialog: true });
+}
 async function mutate(operation, message, { dialog = false, errorTarget = 'task-error' } = {}) {
   if (!canEdit()) return false;
   setBusy(true);
@@ -443,6 +454,7 @@ async function init() {
   $('search').addEventListener('input', () => { state.search = $('search').value.trim().toLocaleLowerCase(); render(); });
   $('show-completed').addEventListener('change', () => { state.showCompleted = $('show-completed').checked; renderAgenda(); });
   $('task-form').addEventListener('submit', submitTask);
+  $('toggle-completion').addEventListener('click', toggleEditCompletion);
   $('delete-task').addEventListener('click', deleteTask);
   $('delete-form').addEventListener('submit', confirmRecurringDelete);
   $('delete-form').addEventListener('change', updateDeleteLabel);

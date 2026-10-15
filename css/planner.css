@@ -28,6 +28,8 @@
 .task-due{min-width:0;overflow-wrap:anywhere}
 .task-due.is-overdue{color:var(--danger)}
 .task-due.is-today{color:var(--green)}
+.task-completion-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding:6px 9px;background:var(--soft);border-radius:6px;font-size:11px;color:var(--muted)}
+.task-completion-row .quiet{font-size:11px;white-space:nowrap;padding:6px 8px}
 .workspace{max-width:none;padding:12px 24px 16px}
 .page-heading{margin-bottom:8px}
 .page-heading>div{display:flex;align-items:baseline;gap:16px;min-width:0}

@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-task-list">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-task-list-2">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-task-list"></script>
+  <script type="module" src="../js/planner.js?v=20261016-task-list-2"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -53,6 +53,7 @@
     <form id="task-form"><div class="dialog-heading"><div><div class="eyebrow">MAKE ROOM FOR IT</div><h2 id="task-dialog-title">新建任务</h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="关闭">×</button></div>
       <label for="task-title">任务名称</label><input id="task-title" name="title" maxlength="200" placeholder="想安排什么？" required>
       <div id="edit-scope-wrap" hidden><label for="edit-scope">修改范围</label><select id="edit-scope"><option value="occurrence">仅这一次</option><option value="series">整个系列</option></select></div>
+      <div id="task-completion-row" class="task-completion-row" hidden><span id="task-completion-date"></span><button id="toggle-completion" type="button" class="quiet">标记为完成</button></div>
       <div class="form-grid"><div><label for="task-date">日期</label><input id="task-date" type="date" min="2000-01-01" max="2100-12-31" required></div><div><label for="task-category">分类</label><select id="task-category"><option value="research">研究</option><option value="course">课程</option><option value="life">生活</option><option value="other">其他</option></select></div></div>
       <div class="inline-checks"><label><input id="task-all-day" type="checkbox" checked> 全天任务</label><label><input id="task-important" type="checkbox"> 标记重要 ☆</label></div>
       <div id="time-fields" class="form-grid" hidden><div><label for="task-time">开始时间</label><input id="task-time" type="time" value="09:00"></div><div><label for="task-duration">持续时间（分钟）</label><input id="task-duration" type="number" min="5" max="1440" step="5" value="60"></div></div>
