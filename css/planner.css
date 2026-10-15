@@ -17,3 +17,45 @@
 .delete-option small{display:block;font-size:11px;line-height:1.8;margin-top:5px;color:var(--muted)}
 .danger-primary{padding:12px 18px;border-radius:8px;background:var(--danger);color:white;font-weight:600}
 .danger-primary:hover{background:#903b35}
+
+/* Let the calendar use the window, with enough room for each day's tasks. */
+.workspace{max-width:none;padding:12px 24px 16px}
+.page-heading{margin-bottom:8px}
+.page-heading>div{display:flex;align-items:baseline;gap:16px;min-width:0}
+.page-heading h1{order:-1;font-size:20px;white-space:nowrap;margin:0}
+.page-heading .primary{padding:9px 16px}
+.page-heading .eyebrow{letter-spacing:1px;white-space:nowrap}
+.utility-bar{margin-bottom:10px}
+.planner-layout{gap:16px}
+.calendar-toolbar{padding:10px 18px}
+.calendar-footer{padding:10px 18px}
+.fc .fc-col-header-cell-cushion{padding:9px 0}
+.fc .fc-daygrid-day-number{font-size:12px}
+.fc .fc-daygrid-event{font-size:11px;line-height:1.4;padding:2px 4px}
+@media(min-width:761px){
+  .topbar{height:48px;padding:0 24px}
+  .login-panel{min-height:calc(100svh - 48px)}
+  .agenda-panel{display:flex;flex-direction:column;height:var(--planner-panel-height,700px);min-height:0;padding:20px 18px 16px}
+  .agenda-header .eyebrow,.agenda-header>p{display:none}
+  .agenda-title{margin-top:0;margin-bottom:14px}
+  .agenda-title h2{font-size:20px}
+  .agenda-list{flex:1;min-height:0;max-height:none}
+  .completed-toggle,.agenda-add{flex-shrink:0}
+}
+@media(min-width:1500px){.planner-layout{grid-template-columns:minmax(0,1fr) 330px}.fc .fc-daygrid-event{font-size:12px}}
+@media(max-width:760px){
+  .topbar{height:54px}
+  .workspace{padding:12px 12px 16px}
+  .page-heading{align-items:center;margin-bottom:10px}
+  .page-heading>div{gap:10px}
+  .page-heading h1{font-size:17px}
+  .page-heading .eyebrow{letter-spacing:0}
+  .page-heading .primary{padding:9px 11px}
+  .utility-bar{margin-bottom:10px}
+  .mobile-tabs{margin-bottom:10px}
+  .calendar-toolbar{padding:10px 8px}
+  .calendar-footer{padding:10px 12px}
+  .fc .fc-col-header-cell-cushion{padding:8px 0}
+  .fc .fc-daygrid-day-number{font-size:11px}
+  .fc .fc-daygrid-event{font-size:10px;padding:2px}
+}

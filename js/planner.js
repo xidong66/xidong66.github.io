@@ -7,6 +7,7 @@ let client;
 let pollTimer;
 let reloadTimer;
 let toastTimer;
+let calendarSizeFrame;
 const dtFormat = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Singapore', month: 'long', day: 'numeric', weekday: 'long' });
 
 function toast(message) {
@@ -28,7 +29,7 @@ function errorMessage(error) {
   if (error?.status === 401 || error?.code === 'PGRST301') return '登录已过期，请退出后重新登录。';
   return navigator.onLine ? '连接暂时失败，修改未保存。请稍后重试。' : '当前离线，修改未保存。请联网后重试。';
 }
-function setError(message = '') { $('workspace-error').textContent = message; $('workspace-error').hidden = !message; }
+function setError(message = '') { $('workspace-error').textContent = message; $('workspace-error').hidden = !message; scheduleCalendarSize(); }
 function canEdit() {
   if (!state.user || !state.loaded) { toast('请等待任务加载完成后再操作。'); return false; }
   if (state.busy) return false;
@@ -83,6 +84,26 @@ function queueReload() {
   reloadTimer = setTimeout(() => { if (state.busy) queueReload(); else loadData(); }, 350);
 }
 
+function scheduleCalendarSize() {
+  cancelAnimationFrame(calendarSizeFrame);
+  calendarSizeFrame = requestAnimationFrame(() => {
+    const calendar = state.calendar;
+    const element = $('calendar');
+    if (!calendar || !element.getClientRects().length) return;
+    const mobile = matchMedia('(max-width:760px)').matches;
+    const footer = document.querySelector('.calendar-footer').getBoundingClientRect().height;
+    const top = element.getBoundingClientRect().top + scrollY;
+    const available = Math.floor(innerHeight - top - footer - 16);
+    const header = element.querySelector('.fc-col-header')?.getBoundingClientRect().height || 36;
+    const weeks = Math.round((calendar.view.activeEnd - calendar.view.activeStart) / (7 * 86400000));
+    const minimum = calendar.view.type === 'dayGridMonth' ? weeks * (mobile ? 82 : 114) + header + 3 : mobile ? 440 : 520;
+    const height = Math.max(minimum, available);
+    if (calendar.getOption('height') !== height) calendar.setOption('height', height);
+    // Keep the agenda in the same vertical space; only its list scrolls.
+    document.querySelector('.planner-layout').style.setProperty('--planner-panel-height', `${Math.ceil(element.parentElement.getBoundingClientRect().height)}px`);
+  });
+}
+
 function setupCalendar() {
   if (state.calendar) return;
   state.calendar = new FullCalendar.Calendar($('calendar'), {
@@ -93,8 +114,9 @@ function setupCalendar() {
     buttonText: { today: '今天', month: '月', week: '周', day: '日' },
     allDayText: '全天', noEventsText: '没有任务', moreLinkText: (n) => `还有 ${n} 项`,
     dayHeaderContent: (arg) => ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][arg.date.getUTCDay()],
-    height: 'auto', contentHeight: matchMedia('(max-width:760px)').matches ? 490 : Math.max(550, Math.min(820, innerHeight - 300)),
-    fixedWeekCount: false, dayMaxEvents: 3, eventDisplay: 'block', displayEventEnd: false,
+    dayCellContent: (arg) => arg.dayNumberText.replace(/日$/, ''),
+    height: 680, expandRows: true,
+    fixedWeekCount: false, dayMaxEvents: true, eventDisplay: 'block', displayEventEnd: false,
     eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotMinTime: '06:00:00', slotMaxTime: '24:00:00', scrollTime: '08:00:00',
@@ -106,7 +128,7 @@ function setupCalendar() {
       const to = info.endStr.slice(0, 10);
       success(expandTasks(state.tasks, state.exceptions, from, to).filter(matches).map(calendarEvent));
     },
-    datesSet() { if (state.calendar) updateCalendarChrome(); },
+    datesSet() { if (state.calendar) { updateCalendarChrome(); scheduleCalendarSize(); } },
     select(info) {
       state.calendar.unselect();
       if (canEdit()) openNew(info.startStr.slice(0, 10), info.allDay ? null : info.startStr.slice(11, 16), info.allDay ? 60 : Math.min(1440, Math.max(5, (info.end - info.start) / 60000)));
@@ -117,13 +139,13 @@ function setupCalendar() {
       info.el.title = `${item.title}${repeatLabel(item) ? ` · ${repeatLabel(item)}` : ''}${item.notes ? `\n${item.notes}` : ''}`;
     },
     eventDrop: moveCalendarEvent, eventResize: moveCalendarEvent,
-    windowResize() { state.calendar.setOption('contentHeight', matchMedia('(max-width:760px)').matches ? 490 : Math.max(550, Math.min(820, innerHeight - 300))); },
+    windowResize: scheduleCalendarSize,
   });
   state.calendar.render();
 }
 function render() {
   $('today-caption').textContent = dtFormat.format(new Date());
-  if (state.calendar) { state.calendar.refetchEvents(); updateCalendarChrome(); }
+  if (state.calendar) { state.calendar.refetchEvents(); updateCalendarChrome(); scheduleCalendarSize(); }
   renderAgenda();
 }
 function updateCalendarChrome() {
@@ -406,6 +428,7 @@ async function init() {
     document.querySelector('.planner-layout').dataset.pane = button.dataset.pane;
     document.querySelectorAll('[data-pane]').forEach((tab) => { if (tab.tagName === 'BUTTON') tab.setAttribute('aria-pressed', String(tab === button)); });
     state.calendar.updateSize();
+    scheduleCalendarSize();
   }));
   $('refresh').addEventListener('click', () => loadData({ force: true }));
   $('export').addEventListener('click', exportBackup);
