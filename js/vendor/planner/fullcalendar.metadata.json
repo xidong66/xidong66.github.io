@@ -1,0 +1,10 @@
+{
+  "package": "fullcalendar",
+  "version": "6.1.20",
+  "license": "MIT",
+  "repository": {
+    "url": "git+https://github.com/fullcalendar/fullcalendar.git",
+    "type": "git",
+    "directory": "bundle"
+  }
+}

@@ -20,6 +20,7 @@
     'home.services': ['Academic Services', '学术服务'], 'home.news': ['Personal News', '个人动态'],
     'home.skills': ['Skills', '技能'], 'home.email': ['Email', '邮箱'], 'home.resume': ['Resume', '简历'],
     'home.team': ['My Team', '研究团队'], 'home.studio': ['Research Studio', '研究工作台'],
+    'home.planner': ['Personal Planner', '个人计划'],
     'home.scholar': ['Google Scholar', '谷歌学术'], 'home.skip': ['Skip to content', '跳到正文'],
     'visitors.title': ['Visitors', '访客'],
     'visitors.intro': ['Visitors from around the world.', '来自世界各地的访客。'],

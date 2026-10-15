@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#53664c">
+  <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
+  <title>日程 · Xidong</title>
+  <link rel="icon" href="../assets/img/favicon1.ico">
+  <link rel="stylesheet" href="../css/planner.css">
+  <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
+  <script defer src="../js/vendor/planner/supabase.js"></script>
+  <script type="module" src="../js/planner.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main-content">跳到日历</a>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="回到个人主页"><span class="brand-icon" aria-hidden="true">◷</span> XIDONG <span class="brand-divider">/</span> <span>日程</span></a>
+    <div class="account"><span class="zone">新加坡时间 UTC+8</span><span id="account-email" hidden></span><button id="sign-out" class="quiet" hidden>退出</button></div>
+  </header>
+
+  <main id="main-content">
+    <section id="login-panel" class="login-panel" aria-labelledby="login-heading">
+      <div class="intro"><div class="eyebrow">A LITTLE SPACE FOR YOUR DAYS</div><h1 id="login-heading">让计划，<br>有条不紊。</h1><p>课程、研究和生活，放进同一本日历。<br>在电脑上安排，在手机上随时查看。</p><div class="intro-line"></div><span class="intro-caption">日历与待办 · 周期任务 · 跨设备同步</span></div>
+      <form id="login-form" class="login-card" method="post">
+        <div class="eyebrow">YOUR PERSONAL PLANNER</div><h2>欢迎回来</h2><p class="muted">登录后查看和安排自己的日程。</p>
+        <label for="login-email">邮箱</label><input id="login-email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required>
+        <label for="login-password">密码</label><input id="login-password" name="password" type="password" autocomplete="current-password" required>
+        <p id="login-error" class="error" role="alert"></p><button class="primary" id="login-submit" type="submit" disabled>登录日程 <span aria-hidden="true">→</span></button>
+        <p class="login-footnote">使用计划网站的邮箱和密码。<br>首次使用需先由站主创建账号。</p>
+      </form>
+    </section>
+
+    <section id="workspace" class="workspace" hidden aria-label="个人计划">
+      <div class="page-heading"><div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div><h1>把时间留给重要的事。</h1></div><button id="add-task" class="primary"><span aria-hidden="true">＋</span> 新建任务</button></div>
+      <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
+      <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
+      <div class="mobile-tabs" role="group" aria-label="切换日历和清单"><button data-pane="calendar" aria-pressed="true">日历</button><button data-pane="agenda" aria-pressed="false">待办清单</button></div>
+      <div class="planner-layout" data-pane="calendar">
+        <div class="calendar-panel">
+          <div class="calendar-toolbar"><div class="date-navigation"><button id="previous" class="icon-button" aria-label="上一段日期">‹</button><button id="next" class="icon-button" aria-label="下一段日期">›</button><h2 id="calendar-title">日历</h2><button id="today" class="quiet today-button">今天</button></div><div class="view-switch" role="group" aria-label="日历视图"><button data-view="dayGridMonth" aria-pressed="true">月</button><button data-view="timeGridWeek" aria-pressed="false">周</button><button data-view="timeGridDay" aria-pressed="false">日</button></div></div>
+          <div id="calendar"></div>
+          <div class="calendar-footer"><div class="legend"><span class="legend-research">研究</span><span class="legend-course">课程</span><span class="legend-life">生活</span><span class="legend-other">其他</span></div><span>点击日期添加 · 拖动任务调整时间</span></div>
+        </div>
+        <aside class="agenda-panel" aria-labelledby="agenda-heading"><div class="agenda-header"><div class="eyebrow">ONE THING AT A TIME</div><div class="agenda-title"><h2 id="agenda-heading">近期待办</h2><span id="agenda-count" class="count">0</span></div><p>完成一件，就轻松一点。</p></div><label class="completed-toggle"><input id="show-completed" type="checkbox"> 显示已完成</label><div id="agenda-list" class="agenda-list"></div><button id="agenda-add" class="agenda-add">＋ 添加任务</button></aside>
+      </div>
+    </section>
+    <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
+  </main>
+
+  <dialog id="task-dialog" aria-labelledby="task-dialog-title">
+    <form id="task-form"><div class="dialog-heading"><div><div class="eyebrow">MAKE ROOM FOR IT</div><h2 id="task-dialog-title">新建任务</h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="关闭">×</button></div>
+      <label for="task-title">任务名称</label><input id="task-title" name="title" maxlength="200" placeholder="想安排什么？" required>
+      <div id="edit-scope-wrap" hidden><label for="edit-scope">修改范围</label><select id="edit-scope"><option value="occurrence">仅这一次</option><option value="series">整个系列</option></select></div>
+      <div class="form-grid"><div><label for="task-date">日期</label><input id="task-date" type="date" min="2000-01-01" max="2100-12-31" required></div><div><label for="task-category">分类</label><select id="task-category"><option value="research">研究</option><option value="course">课程</option><option value="life">生活</option><option value="other">其他</option></select></div></div>
+      <div class="inline-checks"><label><input id="task-all-day" type="checkbox" checked> 全天任务</label><label><input id="task-important" type="checkbox"> 标记重要 ☆</label></div>
+      <div id="time-fields" class="form-grid" hidden><div><label for="task-time">开始时间</label><input id="task-time" type="time" value="09:00"></div><div><label for="task-duration">持续时间（分钟）</label><input id="task-duration" type="number" min="5" max="1440" step="5" value="60"></div></div>
+      <fieldset id="repeat-fields"><legend>重复安排</legend><div class="form-grid"><div><label for="task-repeat">重复</label><select id="task-repeat"><option value="none">不重复</option><option value="daily">每天</option><option value="weekly">每周</option><option value="monthly">每月同一天</option></select></div><div id="repeat-interval-wrap" hidden><label for="task-interval">间隔（天／周／月）</label><input id="task-interval" type="number" min="1" max="99" value="1" required></div></div>
+        <div id="weekdays" class="weekdays" hidden aria-label="每周重复日期"><label><input type="checkbox" value="1">一</label><label><input type="checkbox" value="2">二</label><label><input type="checkbox" value="3">三</label><label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="0">日</label></div>
+        <div id="repeat-until-wrap" hidden><label for="task-until">重复到（可留空）</label><input id="task-until" type="date" min="2000-01-01" max="2100-12-31"><p class="field-help">包含结束当天。每月重复遇到没有该日期的月份会跳过。</p></div>
+      </fieldset>
+      <label for="task-notes">备注</label><textarea id="task-notes" rows="3" maxlength="5000" placeholder="地点、会议链接、想法…"></textarea>
+      <p id="task-error" class="error" role="alert"></p><div class="dialog-actions"><button id="delete-task" type="button" class="danger" hidden>删除</button><div><button id="cancel-task" type="button" class="quiet">取消</button><button id="save-task" type="submit" class="primary">保存任务</button></div></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

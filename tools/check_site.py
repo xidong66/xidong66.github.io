@@ -92,7 +92,7 @@ def main():
     summaries = []
     catalog = ROOT / 'js/preferences.js'
     translation_keys = set(re.findall(r"'([\w.]+)'\s*:\s*\[", catalog.read_text(encoding='utf-8'))) if catalog.exists() else set()
-    for relative in ('index.html', 'studio/index.html', 'studio/globe/index.html'):
+    for relative in ('index.html', 'studio/index.html', 'studio/globe/index.html', 'planner/index.html'):
         page = ROOT / relative
         if not page.is_file():
             errors.append(f'Missing page: {relative}')
@@ -121,7 +121,7 @@ def main():
                     check_reference(url, path.parent, parser.errors)
         errors.extend(f'{relative}: {error}' for error in parser.errors)
         summaries.append(f'{relative}: {len(parser.references)} references, {parser.citation_count} citations')
-    for module in ('js/home-bug.js', 'js/studio.js', 'js/studio-scene.js', 'js/studio-animation.js', 'js/studio-entrance.js', 'js/studio-letter.js', 'js/travel-data.js', 'js/travel-globe.js', 'js/vendor/three/three.module.js'):
+    for module in ('js/home-bug.js', 'js/studio.js', 'js/studio-scene.js', 'js/studio-animation.js', 'js/studio-entrance.js', 'js/studio-letter.js', 'js/travel-data.js', 'js/travel-globe.js', 'js/vendor/three/three.module.js', 'js/planner.js', 'js/planner-config.js', 'js/planner-model.mjs'):
         path = ROOT / module
         if not path.is_file():
             errors.append(f'Missing module: {module}')

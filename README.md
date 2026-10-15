@@ -47,7 +47,7 @@ CNAME                      GitHub Pages 自定义域名
 在包含 `index.html` 的仓库根目录运行（Python 3.10 或更高版本）：
 
 ```bash
-python -m http.server 8000 --bind 127.0.0.1
+python tools/serve_site.py --port 8000
 ```
 
 浏览器打开 <http://127.0.0.1:8000/>，按 `Ctrl+C` 停止。
@@ -63,6 +63,8 @@ python -m http.server 8000 --bind 127.0.0.1
 翻译统一维护在 `js/preferences.js`，页面通过 `data-i18n` 标记引用；动态工作台消息通过 `SitePreferences.t()` 读取。新增院系、导师或入学时间前请核实信息；当前 NUS 教育条目只显示博士生身份与在读状态。
 
 ## 更新内容
+
+个人计划页面入口为 `/planner/`，提供登录后的月／周／日日历、近期待办、周期任务和手机电脑同步。使用前需在 Supabase 运行 `supabase/planner.sql` 并创建自己的登录账号，完整步骤见 [个人计划配置说明](docs/planner-setup.md)。网页使用本地固定版本的 FullCalendar 与 Supabase JS，公开连接配置位于 `js/planner-config.js`；真实任务只保存在受 RLS 保护的数据库，仓库不包含私人日程。
 
 旅行地球仪入口为 `/studio/globe/`，也可点击工作台的地球仪进入。照片按地点保存在 `travel/`；往已有文件夹添加 JPG 后运行 `python tools/build_travel_atlas.py` 更新索引。添加新地点时，先在该脚本的 `LOCATIONS` 中补充中英文名称、国家及地点坐标。修改 `studio/index.html` 后也运行该脚本，保持地球仪直达页同步。照片保持原文件，按选中的地点加载。
 

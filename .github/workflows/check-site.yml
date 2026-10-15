@@ -31,3 +31,8 @@ jobs:
           node --check js/studio-animation.js
           node --check js/studio-entrance.js
           node --check js/studio-letter.js
+          node --check js/planner.js
+          node --check js/planner-config.js
+          node --check js/planner-model.mjs
+      - name: Check planner recurrence and dates
+        run: node --test tools/planner-model.test.mjs
