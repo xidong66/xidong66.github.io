@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-delete">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js"></script>
+  <script type="module" src="../js/planner.js?v=20261016-delete"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -62,6 +62,18 @@
       </fieldset>
       <label for="task-notes">备注</label><textarea id="task-notes" rows="3" maxlength="5000" placeholder="地点、会议链接、想法…"></textarea>
       <p id="task-error" class="error" role="alert"></p><div class="dialog-actions"><button id="delete-task" type="button" class="danger" hidden>删除</button><div><button id="cancel-task" type="button" class="quiet">取消</button><button id="save-task" type="submit" class="primary">保存任务</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="delete-dialog" aria-labelledby="delete-dialog-title" aria-describedby="delete-task-name">
+    <form id="delete-form" class="delete-form">
+      <div class="dialog-heading"><h2 id="delete-dialog-title">删除周期任务</h2><button type="button" class="icon-button" id="close-delete" aria-label="关闭删除确认">×</button></div>
+      <p id="delete-task-name" class="delete-task-name"></p>
+      <fieldset class="delete-options"><legend>请选择删除范围</legend>
+        <label class="delete-option"><input type="radio" name="delete-scope" value="occurrence" checked><span><strong>仅这一次</strong><small id="delete-occurrence-description">其他日期的任务会保留。</small></span></label>
+        <label class="delete-option"><input type="radio" name="delete-scope" value="series"><span><strong>整个系列</strong><small>删除所有重复日期及完成记录，包括已改期的任务。</small></span></label>
+      </fieldset>
+      <p id="delete-error" class="error" role="alert"></p>
+      <div class="dialog-actions"><div><button id="cancel-delete" type="button" class="quiet">取消</button><button id="confirm-delete" type="submit" class="danger-primary">删除这一次</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

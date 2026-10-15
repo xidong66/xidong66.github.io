@@ -37,7 +37,7 @@ function canEdit() {
 }
 function setBusy(value) {
   state.busy = value;
-  for (const id of ['save-task', 'delete-task', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
+  for (const id of ['save-task', 'delete-task', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
   document.querySelectorAll('.task-check').forEach((button) => { button.disabled = value; });
   // Prevent closing a form midway through a write, including the Escape key.
   $('close-dialog').disabled = value;
@@ -239,12 +239,12 @@ function updateFormVisibility() {
   $('weekdays').hidden = $('task-repeat').value !== 'weekly';
 }
 function closeDialog() { if (!state.busy) $('task-dialog').close(); }
-async function mutate(operation, message, { dialog = false } = {}) {
+async function mutate(operation, message, { dialog = false, errorTarget = 'task-error' } = {}) {
   if (!canEdit()) return false;
   setBusy(true);
   ++state.epoch;
   state.loading = false;
-  if (dialog) $('task-error').textContent = '';
+  if (dialog) $(errorTarget).textContent = '';
   syncStatus('正在保存…');
   try {
     await operation();
@@ -255,7 +255,7 @@ async function mutate(operation, message, { dialog = false } = {}) {
     return true;
   } catch (error) {
     const message = errorMessage(error);
-    if (dialog) $('task-error').textContent = message; else setError(message);
+    if (dialog) $(errorTarget).textContent = message; else setError(message);
     syncStatus('修改未保存，请重试', true);
     if (error?.message === 'conflict' || error?.code === '23505') {
       // Preserve the open form, but reload the underlying snapshot. The user
@@ -300,9 +300,34 @@ async function submitTask(event) {
 async function deleteTask() {
   if (!canEdit() || !state.edit) return;
   if (state.editConflict) { $('task-error').textContent = '请关闭弹窗并重新打开后再操作。'; return; }
-  const single = isSingleEdit();
-  if (!confirm(single ? '删除这一次任务？其他重复日期会保留。' : state.edit.task.repeat === 'none' ? '确定删除这条任务？' : '删除整个系列及其所有完成记录？')) return;
-  await mutate(() => single ? saveException(state.edit.item, { skipped: true }) : checkedWrite(client.from('planner_tasks').delete().eq('id', state.edit.task.id).eq('updated_at', state.edit.task.updated_at)), single ? '已删除这一次任务' : '任务已删除', { dialog: true });
+  if (state.edit.task.repeat !== 'none') {
+    // Deletion has its own explicit scope; changing an editing dropdown must
+    // never be required to discover or choose series deletion.
+    $('delete-form').reset();
+    $('delete-error').textContent = '';
+    $('delete-task-name').textContent = state.edit.item.title;
+    $('delete-occurrence-description').textContent = `仅删除 ${state.edit.item.date} 这一次，其他日期会保留。`;
+    updateDeleteLabel();
+    $('delete-dialog').showModal();
+    return;
+  }
+  if (!confirm('确定删除这条任务？')) return;
+  await mutate(() => checkedWrite(client.from('planner_tasks').delete().eq('id', state.edit.task.id).eq('updated_at', state.edit.task.updated_at)), '任务已删除', { dialog: true });
+}
+function updateDeleteLabel() {
+  const series = document.querySelector('input[name="delete-scope"]:checked').value === 'series';
+  $('confirm-delete').textContent = series ? '删除整个系列' : '删除这一次';
+}
+function closeDeleteDialog() { if (!state.busy) $('delete-dialog').close(); }
+async function confirmRecurringDelete(event) {
+  event.preventDefault();
+  if (!canEdit() || !state.edit) return;
+  if (state.editConflict) { $('delete-error').textContent = '任务已在其他设备修改，请关闭两个弹窗并重新打开。'; return; }
+  const series = document.querySelector('input[name="delete-scope"]:checked').value === 'series';
+  const saved = await mutate(() => series
+    ? checkedWrite(client.from('planner_tasks').delete().eq('id', state.edit.task.id).eq('updated_at', state.edit.task.updated_at))
+    : saveException(state.edit.item, { skipped: true }), series ? '整个系列已删除' : '已删除这一次任务', { dialog: true, errorTarget: 'delete-error' });
+  if (saved) $('delete-dialog').close();
 }
 async function moveCalendarEvent(info) {
   const item = info.event.extendedProps.item;
@@ -333,7 +358,7 @@ async function applySession(session) {
   if (state.channel) { client.removeChannel(state.channel); state.channel = null; }
   state.user = session?.user || null;
   state.tasks = []; state.exceptions = []; state.loaded = false; state.loading = false; state.edit = null;
-  $('task-dialog').close();
+  $('delete-dialog').close(); $('task-dialog').close();
   $('login-panel').hidden = !!state.user; $('workspace').hidden = !state.user;
   $('sign-out').hidden = !state.user; $('account-email').hidden = !state.user;
   $('account-email').textContent = state.user?.email || '';
@@ -388,6 +413,11 @@ async function init() {
   $('show-completed').addEventListener('change', () => { state.showCompleted = $('show-completed').checked; renderAgenda(); });
   $('task-form').addEventListener('submit', submitTask);
   $('delete-task').addEventListener('click', deleteTask);
+  $('delete-form').addEventListener('submit', confirmRecurringDelete);
+  $('delete-form').addEventListener('change', updateDeleteLabel);
+  $('close-delete').addEventListener('click', closeDeleteDialog);
+  $('cancel-delete').addEventListener('click', closeDeleteDialog);
+  $('delete-dialog').addEventListener('cancel', (event) => { if (state.busy) event.preventDefault(); });
   $('close-dialog').addEventListener('click', closeDialog);
   $('cancel-task').addEventListener('click', closeDialog);
   $('task-dialog').addEventListener('cancel', (event) => { if (state.busy) event.preventDefault(); });
