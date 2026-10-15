@@ -74,3 +74,66 @@
   .fc .fc-daygrid-day-number{font-size:11px}
   .fc .fc-daygrid-event{font-size:10px;padding:2px}
 }
+
+/* Compact month entries leave room for more tasks in each day. */
+.fc .fc-daygrid-event{font-size:11px;line-height:14px;padding:0 3px;margin-top:1px;border-width:0;border-radius:2px}
+.fc .fc-daygrid-day-events{margin-top:0;margin-bottom:1px}
+.fc .fc-daygrid-day-number{padding-top:5px;padding-bottom:4px}
+.fc .fc-day-today .fc-daygrid-day-number{width:21px;height:21px;margin-top:3px;margin-bottom:2px}
+.fc .fc-daygrid-more-link{line-height:15px;padding:0 2px}
+.agenda-list .task-card{padding:8px 10px;gap:8px;margin-bottom:3px}
+.agenda-list .task-name{line-height:1.45}
+.agenda-list .task-meta{margin-top:2px}
+.legend{flex-wrap:wrap;gap:5px 13px}
+.legend .category-key:before{background:var(--category-color)}
+.calendar-footer>span{flex-shrink:0}
+.workspace-tabs{display:flex;gap:2px;padding:3px;background:#e9eee3;border-radius:7px;white-space:nowrap}
+.workspace-tabs button{padding:6px 13px;border-radius:4px;font-size:12px;color:#74816c}
+.workspace-tabs button[aria-pressed=true]{background:white;color:var(--green);box-shadow:0 1px 3px #2633260a}
+.anniversaries-panel{max-width:1140px;margin:16px auto 30px}
+.anniversary-intro{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:22px 2px 15px}
+.anniversary-intro h2{font-size:24px;font-weight:550;letter-spacing:.5px;margin:12px 0}
+.anniversary-intro p{font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:6px}
+.anniversary-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.anniversary-card{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;gap:16px;background:white;border:1px solid var(--line);border-radius:10px;padding:19px 22px;min-width:0}
+.anniversary-card:hover{border-color:#b2c1a9;box-shadow:0 3px 16px #34452a08}
+.anniversary-copy{min-width:0;display:flex;flex-direction:column;gap:7px}
+.anniversary-name{font-size:16px;font-weight:600;overflow-wrap:anywhere;line-height:1.55}
+.anniversary-date{font-size:11px;color:var(--muted);line-height:1.7}
+.anniversary-notes{font-size:12px;color:#7c866e;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.anniversary-number{flex-shrink:0;color:#6386aa;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.anniversary-direction{font-size:11px}
+.anniversary-digits{display:flex;align-items:baseline;gap:7px;font-size:12px}
+.anniversary-digits strong{font-size:35px;line-height:1.15;font-weight:550;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.anniversary-card.elapsed .anniversary-number{color:#b0804e}
+.anniversary-card.today .anniversary-number{color:var(--green)}
+.anniversary-card.featured{padding:34px 38px;min-height:190px;background:linear-gradient(110deg,#fff 25%,#edf2e8);border-color:#dce5d5}
+.anniversary-card.featured .anniversary-name{font-size:23px}
+.anniversary-card.featured .anniversary-digits strong{font-size:80px}
+.anniversary-card.featured .anniversary-number{color:var(--green);gap:6px}
+.anniversary-empty{grid-column:1/-1;text-align:center;padding:65px 22px;border:1px dashed #d6dfcf;border-radius:10px;color:var(--muted);line-height:2;font-size:13px}
+#anniversary-form>label{margin-top:15px}
+.inline-checks [hidden]{display:none!important}
+@media(max-width:1050px){.page-heading #today-caption{display:none}}
+@media(max-width:760px){
+  .page-heading>div{gap:8px}
+  .page-heading #workspace-title{display:none}
+  .workspace-tabs button{padding:6px 11px;font-size:12px}
+  .fc .fc-daygrid-event{font-size:10px;line-height:13px;padding:0 2px}
+  .fc .fc-daygrid-day-number{padding:4px 6px}
+  .calendar-footer{padding:8px 10px}
+  .legend{gap:5px 11px}
+  .anniversaries-panel{margin-top:4px}
+  .anniversary-intro{padding:16px 2px}
+  .anniversary-intro h2{font-size:19px}
+  .anniversary-intro p{font-size:11px}
+  .anniversary-list{grid-template-columns:1fr;gap:9px;margin-top:12px}
+  .anniversary-card{padding:15px;gap:10px}
+  .anniversary-name{font-size:14px}
+  .anniversary-digits strong{font-size:30px}
+  .anniversary-card.featured{padding:24px 20px;min-height:200px;flex-wrap:wrap;align-items:flex-start}
+  .anniversary-card.featured .anniversary-copy{flex-basis:100%}
+  .anniversary-card.featured .anniversary-name{font-size:20px}
+  .anniversary-card.featured .anniversary-number{margin-left:auto}
+  .anniversary-card.featured .anniversary-digits strong{font-size:62px}
+}

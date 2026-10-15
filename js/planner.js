@@ -1,10 +1,13 @@
 import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
-import { addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-task-list';
+import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-days';
+import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-days';
 
 const $ = (id) => document.getElementById(id);
 const state = { user: null, tasks: [], exceptions: [], calendar: null, channel: null, busy: false, loaded: false, loading: false, epoch: 0, edit: null, search: '', showCompleted: false };
 let client;
+let anniversaries;
+let activeWorkspace = 'schedule';
 let pollTimer;
 let reloadTimer;
 let toastTimer;
@@ -23,7 +26,8 @@ function syncStatus(message, error = false) {
 }
 function errorMessage(error) {
   if (error?.code === 'PGRST205' || error?.code === '42501' || error?.code === '42P01') return '日历尚未初始化，请联系站主完成配置。';
-  if (error?.message === 'conflict' || error?.code === '23505') return '这条任务已在另一台设备修改，请刷新后重试。';
+  if (error?.message === 'conflict' || error?.code === '23505') return '这条记录已在另一台设备修改，请关闭弹窗并重新打开。';
+  if (error?.code === '23514' && /category/.test(error.message || '')) return '新分类尚未启用，请联系站主完成更新。';
   if (error?.code === 'invalid_credentials') return '邮箱或密码不正确，请使用计划网站的登录账号。';
   if (error?.code === 'email_not_confirmed') return '账号邮箱尚未确认，请联系站主完成账号设置。';
   if (error?.status === 429 || error?.code === 'over_request_rate_limit') return '操作太频繁，请稍后再试。';
@@ -39,6 +43,7 @@ function canEdit() {
 }
 function setBusy(value) {
   state.busy = value;
+  anniversaries?.busy(value);
   for (const id of ['save-task', 'delete-task', 'toggle-completion', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
   document.querySelectorAll('.task-check').forEach((button) => { button.disabled = value; });
   // Prevent closing a form midway through a write, including the Escape key.
@@ -50,7 +55,9 @@ function matches(item) { return `${item.title} ${item.notes}`.toLocaleLowerCase(
 async function allRows(table, userId) {
   const rows = [];
   for (let start = 0; ; start += 500) {
-    const { data, error } = await client.from(table).select('*').eq('user_id', userId).order(table === 'planner_tasks' ? 'id' : 'task_id').order(table === 'planner_tasks' ? 'start_date' : 'original_date').range(start, start + 499);
+    let query = client.from(table).select('*').eq('user_id', userId);
+    query = table === 'planner_occurrences' ? query.order('task_id').order('original_date') : query.order('id');
+    const { data, error } = await query.range(start, start + 499);
     if (error) throw error;
     rows.push(...data);
     if (data.length < 500) return rows;
@@ -63,15 +70,21 @@ async function loadData({ force = false } = {}) {
   state.loading = true;
   syncStatus('正在同步…');
   try {
-    const [tasks, exceptions] = await Promise.all([allRows('planner_tasks', userId), allRows('planner_occurrences', userId)]);
+    // An unconfigured anniversary table must not prevent existing tasks loading.
+    const [taskResult, exceptionResult, daysResult] = await Promise.allSettled([
+      allRows('planner_tasks', userId), allRows('planner_occurrences', userId), allRows('planner_anniversaries', userId),
+    ]);
     if (token !== state.epoch || state.user?.id !== userId) return;
-    state.tasks = tasks;
-    state.exceptions = exceptions;
+    if (taskResult.status === 'rejected') throw taskResult.reason;
+    if (exceptionResult.status === 'rejected') throw exceptionResult.reason;
+    state.tasks = taskResult.value;
+    state.exceptions = exceptionResult.value;
+    anniversaries.apply(daysResult);
     state.loaded = true;
     setError();
     render();
     const time = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
-    syncStatus(`已同步 · ${time}`);
+    syncStatus(`${daysResult.status === 'fulfilled' ? '已同步' : '日程已同步 · 纪念日未同步'} · ${time}`, daysResult.status !== 'fulfilled');
   } catch (error) {
     if (token !== state.epoch) return;
     syncStatus(state.loaded ? '同步失败，当前显示上次加载的数据' : '尚未连接到任务数据', true);
@@ -148,6 +161,7 @@ function render() {
   $('today-caption').textContent = dtFormat.format(new Date());
   if (state.calendar) { state.calendar.refetchEvents(); updateCalendarChrome(); scheduleCalendarSize(); }
   renderAgenda();
+  anniversaries?.search(state.search);
 }
 function updateCalendarChrome() {
   $('calendar-title').textContent = state.calendar.view.title;
@@ -281,7 +295,7 @@ async function toggleEditCompletion() {
   const item = state.edit.item;
   await mutate(() => saveException(item, { completed: !item.completed }), item.completed ? '已恢复待办' : '本次任务已完成', { dialog: true });
 }
-async function mutate(operation, message, { dialog = false, errorTarget = 'task-error' } = {}) {
+async function mutate(operation, message, { dialog = false, dialogId = 'task-dialog', errorTarget = 'task-error' } = {}) {
   if (!canEdit()) return false;
   setBusy(true);
   ++state.epoch;
@@ -292,7 +306,7 @@ async function mutate(operation, message, { dialog = false, errorTarget = 'task-
     await operation();
     // Force refresh invalidates any older poll that started before this write.
     await loadData({ force: true });
-    if (dialog) $('task-dialog').close();
+    if (dialog) $(dialogId).close();
     toast(message);
     return true;
   } catch (error) {
@@ -386,7 +400,7 @@ async function moveCalendarEvent(info) {
 }
 function exportBackup() {
   if (!state.loaded || !state.user) return;
-  const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 1, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 2, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions, anniversaries: anniversaries.snapshot() }, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a'); link.href = url; link.download = `planner-${todaySG()}.json`; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -400,6 +414,7 @@ async function applySession(session) {
   if (state.channel) { client.removeChannel(state.channel); state.channel = null; }
   state.user = session?.user || null;
   state.tasks = []; state.exceptions = []; state.loaded = false; state.loading = false; state.edit = null;
+  state.search = ''; $('search').value = ''; anniversaries.reset(); switchWorkspace('schedule');
   $('delete-dialog').close(); $('task-dialog').close();
   $('login-panel').hidden = !!state.user; $('workspace').hidden = !state.user;
   $('sign-out').hidden = !state.user; $('account-email').hidden = !state.user;
@@ -413,12 +428,34 @@ async function applySession(session) {
   state.channel = client.channel(`planner-${state.user.id}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_tasks', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_occurrences', filter: `user_id=eq.${state.user.id}` }, queueReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_anniversaries', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .subscribe();
   await loadData();
   // Polling also catches deletes and provides fallback when Realtime is blocked.
   pollTimer = setInterval(() => { if (!document.hidden && !state.busy) loadData(); }, 30000);
 }
+function switchWorkspace(name) {
+  if (activeWorkspace !== name) { state.search = ''; $('search').value = ''; }
+  activeWorkspace = name;
+  const days = name === 'anniversaries';
+  $('schedule-panel').hidden = days;
+  $('anniversaries-panel').hidden = !days;
+  $('workspace-title').textContent = days ? '纪念日' : '我的日程';
+  $('add-task').textContent = days ? '＋ 新建纪念日' : '＋ 新建任务';
+  $('search').placeholder = days ? '搜索纪念日…' : '搜索任务…';
+  document.querySelector('.search-label .sr-only').textContent = days ? '搜索纪念日' : '搜索任务';
+  document.querySelectorAll('[data-workspace]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.workspace === name)));
+  render();
+  if (!days && state.calendar) { state.calendar.updateSize(); scheduleCalendarSize(); }
+}
 async function init() {
+  for (const [value, category] of Object.entries(CATEGORIES)) {
+    const option = document.createElement('option'); option.value = value; option.textContent = category.label;
+    $('task-category').append(option);
+    const legend = document.createElement('span'); legend.className = 'category-key';
+    legend.style.setProperty('--category-color', category.color); legend.textContent = category.label;
+    $('category-legend').append(legend);
+  }
   $('check-connection').disabled = false;
   $('browser-hint').hidden = !/MicroMessenger/i.test(navigator.userAgent);
   $('check-connection').addEventListener('click', async () => {
@@ -435,6 +472,8 @@ async function init() {
     auth: { storageKey: 'xidong-planner-auth', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
     global: { fetch: (input, options) => new URL(input instanceof Request ? input.url : input).pathname.startsWith('/auth/v1/') ? authFetchWithTimeout(input, options) : fetch(input, options) },
   });
+  anniversaries = setupAnniversaries({ client, getUser: () => state.user, canEdit, mutate, checkedWrite });
+  document.querySelectorAll('[data-workspace]').forEach((button) => button.addEventListener('click', () => switchWorkspace(button.dataset.workspace)));
   $('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); $('login-submit').disabled = true; $('login-error').textContent = '';
     try {
@@ -452,13 +491,13 @@ async function init() {
     await applySession(null); toast('已退出当前设备');
   });
   client.auth.onAuthStateChange((_event, session) => { setTimeout(() => applySession(session), 0); });
-  $('add-task').addEventListener('click', () => { if (canEdit()) openNew(); });
+  $('add-task').addEventListener('click', () => { if (activeWorkspace === 'anniversaries') anniversaries.open(); else if (canEdit()) openNew(); });
   $('agenda-add').addEventListener('click', () => { if (canEdit()) openNew(); });
   $('previous').addEventListener('click', () => state.calendar.prev());
   $('next').addEventListener('click', () => state.calendar.next());
   $('today').addEventListener('click', () => state.calendar.gotoDate(todaySG()));
   document.querySelectorAll('[data-view]').forEach((button) => button.addEventListener('click', () => state.calendar.changeView(button.dataset.view)));
-  document.querySelectorAll('[data-pane]').forEach((button) => button.addEventListener('click', () => {
+  document.querySelectorAll('button[data-pane]').forEach((button) => button.addEventListener('click', () => {
     document.querySelector('.planner-layout').dataset.pane = button.dataset.pane;
     document.querySelectorAll('[data-pane]').forEach((tab) => { if (tab.tagName === 'BUTTON') tab.setAttribute('aria-pressed', String(tab === button)); });
     state.calendar.updateSize();

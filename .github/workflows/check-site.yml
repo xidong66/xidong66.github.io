@@ -35,7 +35,11 @@ jobs:
           node --check js/planner-config.js
           node --check js/planner-model.mjs
           node --check js/planner-auth.mjs
+          node --check js/planner-days.mjs
+          node --check js/planner-anniversaries.mjs
       - name: Check planner recurrence and dates
         run: node --test tools/planner-model.test.mjs
       - name: Check planner login diagnostics
         run: node --test tools/planner-auth.test.mjs
+      - name: Check anniversary day counts
+        run: node --test tools/planner-days.test.mjs

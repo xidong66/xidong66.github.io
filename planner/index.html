@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-login-check">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-days">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-login-check"></script>
+  <script type="module" src="../js/planner.js?v=20261016-days"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -36,17 +36,24 @@
     </section>
 
     <section id="workspace" class="workspace" hidden aria-label="个人计划">
-      <div class="page-heading"><div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div><h1>我的日程</h1></div><button id="add-task" class="primary"><span aria-hidden="true">＋</span> 新建任务</button></div>
+      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程和纪念日"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
       <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
       <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
+      <div id="schedule-panel">
       <div class="mobile-tabs" role="group" aria-label="切换日历和清单"><button data-pane="calendar" aria-pressed="true">日历</button><button data-pane="agenda" aria-pressed="false">任务清单</button></div>
       <div class="planner-layout" data-pane="calendar">
         <div class="calendar-panel">
           <div class="calendar-toolbar"><div class="date-navigation"><button id="previous" class="icon-button" aria-label="上一段日期">‹</button><button id="next" class="icon-button" aria-label="下一段日期">›</button><h2 id="calendar-title">日历</h2><button id="today" class="quiet today-button">今天</button></div><div class="view-switch" role="group" aria-label="日历视图"><button data-view="dayGridMonth" aria-pressed="true">月</button><button data-view="timeGridWeek" aria-pressed="false">周</button><button data-view="timeGridDay" aria-pressed="false">日</button></div></div>
           <div id="calendar"></div>
-          <div class="calendar-footer"><div class="legend"><span class="legend-research">研究</span><span class="legend-course">课程</span><span class="legend-life">生活</span><span class="legend-other">其他</span></div><span>点击日期添加 · 拖动任务调整时间</span></div>
+          <div class="calendar-footer"><div id="category-legend" class="legend" aria-label="任务分类"></div><span>点击日期添加 · 拖动任务调整时间</span></div>
         </div>
         <aside class="agenda-panel" aria-labelledby="agenda-heading"><div class="agenda-header"><div class="eyebrow">ONE THING AT A TIME</div><div class="agenda-title"><h2 id="agenda-heading">任务</h2><span id="agenda-count" class="count">0</span></div><p>每个计划一条，循环任务自动显示下一次。</p></div><label class="completed-toggle"><input id="show-completed" type="checkbox"> 显示已完成</label><div id="agenda-list" class="agenda-list"></div><button id="agenda-add" class="agenda-add">＋ 添加任务</button></aside>
+      </div>
+      </div>
+      <div id="anniversaries-panel" class="anniversaries-panel" hidden aria-label="纪念日">
+        <div class="anniversary-intro"><div><div class="eyebrow">DAYS WORTH KEEPING</div><h2>把特别的日子，放在心上。</h2><p>期待下一次相聚，也记得一起走过的每一天。</p></div><span class="count" id="anniversary-count">0</span></div>
+        <p id="anniversary-notice" class="workspace-error" role="status" hidden></p>
+        <div id="anniversary-featured"></div><div id="anniversary-list" class="anniversary-list"></div>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
@@ -57,7 +64,7 @@
       <label for="task-title">任务名称</label><input id="task-title" name="title" maxlength="200" placeholder="想安排什么？" required>
       <div id="edit-scope-wrap" hidden><label for="edit-scope">修改范围</label><select id="edit-scope"><option value="occurrence">仅这一次</option><option value="series">整个系列</option></select></div>
       <div id="task-completion-row" class="task-completion-row" hidden><span id="task-completion-date"></span><button id="toggle-completion" type="button" class="quiet">标记为完成</button></div>
-      <div class="form-grid"><div><label for="task-date">日期</label><input id="task-date" type="date" min="2000-01-01" max="2100-12-31" required></div><div><label for="task-category">分类</label><select id="task-category"><option value="research">研究</option><option value="course">课程</option><option value="life">生活</option><option value="other">其他</option></select></div></div>
+      <div class="form-grid"><div><label for="task-date">日期</label><input id="task-date" type="date" min="2000-01-01" max="2100-12-31" required></div><div><label for="task-category">分类</label><select id="task-category"></select></div></div>
       <div class="inline-checks"><label><input id="task-all-day" type="checkbox" checked> 全天任务</label><label><input id="task-important" type="checkbox"> 标记重要 ☆</label></div>
       <div id="time-fields" class="form-grid" hidden><div><label for="task-time">开始时间</label><input id="task-time" type="time" value="09:00"></div><div><label for="task-duration">持续时间（分钟）</label><input id="task-duration" type="number" min="5" max="1440" step="5" value="60"></div></div>
       <fieldset id="repeat-fields"><legend>重复安排</legend><div class="form-grid"><div><label for="task-repeat">重复</label><select id="task-repeat"><option value="none">不重复</option><option value="daily">每天</option><option value="weekly">每周</option><option value="monthly">每月同一天</option></select></div><div id="repeat-interval-wrap" hidden><label for="task-interval">间隔（天／周／月）</label><input id="task-interval" type="number" min="1" max="99" value="1" required></div></div>
@@ -78,6 +85,16 @@
       </fieldset>
       <p id="delete-error" class="error" role="alert"></p>
       <div class="dialog-actions"><div><button id="cancel-delete" type="button" class="quiet">取消</button><button id="confirm-delete" type="submit" class="danger-primary">删除这一次</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="anniversary-dialog" aria-labelledby="anniversary-dialog-title">
+    <form id="anniversary-form"><div class="dialog-heading"><div><div class="eyebrow">A DAY TO REMEMBER</div><h2 id="anniversary-dialog-title">新建纪念日</h2></div><button type="button" class="icon-button" id="close-anniversary" aria-label="关闭纪念日编辑">×</button></div>
+      <label for="anniversary-title">名称</label><input id="anniversary-title" maxlength="200" placeholder="生日、相识纪念日、旅行出发…" required>
+      <div class="form-grid"><div><label for="anniversary-mode">计算方式</label><select id="anniversary-mode"><option value="countdown">倒计时 · 还有多少天</option><option value="countup">正计时 · 已经多少天</option></select></div><div><label for="anniversary-date" id="anniversary-date-label">目标日期</label><input id="anniversary-date" type="date" min="1900-01-01" max="2100-12-31" required></div></div>
+      <div class="inline-checks"><label id="anniversary-yearly-wrap"><input id="anniversary-yearly" type="checkbox"> 每年重复 ↻</label><label><input id="anniversary-pinned" type="checkbox"> 置顶 ☆</label></div>
+      <p id="anniversary-date-help" class="field-help"></p>
+      <label for="anniversary-notes">备注</label><textarea id="anniversary-notes" rows="3" maxlength="5000" placeholder="关于这一天的回忆或安排…"></textarea>
+      <p id="anniversary-error" class="error" role="alert"></p><div class="dialog-actions"><button id="delete-anniversary" type="button" class="danger" hidden>删除</button><div><button id="cancel-anniversary" type="button" class="quiet">取消</button><button id="save-anniversary" type="submit" class="primary">保存纪念日</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

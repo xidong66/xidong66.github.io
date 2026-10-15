@@ -4,6 +4,11 @@ export const CATEGORIES = {
   research: { label: '研究', color: '#587356' },
   course: { label: '课程', color: '#6386aa' },
   life: { label: '生活', color: '#bf8b52' },
+  travel: { label: '旅行', color: '#4b8c8c' },
+  date: { label: '约会', color: '#b97189' },
+  homework: { label: '作业', color: '#b09045' },
+  project: { label: '项目', color: '#7770a8' },
+  meeting: { label: '会议', color: '#537e91' },
   other: { label: '其他', color: '#9987ad' },
 };
 export function dayNumber(date) { return Date.parse(`${date}T00:00:00Z`) / 86400000; }
