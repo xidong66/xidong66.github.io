@@ -116,6 +116,11 @@
 .anniversary-card.featured .anniversary-number{color:var(--green);gap:6px}
 .anniversary-empty{grid-column:1/-1;text-align:center;padding:65px 22px;border:1px dashed #d6dfcf;border-radius:10px;color:var(--muted);line-height:2;font-size:13px}
 #anniversary-form>label{margin-top:15px}
+.anniversary-email-setting{padding:12px;margin:16px 0;background:var(--soft);border-radius:7px}
+.anniversary-email-setting label{display:flex;align-items:center;gap:7px;line-height:1.7}
+.anniversary-email-setting input{margin:0}
+.anniversary-email-setting .field-help{margin-bottom:0}
+.anniversary-mail{font-size:11px;color:var(--green);line-height:1.7}
 .inline-checks [hidden]{display:none!important}
 @media(max-width:1050px){.page-heading #today-caption{display:none}}
 @media(max-width:760px){

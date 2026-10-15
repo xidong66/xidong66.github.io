@@ -15,6 +15,8 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
   let loadingError = '';
   let edit = null;
   let search = '';
+  let mailSupported = false;
+  let mailEnabled = false;
   const dialog = $('anniversary-dialog');
   const table = () => client.from('planner_anniversaries');
 
@@ -40,6 +42,7 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
       copy.append(node('span', 'anniversary-date', item.yearly
         ? `下次：${item.summary.target} · 每年 ↻` : `${item.mode === 'countup' ? '开始日' : '目标日'}：${item.date}`));
       if (index === 0 && item.notes) copy.append(node('span', 'anniversary-notes', item.notes));
+      if (item.email_reminder) copy.append(node('span', 'anniversary-mail', mailSupported && mailEnabled ? '✉ 提前 1 天 · 09:00' : '✉ 邮件提醒待启用'));
       const count = node('span', 'anniversary-number');
       count.append(node('span', 'anniversary-direction', item.summary.label));
       const digits = node('span', 'anniversary-digits');
@@ -58,6 +61,11 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
       ? '生日可选每年重复。2 月 29 日在非闰年按 2 月 28 日计算。'
       : '从开始日算起，当天为 0 天；未来的开始日会先显示倒计时。';
   }
+  function mailHint() {
+    $('anniversary-email').disabled = !mailSupported;
+    $('anniversary-email-help').textContent = !mailSupported ? '邮件提醒暂不可用，请刷新或联系站主启用。'
+      : `${mailEnabled ? '' : '提醒服务待站主启用，设置可先保存。'}发至当前账号的登录邮箱。时间为 UTC+8；正计时纪念日按每年同月同日提醒。`;
+  }
   function open(item = null) {
     if (!canEdit()) return;
     if (!available) { $('anniversary-notice').hidden = false; return; }
@@ -71,6 +79,8 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
     $('anniversary-yearly').checked = !!item?.yearly;
     $('anniversary-pinned').checked = !!item?.pinned;
     $('anniversary-notes').value = item?.notes || '';
+    $('anniversary-email').checked = !!item?.email_reminder;
+    mailHint();
     $('delete-anniversary').hidden = !item;
     formMode(); dialog.showModal(); $('anniversary-title').focus();
   }
@@ -84,6 +94,8 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
       yearly: $('anniversary-mode').value === 'countdown' && $('anniversary-yearly').checked,
       pinned: $('anniversary-pinned').checked, notes: $('anniversary-notes').value.trim(),
     };
+    // Omit the column on old databases, preserving all existing CRUD operations.
+    if (mailSupported) changes.email_reminder = $('anniversary-email').checked;
     if (!changes.title) { $('anniversary-error').textContent = '请输入纪念日名称。'; return; }
     await mutate(() => checkedWrite(edit
       ? table().update(changes).eq('id', edit.id).eq('updated_at', edit.updated_at)
@@ -101,7 +113,9 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
   dialog.addEventListener('cancel', (event) => { if ($('save-anniversary').disabled) event.preventDefault(); });
   return {
     open, render,
-    apply(result) {
+    apply(result, mailResult) {
+      mailSupported = mailResult?.status === 'fulfilled' && typeof mailResult.value?.enabled === 'boolean';
+      mailEnabled = mailSupported && mailResult.value.enabled;
       if (result.status === 'fulfilled') { rows = result.value; available = true; loadingError = ''; }
       else {
         const missing = ['PGRST205', '42P01', '42501'].includes(result.reason?.code);
@@ -110,7 +124,7 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
       }
       render();
     },
-    reset() { rows = []; available = false; edit = null; loadingError = ''; dialog.close(); $('anniversary-form').reset(); $('anniversary-error').textContent = ''; render(); },
+    reset() { rows = []; available = false; edit = null; loadingError = ''; mailSupported = false; mailEnabled = false; dialog.close(); $('anniversary-form').reset(); $('anniversary-error').textContent = ''; render(); },
     search(value) { search = value; render(); },
     snapshot: () => rows,
     get available() { return available; },

@@ -1,7 +1,7 @@
 import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
 import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-colors';
-import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-days';
+import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail';
 
 const $ = (id) => document.getElementById(id);
 const state = { user: null, tasks: [], exceptions: [], calendar: null, channel: null, busy: false, loaded: false, loading: false, epoch: 0, edit: null, search: '', showCompleted: false };
@@ -71,15 +71,16 @@ async function loadData({ force = false } = {}) {
   syncStatus('正在同步…');
   try {
     // An unconfigured anniversary table must not prevent existing tasks loading.
-    const [taskResult, exceptionResult, daysResult] = await Promise.allSettled([
+    const [taskResult, exceptionResult, daysResult, mailResult] = await Promise.allSettled([
       allRows('planner_tasks', userId), allRows('planner_occurrences', userId), allRows('planner_anniversaries', userId),
+      client.rpc('planner_mail_status').then(({ data, error }) => { if (error) throw error; return data; }),
     ]);
     if (token !== state.epoch || state.user?.id !== userId) return;
     if (taskResult.status === 'rejected') throw taskResult.reason;
     if (exceptionResult.status === 'rejected') throw exceptionResult.reason;
     state.tasks = taskResult.value;
     state.exceptions = exceptionResult.value;
-    anniversaries.apply(daysResult);
+    anniversaries.apply(daysResult, mailResult);
     state.loaded = true;
     setError();
     render();

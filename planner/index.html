@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-colors">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-mail">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-colors"></script>
+  <script type="module" src="../js/planner.js?v=20261016-mail"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -93,6 +93,7 @@
       <div class="form-grid"><div><label for="anniversary-mode">计算方式</label><select id="anniversary-mode"><option value="countdown">倒计时 · 还有多少天</option><option value="countup">正计时 · 已经多少天</option></select></div><div><label for="anniversary-date" id="anniversary-date-label">目标日期</label><input id="anniversary-date" type="date" min="1900-01-01" max="2100-12-31" required></div></div>
       <div class="inline-checks"><label id="anniversary-yearly-wrap"><input id="anniversary-yearly" type="checkbox"> 每年重复 ↻</label><label><input id="anniversary-pinned" type="checkbox"> 置顶 ☆</label></div>
       <p id="anniversary-date-help" class="field-help"></p>
+      <div class="anniversary-email-setting"><label><input id="anniversary-email" type="checkbox" disabled> 提前 1 天早上 9 点邮件提醒</label><p id="anniversary-email-help" class="field-help"></p></div>
       <label for="anniversary-notes">备注</label><textarea id="anniversary-notes" rows="3" maxlength="5000" placeholder="关于这一天的回忆或安排…"></textarea>
       <p id="anniversary-error" class="error" role="alert"></p><div class="dialog-actions"><button id="delete-anniversary" type="button" class="danger" hidden>删除</button><div><button id="cancel-anniversary" type="button" class="quiet">取消</button><button id="save-anniversary" type="submit" class="primary">保存纪念日</button></div></div>
     </form>
