@@ -2,11 +2,13 @@ import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
 import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-colors';
 import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail';
+import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 
 const $ = (id) => document.getElementById(id);
 const state = { user: null, tasks: [], exceptions: [], calendar: null, channel: null, busy: false, loaded: false, loading: false, epoch: 0, edit: null, search: '', showCompleted: false };
 let client;
 let anniversaries;
+let ledger;
 let activeWorkspace = 'schedule';
 let pollTimer;
 let reloadTimer;
@@ -25,6 +27,8 @@ function syncStatus(message, error = false) {
   $('sync-status').dataset.state = error ? 'error' : 'ok';
 }
 function errorMessage(error) {
+  if (error?.code === '23503' && /ledger/.test(error.message || '')) return '账户已有流水或固定收支，不能删除或更换币种；请检查所选账户的币种。';
+  if (error?.code === '23514' && /ledger/.test(error.message || '')) return '请检查金额、日期和固定收支的起止月份，记账日期不能晚于今天。';
   if (error?.code === 'PGRST205' || error?.code === '42501' || error?.code === '42P01') return '日历尚未初始化，请联系站主完成配置。';
   if (error?.message === 'conflict' || error?.code === '23505') return '这条记录已在另一台设备修改，请关闭弹窗并重新打开。';
   if (error?.code === '23514' && /category/.test(error.message || '')) return '新分类尚未启用，请联系站主完成更新。';
@@ -44,6 +48,7 @@ function canEdit() {
 function setBusy(value) {
   state.busy = value;
   anniversaries?.busy(value);
+  ledger?.busy(value);
   for (const id of ['save-task', 'delete-task', 'toggle-completion', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
   document.querySelectorAll('.task-check').forEach((button) => { button.disabled = value; });
   // Prevent closing a form midway through a write, including the Escape key.
@@ -52,10 +57,11 @@ function setBusy(value) {
 }
 function matches(item) { return `${item.title} ${item.notes}`.toLocaleLowerCase().includes(state.search); }
 
-async function allRows(table, userId) {
+async function allRows(table, userId, configure = (query) => query) {
   const rows = [];
   for (let start = 0; ; start += 500) {
     let query = client.from(table).select('*').eq('user_id', userId);
+    query = configure(query);
     query = table === 'planner_occurrences' ? query.order('task_id').order('original_date') : query.order('id');
     const { data, error } = await query.range(start, start + 499);
     if (error) throw error;
@@ -71,9 +77,10 @@ async function loadData({ force = false } = {}) {
   syncStatus('正在同步…');
   try {
     // An unconfigured anniversary table must not prevent existing tasks loading.
-    const [taskResult, exceptionResult, daysResult, mailResult] = await Promise.allSettled([
+    const [taskResult, exceptionResult, daysResult, mailResult, ledgerResult] = await Promise.allSettled([
       allRows('planner_tasks', userId), allRows('planner_occurrences', userId), allRows('planner_anniversaries', userId),
       client.rpc('planner_mail_status').then(({ data, error }) => { if (error) throw error; return data; }),
+      ledger.fetch(userId),
     ]);
     if (token !== state.epoch || state.user?.id !== userId) return;
     if (taskResult.status === 'rejected') throw taskResult.reason;
@@ -81,11 +88,13 @@ async function loadData({ force = false } = {}) {
     state.tasks = taskResult.value;
     state.exceptions = exceptionResult.value;
     anniversaries.apply(daysResult, mailResult);
+    ledger.apply(ledgerResult);
     state.loaded = true;
     setError();
     render();
     const time = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
-    syncStatus(`${daysResult.status === 'fulfilled' ? '已同步' : '日程已同步 · 纪念日未同步'} · ${time}`, daysResult.status !== 'fulfilled');
+    const incomplete = [daysResult.status !== 'fulfilled' ? '纪念日' : '', ledgerResult.status !== 'fulfilled' ? '记账' : ''].filter(Boolean);
+    syncStatus(`${incomplete.length ? `日程已同步 · ${incomplete.join('、')}未同步` : '已同步'} · ${time}`, !!incomplete.length);
   } catch (error) {
     if (token !== state.epoch) return;
     syncStatus(state.loaded ? '同步失败，当前显示上次加载的数据' : '尚未连接到任务数据', true);
@@ -163,6 +172,7 @@ function render() {
   if (state.calendar) { state.calendar.refetchEvents(); updateCalendarChrome(); scheduleCalendarSize(); }
   renderAgenda();
   anniversaries?.search(state.search);
+  ledger?.search(state.search);
 }
 function updateCalendarChrome() {
   $('calendar-title').textContent = state.calendar.view.title;
@@ -409,13 +419,20 @@ async function moveCalendarEvent(info) {
     ? checkedWrite(client.from('planner_tasks').update({ start_date: date, start_time: time, duration_minutes: duration }).eq('id', item.task_id).eq('updated_at', item.updated_at))
     : saveException(item, { override_date: date, start_time: time, duration_minutes: duration }), '时间已更新');
 }
-function exportBackup() {
-  if (!state.loaded || !state.user) return;
-  const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 2, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions, anniversaries: anniversaries.snapshot() }, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a'); link.href = url; link.download = `planner-${todaySG()}.json`; link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('备份已导出，请妥善保存。');
+async function exportBackup() {
+  if (!canEdit()) return;
+  const userId = state.user.id;
+  $('export').disabled = true;
+  try {
+    const history = await ledger.backup(userId);
+    if (state.user?.id !== userId) return;
+    const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 3, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions, anniversaries: anniversaries.snapshot(), ledger: history }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url; link.download = `planner-${todaySG()}.json`; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('备份已导出，请妥善保存。');
+  } catch { toast('备份导出失败，请联网后重试，避免遗漏记账数据。'); }
+  finally { $('export').disabled = false; }
 }
 
 async function applySession(session) {
@@ -425,7 +442,7 @@ async function applySession(session) {
   if (state.channel) { client.removeChannel(state.channel); state.channel = null; }
   state.user = session?.user || null;
   state.tasks = []; state.exceptions = []; state.loaded = false; state.loading = false; state.edit = null;
-  state.search = ''; $('search').value = ''; anniversaries.reset(); switchWorkspace('schedule');
+  state.search = ''; $('search').value = ''; anniversaries.reset(); ledger.reset(); switchWorkspace('schedule');
   $('delete-dialog').close(); $('task-dialog').close();
   $('login-panel').hidden = !!state.user; $('workspace').hidden = !state.user;
   $('sign-out').hidden = !state.user; $('account-email').hidden = !state.user;
@@ -440,6 +457,9 @@ async function applySession(session) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_tasks', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_occurrences', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_anniversaries', filter: `user_id=eq.${state.user.id}` }, queueReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_ledger_accounts', filter: `user_id=eq.${state.user.id}` }, queueReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_ledger_entries', filter: `user_id=eq.${state.user.id}` }, queueReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_ledger_rules', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .subscribe();
   await loadData();
   // Polling also catches deletes and provides fallback when Realtime is blocked.
@@ -449,15 +469,17 @@ function switchWorkspace(name) {
   if (activeWorkspace !== name) { state.search = ''; $('search').value = ''; }
   activeWorkspace = name;
   const days = name === 'anniversaries';
-  $('schedule-panel').hidden = days;
+  const bookkeeping = name === 'ledger';
+  $('schedule-panel').hidden = name !== 'schedule';
   $('anniversaries-panel').hidden = !days;
-  $('workspace-title').textContent = days ? '纪念日' : '我的日程';
-  $('add-task').textContent = days ? '＋ 新建纪念日' : '＋ 新建任务';
-  $('search').placeholder = days ? '搜索纪念日…' : '搜索任务…';
-  document.querySelector('.search-label .sr-only').textContent = days ? '搜索纪念日' : '搜索任务';
+  $('ledger-panel').hidden = !bookkeeping;
+  $('workspace-title').textContent = days ? '纪念日' : bookkeeping ? '我的记账' : '我的日程';
+  $('add-task').textContent = days ? '＋ 新建纪念日' : bookkeeping ? '＋ 记一笔' : '＋ 新建任务';
+  $('search').placeholder = days ? '搜索纪念日…' : bookkeeping ? '搜索流水…' : '搜索任务…';
+  document.querySelector('.search-label .sr-only').textContent = days ? '搜索纪念日' : bookkeeping ? '搜索流水' : '搜索任务';
   document.querySelectorAll('[data-workspace]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.workspace === name)));
   render();
-  if (!days && state.calendar) { state.calendar.updateSize(); scheduleCalendarSize(); }
+  if (name === 'schedule' && state.calendar) { state.calendar.updateSize(); scheduleCalendarSize(); }
 }
 async function init() {
   for (const [value, category] of Object.entries(CATEGORIES)) {
@@ -485,6 +507,7 @@ async function init() {
     global: { fetch: (input, options) => new URL(input instanceof Request ? input.url : input).pathname.startsWith('/auth/v1/') ? authFetchWithTimeout(input, options) : fetch(input, options) },
   });
   anniversaries = setupAnniversaries({ client, getUser: () => state.user, canEdit, mutate, checkedWrite });
+  ledger = setupLedger({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, reload: () => loadData({ force: true }), toast });
   document.querySelectorAll('[data-workspace]').forEach((button) => button.addEventListener('click', () => switchWorkspace(button.dataset.workspace)));
   $('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); $('login-submit').disabled = true; $('login-error').textContent = '';
@@ -503,7 +526,7 @@ async function init() {
     await applySession(null); toast('已退出当前设备');
   });
   client.auth.onAuthStateChange((_event, session) => { setTimeout(() => applySession(session), 0); });
-  $('add-task').addEventListener('click', () => { if (activeWorkspace === 'anniversaries') anniversaries.open(); else if (canEdit()) openNew(); });
+  $('add-task').addEventListener('click', () => { if (activeWorkspace === 'anniversaries') anniversaries.open(); else if (activeWorkspace === 'ledger') ledger.open(); else if (canEdit()) openNew(); });
   $('agenda-add').addEventListener('click', () => { if (canEdit()) openNew(); });
   $('previous').addEventListener('click', () => state.calendar.prev());
   $('next').addEventListener('click', () => state.calendar.next());

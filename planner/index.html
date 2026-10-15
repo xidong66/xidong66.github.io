@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-mail">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-ledger">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-mail"></script>
+  <script type="module" src="../js/planner.js?v=20261016-ledger"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -36,7 +36,7 @@
     </section>
 
     <section id="workspace" class="workspace" hidden aria-label="个人计划">
-      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程和纪念日"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
+      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程、纪念日和记账"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button><button data-workspace="ledger" aria-pressed="false" aria-controls="ledger-panel">记账</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
       <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
       <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
       <div id="schedule-panel">
@@ -54,6 +54,16 @@
         <div class="anniversary-intro"><div><div class="eyebrow">DAYS WORTH KEEPING</div><h2>把特别的日子，放在心上。</h2><p>期待下一次相聚，也记得一起走过的每一天。</p></div><span class="count" id="anniversary-count">0</span></div>
         <p id="anniversary-notice" class="workspace-error" role="status" hidden></p>
         <div id="anniversary-featured"></div><div id="anniversary-list" class="anniversary-list"></div>
+      </div>
+      <div id="ledger-panel" class="ledger-panel" hidden aria-label="个人记账">
+        <div class="ledger-heading"><div><h2>把每笔收支，记得清楚。</h2><p>管理自己名下的银行卡与钱包，先记下来，账户可以以后补选。</p></div><div class="ledger-month-nav"><button id="ledger-previous" class="icon-button" aria-label="上个月">‹</button><label class="sr-only" for="ledger-month">记账月份</label><input id="ledger-month" type="month" min="2000-01"><button id="ledger-next" class="icon-button" aria-label="下个月">›</button><button id="ledger-current" class="quiet">本月</button></div></div>
+        <p id="ledger-notice" class="workspace-error" role="status"></p>
+        <div id="ledger-summary" class="ledger-summary"></div><p class="ledger-help">三种货币分别统计，不自动换汇。月度汇总包含待分配账户的流水；初始金额不计入收入。</p>
+        <div class="ledger-section-heading"><h3>我的银行卡与钱包</h3><button id="ledger-add-account" class="quiet">＋ 添加账户</button></div>
+        <div id="ledger-accounts" class="ledger-accounts"></div><p class="ledger-help">余额＝初始金额＋已分配收入－已分配支出。未分配流水暂不影响任何账户余额。</p>
+        <div class="ledger-columns"><div class="ledger-records-panel"><div class="ledger-section-heading"><div><h3>本月流水 <span id="ledger-entry-count" class="count">0 笔</span></h3><span id="ledger-pending" class="ledger-pending" hidden></span></div><label class="sr-only" for="ledger-filter">筛选流水账户</label><select id="ledger-filter"><option value="all">全部流水</option></select></div><div id="ledger-entries"></div></div>
+          <div class="ledger-fixed-panel"><div class="ledger-section-heading"><h3>每月固定收支 <span id="ledger-rule-count" class="count">0</span></h3><button id="ledger-add-rule" class="quiet">＋ 添加</button></div><p class="ledger-help">按指定日期自动记账，不会实际操作银行卡扣款。31 日遇小月按月末记账。</p><div id="ledger-rules"></div></div>
+        </div>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
@@ -96,6 +106,25 @@
       <div class="anniversary-email-setting"><label><input id="anniversary-email" type="checkbox" disabled> 提前 1 天早上 9 点邮件提醒</label><p id="anniversary-email-help" class="field-help"></p></div>
       <label for="anniversary-notes">备注</label><textarea id="anniversary-notes" rows="3" maxlength="5000" placeholder="关于这一天的回忆或安排…"></textarea>
       <p id="anniversary-error" class="error" role="alert"></p><div class="dialog-actions"><button id="delete-anniversary" type="button" class="danger" hidden>删除</button><div><button id="cancel-anniversary" type="button" class="quiet">取消</button><button id="save-anniversary" type="submit" class="primary">保存纪念日</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="ledger-dialog" aria-labelledby="ledger-dialog-title">
+    <form id="ledger-form"><div class="dialog-heading"><div><div class="eyebrow">A LITTLE CLARITY</div><h2 id="ledger-dialog-title">记一笔</h2></div><button id="ledger-close" type="button" class="icon-button" aria-label="关闭记账编辑">×</button></div>
+      <div id="ledger-account-fields" hidden>
+        <label for="ledger-account-name">账户名称</label><input id="ledger-account-name" maxlength="80" placeholder="例如：人民币银行卡、英国银行卡、现金">
+        <div class="form-grid"><div><label for="ledger-account-currency">币种</label><select id="ledger-account-currency"><option value="CNY">人民币（RMB / CNY）</option><option value="GBP">英镑（GBP）</option><option value="SGD">新加坡元（SGD）</option></select></div><div><label for="ledger-opening">初始金额</label><input id="ledger-opening" inputmode="decimal" value="0.00" maxlength="16"></div></div>
+        <p id="ledger-account-help" class="field-help"></p>
+      </div>
+      <div id="ledger-record-fields">
+        <div class="form-grid"><div><label for="ledger-record-kind">收支类型</label><select id="ledger-record-kind"><option value="expense">支出</option><option value="income">收入</option></select></div><div><label for="ledger-record-currency">币种</label><select id="ledger-record-currency"><option value="CNY">人民币（RMB / CNY）</option><option value="GBP">英镑（GBP）</option><option value="SGD">新加坡元（SGD）</option></select></div></div>
+        <label for="ledger-record-amount">金额</label><input id="ledger-record-amount" class="ledger-amount-input" inputmode="decimal" placeholder="0.00" maxlength="15" autocomplete="off">
+        <div class="form-grid"><div><label for="ledger-record-category">分类</label><select id="ledger-record-category"></select></div><div id="ledger-entry-date-wrap"><label for="ledger-record-date">记账日期</label><input id="ledger-record-date" type="date" min="2000-01-01"></div></div>
+        <label for="ledger-record-account">对应银行卡／钱包（可稍后补选）</label><select id="ledger-record-account"><option value="">暂不选账户，先记下来</option></select>
+        <label for="ledger-record-title">用途（可稍后补充）</label><input id="ledger-record-title" maxlength="200" placeholder="午餐、房租、工资、会员订阅…">
+        <div id="ledger-rule-fields" hidden><div class="form-grid"><div><label for="ledger-rule-day">每月几号记账</label><input id="ledger-rule-day" type="number" min="1" max="31" step="1"></div><div><label for="ledger-rule-start">起始月份</label><input id="ledger-rule-start" type="month" min="2000-01" max="2100-12"></div></div><label for="ledger-rule-end">结束月份（可留空）</label><input id="ledger-rule-end" type="month" min="2000-01" max="2100-12"><div class="inline-checks"><label><input id="ledger-rule-enabled" type="checkbox" checked> 启用每月自动记账</label></div><p class="field-help">从起始月份补记已到期流水，建议从本月开始。31 日遇小月按月末处理；已生成月份不会重复入账。</p></div>
+        <p id="ledger-record-help" class="field-help"></p><label for="ledger-record-notes">备注</label><textarea id="ledger-record-notes" rows="2" maxlength="5000" placeholder="可留空"></textarea>
+      </div>
+      <p id="ledger-error" class="error" role="alert"></p><div class="dialog-actions"><button id="ledger-delete" type="button" class="danger" hidden>删除</button><div><button id="ledger-cancel" type="button" class="quiet">取消</button><button id="ledger-save" type="submit" class="primary">保存这笔</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

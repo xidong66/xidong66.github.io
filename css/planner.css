@@ -122,6 +122,64 @@
 .anniversary-email-setting .field-help{margin-bottom:0}
 .anniversary-mail{font-size:11px;color:var(--green);line-height:1.7}
 .inline-checks [hidden]{display:none!important}
+/* Personal bookkeeping: distinct wallets, separate currencies, compact rows. */
+.ledger-panel{max-width:1380px;margin:18px auto 32px}
+.ledger-heading,.ledger-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.ledger-heading{margin-bottom:22px}
+.ledger-heading h2{font-size:25px;font-weight:550;margin:0 0 9px;letter-spacing:-.5px}
+.ledger-heading p,.ledger-help{font-size:12px;line-height:1.8;color:var(--muted);margin:6px 0 16px}
+.ledger-month-nav{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.ledger-month-nav input{width:150px;padding:8px;background:white}
+.ledger-month-nav button{padding:8px 10px}
+.ledger-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ledger-summary-card{background:white;border:1px solid var(--line);border-radius:12px;padding:21px 24px;min-width:0;border-top:3px solid var(--ledger-color)}
+.ledger-currency-label,.ledger-summary-label{display:block;font-size:12px;color:var(--muted)}
+.ledger-currency-label{color:var(--ledger-color);margin-bottom:20px;font-weight:600}
+.ledger-total{display:block;font-size:30px;font-weight:550;letter-spacing:-.7px;line-height:1.6;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.ledger-summary-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ledger-section-heading{margin:22px 0 12px}
+.ledger-section-heading h3{font-size:16px;font-weight:550;margin:0}
+.ledger-section-heading>div{display:flex;align-items:center;gap:9px}
+.ledger-section-heading span,.ledger-section-heading label{font-size:11px;color:var(--muted)}
+.ledger-section-heading .quiet{font-size:12px;padding:7px 10px}
+.ledger-accounts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ledger-account-card{background:#edf1e7;border:1px solid #dfe6d7;border-radius:9px;padding:17px 20px;text-align:left;display:flex;flex-direction:column;gap:7px;min-width:0}
+.ledger-account-card:hover{border-color:#a8b99b;background:#e8eedf}
+.ledger-account-name{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.ledger-account-currency{font-size:10px;color:var(--muted)}
+.ledger-account-balance{font-size:23px;font-weight:550;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.ledger-columns{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;margin-top:24px}
+.ledger-records-panel,.ledger-fixed-panel{background:white;border:1px solid var(--line);border-radius:12px;padding:0 22px 14px;min-width:0}
+.ledger-records-panel .ledger-section-heading,.ledger-fixed-panel .ledger-section-heading{margin-top:18px;flex-wrap:wrap}
+#ledger-filter{font-size:11px;padding:7px 9px;width:auto;max-width:190px}
+#ledger-pending{color:#a56f31;background:#faf1df;border-radius:4px;padding:4px 7px}
+.ledger-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line);min-width:0}
+.ledger-entry-copy,.ledger-rule-copy{display:flex;flex-direction:column;gap:5px;text-align:left;min-width:0;padding:0;line-height:1.55}
+.ledger-entry-copy strong,.ledger-rule-copy strong{font-size:13px;font-weight:550;overflow-wrap:anywhere}
+.ledger-entry-meta{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.ledger-entry-amount{font-size:14px;font-weight:550;text-align:right;font-variant-numeric:tabular-nums;align-self:start;overflow-wrap:anywhere;max-width:100%}
+.ledger-entry-amount.income{color:#45816d}.ledger-entry-amount.expense{color:#896548}
+.ledger-assignment{justify-self:start;font-size:10px;padding:3px 7px;background:var(--soft);border-radius:4px;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.ledger-assignment.is-pending{color:#a1723e;background:#faf3e8}
+.ledger-rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:14px 0;border-top:1px solid var(--line)}
+.ledger-rule .quiet{justify-self:start;padding:2px 0;font-size:10px}.ledger-rule.paused{opacity:.65}
+.ledger-empty{grid-column:1/-1;padding:25px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.9;margin:0}
+#ledger-account-fields>label,#ledger-record-fields>label{margin-top:14px}
+.ledger-amount-input{font-size:23px!important;font-variant-numeric:tabular-nums}
+#ledger-rule-fields{margin-top:15px;padding:12px;background:var(--soft);border-radius:7px}
+@media(max-width:1000px){.ledger-columns{grid-template-columns:1fr}.ledger-total{font-size:24px}.ledger-summary-card{padding:18px}.ledger-summary-meta{flex-direction:column}}
+@media(max-width:760px){
+  .ledger-panel{margin-top:20px}.ledger-heading{align-items:flex-start;flex-direction:column;gap:0}.ledger-heading h2{font-size:22px}
+  .ledger-month-nav{align-self:stretch;justify-content:space-between}.ledger-month-nav input{flex:1;max-width:200px}
+  .ledger-summary{grid-template-columns:1fr;gap:9px}.ledger-summary-card{padding:14px 17px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  .ledger-currency-label{margin:0;grid-column:1/-1}.ledger-summary-label{align-self:center;font-size:11px}.ledger-total{font-size:25px;text-align:right}
+  .ledger-summary-meta{grid-column:1/-1;flex-direction:row;justify-content:space-between;margin-top:4px}
+  .ledger-accounts{grid-template-columns:repeat(2,minmax(0,1fr))}.ledger-account-card{padding:14px 12px}.ledger-account-balance{font-size:19px}
+  .ledger-columns{gap:12px}.ledger-records-panel,.ledger-fixed-panel{padding:0 14px 10px}
+  .ledger-entry{gap:6px}.ledger-entry-copy{grid-column:1/-1}.ledger-entry-amount{grid-column:2;grid-row:2}.ledger-assignment{grid-column:1;grid-row:2}
+  .ledger-entry-amount{font-size:13px}.ledger-rule-copy{grid-column:1/-1}.ledger-rule .ledger-entry-amount{grid-row:2}
+  .workspace-tabs button{padding-inline:9px}
+}
 @media(max-width:1050px){.page-heading #today-caption{display:none}}
 @media(max-width:760px){
   .page-heading>div{gap:8px}
