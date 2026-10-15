@@ -1,5 +1,5 @@
 import { plannerConfig } from './planner-config.js';
-import { CATEGORIES, addDays, todaySG, weekday, wallISO, expandTasks, calendarEvent, repeatLabel } from './planner-model.mjs';
+import { addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-task-list';
 
 const $ = (id) => document.getElementById(id);
 const state = { user: null, tasks: [], exceptions: [], calendar: null, channel: null, busy: false, loaded: false, loading: false, epoch: 0, edit: null, search: '', showCompleted: false };
@@ -156,52 +156,60 @@ function renderAgenda() {
   const list = $('agenda-list');
   list.replaceChildren();
   if (!state.loaded) { list.textContent = '正在加载日程…'; return; }
-  const today = todaySG();
-  const tomorrow = addDays(today, 1);
-  const end = addDays(today, 8);
-  const earliest = state.tasks.reduce((date, task) => task.start_date < date ? task.start_date : date, today);
-  const movedEarliest = state.exceptions.reduce((date, ex) => ex.override_date && ex.override_date < date ? ex.override_date : date, earliest);
-  const items = expandTasks(state.tasks, state.exceptions, movedEarliest, end).filter(matches);
-  const pending = items.filter((item) => !item.completed);
+  const tasks = buildTaskList(state.tasks, state.exceptions);
+  const pending = tasks.pending.filter(matches);
+  const completed = state.showCompleted ? tasks.completed.filter(matches) : [];
   $('agenda-count').textContent = pending.length;
-  const groups = [
-    { title: '已逾期', cls: 'overdue', filter: (i) => !i.completed && i.date < today },
-    { title: '今天', filter: (i) => !i.completed && i.date === today },
-    { title: '未来七天', filter: (i) => !i.completed && i.date >= tomorrow },
-    { title: '已完成', filter: (i) => state.showCompleted && i.completed },
-  ];
-  let shown = 0;
-  for (const group of groups) {
-    const rows = items.filter(group.filter);
-    if (!rows.length) continue;
-    const section = document.createElement('div'); section.className = `agenda-group ${group.cls || ''}`;
-    const heading = document.createElement('h3'); heading.textContent = group.title;
-    const total = document.createElement('span'); total.textContent = rows.length; heading.append(total); section.append(heading);
-    for (const item of rows.slice(0, 80)) { section.append(taskCard(item)); shown++; }
-    if (rows.length > 80) {
-      const note = document.createElement('p'); note.className = 'muted'; note.textContent = `显示前 80 项，共 ${rows.length} 项。可搜索名称缩小范围。`; section.append(note);
-    }
+  for (const item of pending) list.append(taskCard(item));
+  if (completed.length) {
+    const section = document.createElement('div'); section.className = 'agenda-group';
+    const heading = document.createElement('h3'); heading.textContent = '已完成';
+    const total = document.createElement('span'); total.textContent = completed.length; heading.append(total); section.append(heading);
+    for (const item of completed) section.append(taskCard(item));
     list.append(section);
   }
-  if (!shown) {
+  if (!pending.length && !completed.length) {
     const empty = document.createElement('div'); empty.className = 'empty-state';
     const symbol = document.createElement('span'); symbol.className = 'empty-symbol'; symbol.textContent = '✓';
-    const text = document.createElement('div'); text.textContent = state.search ? '没有匹配的近期任务' : '近期没有待办，留一点空白。';
+    const text = document.createElement('div'); text.textContent = state.search ? '没有匹配的任务' : '没有待办，添加一个新计划吧。';
     empty.append(symbol, text); list.append(empty);
   }
 }
 function taskCard(item) {
   const card = document.createElement('div'); card.className = `task-card${item.completed ? ' done' : ''}`;
+  card.dataset.taskId = item.task_id;
+  card.dataset.occurrenceDate = item.original_date;
   const check = document.createElement('button'); check.type = 'button'; check.className = 'task-check'; check.textContent = item.completed ? '✓' : '';
   check.setAttribute('aria-label', `${item.completed ? '恢复未完成' : '完成任务'}：${item.title}`); check.setAttribute('aria-pressed', String(item.completed)); check.disabled = state.busy;
-  check.addEventListener('click', () => mutate(() => saveException(item, { completed: !item.completed }), item.completed ? '已恢复待办' : '已完成，做得不错。'));
+  check.addEventListener('click', () => mutate(() => saveException(item, { completed: !item.completed }), item.completed ? '已恢复待办' : item.repeat === 'none' ? '任务已完成' : '本次任务已完成'));
   const copy = document.createElement('button'); copy.type = 'button'; copy.className = 'task-copy'; copy.setAttribute('aria-label', `编辑：${item.title}`);
   const title = document.createElement('span'); title.className = 'task-name'; title.textContent = item.title;
   const meta = document.createElement('span'); meta.className = 'task-meta';
-  meta.textContent = `${item.date.slice(5).replace('-', '/')} · ${item.start_time ? item.start_time.slice(0, 5) : '全天'} · ${CATEGORIES[item.category].label}${repeatLabel(item) ? ` · ↻ ${repeatLabel(item)}` : ''}`;
+  const due = document.createElement('span'); due.className = 'task-due';
+  const today = todaySG();
+  const [year, month, day] = item.date.split('-').map(Number);
+  const dateLabel = item.date === today ? '今天' : item.date === addDays(today, 1) ? '明天' : `${year !== Number(today.slice(0, 4)) ? `${year}年` : ''}${month}月${day}日，${['周日', '周一', '周二', '周三', '周四', '周五', '周六'][weekday(item.date)]}`;
+  due.textContent = `${dateLabel}${item.start_time ? ` ${item.start_time.slice(0, 5)}` : ''}`;
+  if (!item.completed) due.classList.add(item.date < today ? 'is-overdue' : item.date === today ? 'is-today' : 'is-future');
+  meta.append(taskIcon('calendar'), due);
+  if (item.repeat !== 'none') {
+    const repeat = taskIcon('repeat'); repeat.classList.add('task-repeat');
+    repeat.setAttribute('role', 'img'); repeat.removeAttribute('aria-hidden'); repeat.setAttribute('aria-label', `循环任务：${repeatLabel(item)}`);
+    const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'title'); tooltip.textContent = `${repeatLabel(item)}${item.repeat_until ? `，至 ${item.repeat_until}` : ''}`; repeat.prepend(tooltip);
+    meta.append(repeat);
+  }
   copy.append(title, meta); copy.addEventListener('click', () => { if (canEdit()) openEdit(item); }); card.append(check, copy);
   if (item.important) { const star = document.createElement('span'); star.className = 'task-star'; star.textContent = '☆'; star.setAttribute('aria-label', '重要'); card.append(star); }
   return card;
+}
+function taskIcon(name) {
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icon.setAttribute('viewBox', '0 0 16 16'); icon.setAttribute('aria-hidden', 'true'); icon.classList.add('task-meta-icon');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', name === 'repeat'
+    ? 'M13 6A5.2 5.2 0 0 0 4 3.6L2 5.5M2 2.5v3h3M3 10a5.2 5.2 0 0 0 9 2.4l2-1.9M14 13.5v-3h-3'
+    : 'M5 1.75v3M11 1.75v3M2.25 6h11.5M3.75 3.25h8.5a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5h-8.5a1.5 1.5 0 0 1-1.5-1.5v-8a1.5 1.5 0 0 1 1.5-1.5Z');
+  icon.append(path); return icon;
 }
 
 function fillForm(task, date) {

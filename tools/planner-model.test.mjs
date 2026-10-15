@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { todaySG, addDays, occursOn, expandTasks, calendarEvent } from '../js/planner-model.mjs';
+import { todaySG, addDays, occursOn, expandTasks, calendarEvent, buildTaskList } from '../js/planner-model.mjs';
 
 const task = (changes = {}) => ({ id: 'task-a', title: '研究', notes: '', start_date: '2026-10-16', start_time: '15:00:00', duration_minutes: 60, category: 'research', important: false, repeat: 'none', repeat_interval: 1, weekdays: [], repeat_until: null, ...changes });
 
@@ -61,4 +61,59 @@ test('rescheduling a one-off task preserves its completion identity', () => {
   const result = expandTasks([row], ex, '2026-10-20', '2026-10-21');
   assert.equal(result.length, 1); assert.equal(result[0].date, '2026-10-20');
   assert.equal(result[0].completed, true); assert.equal(result[0].original_date, '2026-10-16');
+});
+
+test('task list shows one row per recurring task and does not merge independent same-name tasks', () => {
+  const rows = [task({ repeat: 'daily', title: '雅思' }), task({ id: 'task-b', title: '雅思' })];
+  const list = buildTaskList(rows, []);
+  assert.equal(list.pending.length, 2);
+  assert.deepEqual(list.pending.map((i) => i.task_id).sort(), ['task-a', 'task-b']);
+  assert.equal(list.pending.find((i) => i.task_id === 'task-a').original_date, '2026-10-16');
+});
+test('completing or skipping a repeat advances the single row, keeping overdue history actionable', () => {
+  const row = task({ repeat: 'daily' });
+  const records = [{ task_id: row.id, original_date: '2026-10-16', completed: true }, { task_id: row.id, original_date: '2026-10-17', skipped: true }];
+  const list = buildTaskList([row], records);
+  assert.equal(list.pending.length, 1); assert.equal(list.pending[0].original_date, '2026-10-18');
+  assert.equal(list.completed.length, 0);
+  assert.equal(buildTaskList([row], []).pending[0].original_date, '2026-10-16');
+});
+test('task list includes distant dates and sparse leap-year recurrences', () => {
+  const future = task({ start_date: '2030-06-15' });
+  assert.equal(buildTaskList([future], []).pending[0].date, '2030-06-15');
+  const row = task({ start_date: '2028-02-29', repeat: 'monthly', repeat_interval: 12 });
+  const list = buildTaskList([row], [{ task_id: row.id, original_date: '2028-02-29', completed: true }]);
+  assert.equal(list.pending[0].date, '2032-02-29');
+});
+test('a moved future occurrence can become the current task without duplication', () => {
+  const row = task({ repeat: 'daily' });
+  const records = [{ task_id: row.id, original_date: '2026-10-20', override_date: '2026-10-15', start_time: null, title: '已改期' }];
+  const list = buildTaskList([row], records);
+  assert.equal(list.pending.length, 1); assert.equal(list.pending[0].original_date, '2026-10-20');
+  assert.equal(list.pending[0].date, '2026-10-15'); assert.equal(list.pending[0].title, '已改期');
+  records[0].completed = true;
+  assert.equal(buildTaskList([row], records).pending[0].date, '2026-10-16');
+});
+test('moving the earliest instance later allows the next scheduled date to come first', () => {
+  const row = task({ repeat: 'daily' });
+  const list = buildTaskList([row], [{ task_id: row.id, original_date: '2026-10-16', override_date: '2026-10-25', start_time: null }]);
+  assert.equal(list.pending.length, 1); assert.equal(list.pending[0].date, '2026-10-17');
+});
+test('finished series gets one completed row, skipped series and invalid old overrides stay hidden', () => {
+  const row = task({ repeat: 'daily', repeat_until: '2026-10-17' });
+  const records = ['2026-10-16', '2026-10-17'].map((date) => ({ task_id: row.id, original_date: date, completed: true }));
+  const list = buildTaskList([row], records);
+  assert.equal(list.pending.length, 0); assert.equal(list.completed.length, 1);
+  assert.equal(list.completed[0].original_date, '2026-10-17');
+  assert.deepEqual(buildTaskList([row], records.map((ex) => ({ ...ex, completed: false, skipped: true }))), { pending: [], completed: [] });
+  const changed = task({ repeat: 'weekly', weekdays: [1] });
+  const result = buildTaskList([changed], [{ task_id: row.id, original_date: '2026-10-16', override_date: '2026-10-15', completed: false }]);
+  assert.equal(result.pending[0].date, '2026-10-19');
+});
+test('task list preserves one-off completion and rescheduled record identity', () => {
+  const row = task({ start_date: '2026-10-20' });
+  const records = [{ task_id: row.id, original_date: '2026-10-16', completed: true }];
+  const list = buildTaskList([row], records);
+  assert.equal(list.pending.length, 0); assert.equal(list.completed[0].date, '2026-10-20');
+  assert.equal(list.completed[0].original_date, '2026-10-16');
 });

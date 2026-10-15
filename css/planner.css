@@ -19,6 +19,15 @@
 .danger-primary:hover{background:#903b35}
 
 /* Let the calendar use the window, with enough room for each day's tasks. */
+.agenda-list>.task-card:first-child{margin-top:8px}
+.agenda-list .task-card{padding:10px 11px;margin-bottom:4px;border-radius:5px;gap:10px}
+.agenda-list .task-name{font-size:13px;line-height:1.55}
+.agenda-list .task-meta{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:3px;min-width:0}
+.task-meta-icon{width:13px;height:13px;flex:0 0 13px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
+.task-repeat{width:15px;height:15px;flex-basis:15px;color:#7d8d70;margin-left:2px}
+.task-due{min-width:0;overflow-wrap:anywhere}
+.task-due.is-overdue{color:var(--danger)}
+.task-due.is-today{color:var(--green)}
 .workspace{max-width:none;padding:12px 24px 16px}
 .page-heading{margin-bottom:8px}
 .page-heading>div{display:flex;align-items:baseline;gap:16px;min-width:0}

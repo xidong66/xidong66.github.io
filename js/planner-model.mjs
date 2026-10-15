@@ -89,6 +89,49 @@ export function repeatLabel(task) {
   const unit = { daily: '天', weekly: '周', monthly: '月' }[task.repeat];
   return `每${task.repeat_interval > 1 ? task.repeat_interval : ''}${unit}`;
 }
+// The sidebar is a task list, not an expanded daily agenda. A series gets one
+// actionable occurrence, while the calendar still renders every scheduled date.
+export function buildTaskList(tasks, exceptions) {
+  const byTask = new Map();
+  for (const ex of exceptions) {
+    if (!byTask.has(ex.task_id)) byTask.set(ex.task_id, []);
+    byTask.get(ex.task_id).push(ex);
+  }
+  const compare = (a, b) => a.date.localeCompare(b.date) || (a.start_time || '').localeCompare(b.start_time || '') || Number(b.important) - Number(a.important) || a.title.localeCompare(b.title);
+  const pending = [], completed = [];
+  for (const task of tasks) {
+    const records = byTask.get(task.id) || [];
+    if (task.repeat === 'none') {
+      const item = expandTasks([task], records, '2000-01-01', '2101-01-01')[0];
+      if (item) (item.completed ? completed : pending).push(item);
+      continue;
+    }
+    const overrides = new Map(records.map((ex) => [ex.original_date, ex]));
+    let next = null, lastCompleted = null;
+    for (const ex of records) {
+      if (!occursOn(task, ex.original_date) || ex.skipped) continue;
+      const item = occurrence(task, ex.original_date, ex);
+      if (item.completed) {
+        if (!lastCompleted || compare(item, lastCompleted) > 0) lastCompleted = item;
+      } else if (ex.override_date && (!next || compare(item, next) < 0)) next = item;
+    }
+    // Stop at the first unmodified pending date. Do not materialize years of
+    // future repeats, or hide tasks merely because their next date is far away.
+    const end = dayNumber(task.repeat_until || '2100-12-31');
+    for (let day = dayNumber(task.start_date); day <= end; day++) {
+      const date = dateFromDay(day);
+      if (!occursOn(task, date)) continue;
+      const ex = overrides.get(date);
+      if (ex?.skipped || ex?.completed || ex?.override_date) continue;
+      const item = occurrence(task, date, ex);
+      if (!next || compare(item, next) < 0) next = item;
+      break;
+    }
+    if (next) pending.push(next);
+    else if (lastCompleted) completed.push(lastCompleted);
+  }
+  return { pending: pending.sort(compare), completed: completed.sort((a, b) => compare(b, a)) };
+}
 export function calendarEvent(item) {
   const allDay = !item.start_time;
   return {

@@ -8,10 +8,10 @@
   <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-space">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-task-list">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-space"></script>
+  <script type="module" src="../js/planner.js?v=20261016-task-list"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -36,14 +36,14 @@
       <div class="page-heading"><div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div><h1>我的日程</h1></div><button id="add-task" class="primary"><span aria-hidden="true">＋</span> 新建任务</button></div>
       <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
       <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
-      <div class="mobile-tabs" role="group" aria-label="切换日历和清单"><button data-pane="calendar" aria-pressed="true">日历</button><button data-pane="agenda" aria-pressed="false">待办清单</button></div>
+      <div class="mobile-tabs" role="group" aria-label="切换日历和清单"><button data-pane="calendar" aria-pressed="true">日历</button><button data-pane="agenda" aria-pressed="false">任务清单</button></div>
       <div class="planner-layout" data-pane="calendar">
         <div class="calendar-panel">
           <div class="calendar-toolbar"><div class="date-navigation"><button id="previous" class="icon-button" aria-label="上一段日期">‹</button><button id="next" class="icon-button" aria-label="下一段日期">›</button><h2 id="calendar-title">日历</h2><button id="today" class="quiet today-button">今天</button></div><div class="view-switch" role="group" aria-label="日历视图"><button data-view="dayGridMonth" aria-pressed="true">月</button><button data-view="timeGridWeek" aria-pressed="false">周</button><button data-view="timeGridDay" aria-pressed="false">日</button></div></div>
           <div id="calendar"></div>
           <div class="calendar-footer"><div class="legend"><span class="legend-research">研究</span><span class="legend-course">课程</span><span class="legend-life">生活</span><span class="legend-other">其他</span></div><span>点击日期添加 · 拖动任务调整时间</span></div>
         </div>
-        <aside class="agenda-panel" aria-labelledby="agenda-heading"><div class="agenda-header"><div class="eyebrow">ONE THING AT A TIME</div><div class="agenda-title"><h2 id="agenda-heading">近期待办</h2><span id="agenda-count" class="count">0</span></div><p>完成一件，就轻松一点。</p></div><label class="completed-toggle"><input id="show-completed" type="checkbox"> 显示已完成</label><div id="agenda-list" class="agenda-list"></div><button id="agenda-add" class="agenda-add">＋ 添加任务</button></aside>
+        <aside class="agenda-panel" aria-labelledby="agenda-heading"><div class="agenda-header"><div class="eyebrow">ONE THING AT A TIME</div><div class="agenda-title"><h2 id="agenda-heading">任务</h2><span id="agenda-count" class="count">0</span></div><p>每个计划一条，循环任务自动显示下一次。</p></div><label class="completed-toggle"><input id="show-completed" type="checkbox"> 显示已完成</label><div id="agenda-list" class="agenda-list"></div><button id="agenda-add" class="agenda-add">＋ 添加任务</button></aside>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
