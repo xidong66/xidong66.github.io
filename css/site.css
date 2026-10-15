@@ -36,6 +36,10 @@ a:hover, .footer a:hover { color: var(--xw-ink, #293e46); }
 .sidebar h1.brand-title, .sidebar .brand-tagline, .sidebar .nav-item a { color: #203e4c; }
 .sidebar .brand-tagline { font-weight: 400; line-height: 1.55; padding: 0 12px; }
 .sidebar .nav-item a { font-size: .9rem; }
+.nav-list--projects { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.nav-list--projects .nav-item { display: inline-flex; align-items: baseline; flex: 1 1 min-content; max-width: max-content; }
+.sidebar .nav-list--projects a { margin-top: 0; font-weight: 700; letter-spacing: 0; }
+@media (min-width: 48rem) { .nav-list--projects { justify-content: flex-end; } }
 .publication-status, .author-note { color: var(--xw-muted, #69797d); }
 .author-note { border-color: var(--xw-line, #d4dcd8); }
 .education-list { display: grid; gap: 1.75rem; margin: .5rem 0 1.5rem; }
