@@ -1,15 +1,15 @@
 // Pure calendar logic. All wall-clock dates belong to Asia/Singapore, regardless
 // of the device timezone. UTC here is only a container for date arithmetic.
 export const CATEGORIES = {
-  research: { label: '研究', color: '#587356' },
-  course: { label: '课程', color: '#6386aa' },
-  life: { label: '生活', color: '#bf8b52' },
-  travel: { label: '旅行', color: '#4b8c8c' },
-  date: { label: '约会', color: '#b97189' },
-  homework: { label: '作业', color: '#b09045' },
-  project: { label: '项目', color: '#7770a8' },
-  meeting: { label: '会议', color: '#537e91' },
-  other: { label: '其他', color: '#9987ad' },
+  research: { label: '研究', color: '#DCE9DC', textColor: '#365C45' },
+  course: { label: '课程', color: '#DCE7FA', textColor: '#355D91' },
+  life: { label: '生活', color: '#FBE4D0', textColor: '#8C542E' },
+  travel: { label: '旅行', color: '#D5EEEB', textColor: '#286F68' },
+  date: { label: '约会', color: '#F5DCE5', textColor: '#894A63' },
+  homework: { label: '作业', color: '#F6EDC9', textColor: '#80651D' },
+  project: { label: '项目', color: '#E7DFF5', textColor: '#6E5492' },
+  meeting: { label: '会议', color: '#F5DDD7', textColor: '#945344' },
+  other: { label: '其他', color: '#E8E7E3', textColor: '#66665F' },
 };
 export function dayNumber(date) { return Date.parse(`${date}T00:00:00Z`) / 86400000; }
 export function dateFromDay(day) { return new Date(day * 86400000).toISOString().slice(0, 10); }
@@ -139,11 +139,12 @@ export function buildTaskList(tasks, exceptions) {
 }
 export function calendarEvent(item) {
   const allDay = !item.start_time;
+  const category = CATEGORIES[item.category] || CATEGORIES.other;
   return {
     id: item.key, title: `${item.completed ? '✓ ' : ''}${item.important ? '☆ ' : ''}${item.title}`,
     start: allDay ? item.date : wallISO(item.date, item.start_time),
     end: allDay ? addDays(item.date, 1) : timeEnd(item.date, item.start_time, item.duration_minutes),
-    allDay, backgroundColor: CATEGORIES[item.category].color, borderColor: 'transparent',
+    allDay, backgroundColor: category.color, textColor: category.textColor, borderColor: category.textColor,
     classNames: item.completed ? ['task-completed'] : [], extendedProps: { item },
   };
 }

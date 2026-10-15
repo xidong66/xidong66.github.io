@@ -82,6 +82,9 @@
 .fc .fc-day-today .fc-daygrid-day-number{width:21px;height:21px;margin-top:3px;margin-bottom:2px}
 .fc .fc-daygrid-more-link{line-height:15px;padding:0 2px}
 .agenda-list .task-card{padding:8px 10px;gap:8px;margin-bottom:3px}
+.agenda-list .task-card{border-inline-start:3px solid var(--category-accent,var(--line))}
+.fc .fc-daygrid-event{border-inline-start-width:3px;border-inline-start-style:solid}
+.fc .fc-timegrid-event{border-inline-start-width:3px}
 .agenda-list .task-name{line-height:1.45}
 .agenda-list .task-meta{margin-top:2px}
 .legend{flex-wrap:wrap;gap:5px 13px}

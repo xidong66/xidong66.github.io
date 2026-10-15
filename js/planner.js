@@ -1,6 +1,6 @@
 import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
-import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-days';
+import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-colors';
 import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-days';
 
 const $ = (id) => document.getElementById(id);
@@ -192,6 +192,9 @@ function renderAgenda() {
 }
 function taskCard(item) {
   const card = document.createElement('div'); card.className = `task-card${item.completed ? ' done' : ''}`;
+  const category = CATEGORIES[item.category] || CATEGORIES.other;
+  card.style.setProperty('--category-accent', category.textColor);
+  card.title = category.label;
   card.dataset.taskId = item.task_id;
   card.dataset.occurrenceDate = item.original_date;
   const check = document.createElement('button'); check.type = 'button'; check.className = 'task-check'; check.textContent = item.completed ? '✓' : '';
@@ -231,6 +234,7 @@ function fillForm(task, date) {
   $('task-title').value = task.title || '';
   $('task-date').value = date;
   $('task-category').value = task.category || 'research';
+  updateCategoryColor();
   $('task-all-day').checked = !task.start_time;
   $('task-time').value = task.start_time?.slice(0, 5) || '09:00';
   $('task-duration').value = task.duration_minutes || 60;
@@ -242,6 +246,12 @@ function fillForm(task, date) {
   const days = task.weekdays?.length ? task.weekdays : [weekday(date)];
   document.querySelectorAll('#weekdays input').forEach((input) => { input.checked = days.includes(Number(input.value)); });
   updateFormVisibility();
+}
+function updateCategoryColor() {
+  const category = CATEGORIES[$('task-category').value] || CATEGORIES.other;
+  $('task-category').style.backgroundColor = category.color;
+  $('task-category').style.color = category.textColor;
+  $('task-category').style.borderInlineStart = `4px solid ${category.textColor}`;
 }
 function openNew(date = todaySG(), time = null, duration = 60) {
   state.edit = null;
@@ -451,9 +461,10 @@ function switchWorkspace(name) {
 async function init() {
   for (const [value, category] of Object.entries(CATEGORIES)) {
     const option = document.createElement('option'); option.value = value; option.textContent = category.label;
+    option.style.backgroundColor = category.color; option.style.color = category.textColor;
     $('task-category').append(option);
     const legend = document.createElement('span'); legend.className = 'category-key';
-    legend.style.setProperty('--category-color', category.color); legend.textContent = category.label;
+    legend.style.setProperty('--category-color', category.textColor); legend.textContent = category.label;
     $('category-legend').append(legend);
   }
   $('check-connection').disabled = false;
@@ -508,6 +519,7 @@ async function init() {
   $('search').addEventListener('input', () => { state.search = $('search').value.trim().toLocaleLowerCase(); render(); });
   $('show-completed').addEventListener('change', () => { state.showCompleted = $('show-completed').checked; renderAgenda(); });
   $('task-form').addEventListener('submit', submitTask);
+  $('task-category').addEventListener('change', updateCategoryColor);
   $('toggle-completion').addEventListener('click', toggleEditCompletion);
   $('delete-task').addEventListener('click', deleteTask);
   $('delete-form').addEventListener('submit', confirmRecurringDelete);
