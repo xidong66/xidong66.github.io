@@ -121,7 +121,7 @@ function scheduleCalendarSize() {
 function setupCalendar() {
   if (state.calendar) return;
   state.calendar = new FullCalendar.Calendar($('calendar'), {
-    initialView: 'dayGridMonth', initialDate: todaySG(), firstDay: 1,
+    initialView: 'dayGridMonth', initialDate: todaySG(), firstDay: 0,
     // UTC coercion treats the app's Singapore wall time consistently, without
     // importing the device's timezone or requiring a named-zone plugin.
     timeZone: 'UTC', locale: 'zh-cn', headerToolbar: false,
