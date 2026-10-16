@@ -55,7 +55,7 @@ a:hover, .footer a:hover { color: var(--xw-ink, #293e46); }
 .education-school { margin: 0 0 .4rem; font-size: 1rem; line-height: 1.4; }
 .education-details p { margin: .15rem 0; line-height: 1.45; }
 .education-programme { font-size: .9rem; }
-.education-specialism, .education-result, .education-period { font-size: .85rem; }
+.education-specialism, .education-result, .education-supervisor, .education-period { font-size: .85rem; }
 .education-details .education-period { margin-top: .4rem; color: var(--xw-muted); font-variant-numeric: tabular-nums; }
 #citation-dialog, #citation-text { background: var(--xw-paper, #fff); color: var(--xw-ink, #002147); border-color: var(--xw-line); }
 #citation-dialog button { padding: 8px 16px; border: 1px solid var(--xw-line); background: var(--xw-paper); color: var(--xw-ink); }
@@ -72,5 +72,5 @@ html[lang=zh-CN] h1.brand-title { font-family: 'Microsoft YaHei', 'PingFang SC',
  .education-logo--neu img { width: 56px; }
  .education-logo--nus img { width: 112px; max-height: none; }
  .education-school { font-size: .9rem; }
- .education-programme, .education-specialism, .education-result, .education-period { font-size: .8rem; }
+ .education-programme, .education-specialism, .education-result, .education-supervisor, .education-period { font-size: .8rem; }
 }

@@ -17,6 +17,7 @@
     'home.nus': ['National University of Singapore', '新加坡国立大学（NUS）'],
     'home.about': ['About', '关于我'], 'home.publications': ['Publications', '论文成果'],
     'home.honors': ['Honors and Awards', '荣誉与奖励'], 'home.education': ['Education', '教育经历'],
+    'education.supervisor': ['Supervisor:', '导师：'],
     'home.services': ['Academic Services', '学术服务'], 'home.news': ['Personal News', '个人动态'],
     'home.skills': ['Skills', '技能'], 'home.email': ['Email', '邮箱'], 'home.resume': ['Resume', '简历'],
     'home.team': ['My Team', '研究团队'], 'home.studio': ['Research Studio', '研究工作台'],
