@@ -45,6 +45,8 @@
     'home.newsIntro': ['A feature about my research achievements and academic work was published on the', '我的科研成果与学术工作获报道，刊登于'],
     'home.newsSource': ['official website of the School of Biomedical Engineering, Northeastern University', '东北大学生物医学与信息工程学院官方网站'],
     'home.top': ['Back to top', '返回顶部'], 'home.copyright': ['© 2026, Xidong Wu. All rights reserved.', '© 2026 吴熙东。保留所有权利。'],
+    'home.thanksIntro': ['Special thanks to ', '特别感谢 '],
+    'home.thanksOutro': [', whose website inspired this site\'s design and interactions.', ' 的个人网站，为本站的设计与交互提供灵感。'],
     'citation.title': ['BibTeX citation', 'BibTeX 引用'], 'citation.help': ['Copy the citation below, or use the download link on the publication.', '复制下方引用，或通过论文条目的引用链接下载。'],
     'citation.close': ['Close', '关闭'], 'citation.copied': ['BibTeX copied to clipboard.', 'BibTeX 已复制到剪贴板。'],
     'citation.failed': ['Unable to load BibTeX. Please download the citation.', '无法加载 BibTeX，请下载引用文件。'],

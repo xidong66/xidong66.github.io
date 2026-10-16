@@ -18,6 +18,8 @@ body { margin: 0; padding: 0; }
 .journal-item a:hover { text-decoration: underline; }
 .visitor-map { width: 200px; max-width: 100%; margin: 2rem auto; }
 .visitor-intro, .visitor-stats { text-align: center; font-size: 0.85rem; }
+.footer .footer-credit { margin: .75rem 0; color: var(--xw-muted, #69797d); font-size: .8rem; font-weight: 400; line-height: 1.6; }
+.footer-credit a { text-decoration: underline; text-underline-offset: .15em; }
 .skip-link { position: absolute; left: 1rem; top: -10rem; padding: 0.75rem; background: #fff; z-index: 10; }
 .skip-link:focus { top: 1rem; }
 a:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid #002147; outline-offset: 3px; }
