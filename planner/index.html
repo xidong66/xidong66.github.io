@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#53664c">
-  <meta name="description" content="个人日历与任务计划，登录后跨设备同步。">
+  <meta name="description" content="个人日程、纪念日、记账与习惯打卡，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261016-ledger">
+  <link rel="stylesheet" href="../css/planner.css?v=20261016-habits">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261016-ledger"></script>
+  <script type="module" src="../js/planner.js?v=20261016-habits"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -36,7 +36,7 @@
     </section>
 
     <section id="workspace" class="workspace" hidden aria-label="个人计划">
-      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程、纪念日和记账"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button><button data-workspace="ledger" aria-pressed="false" aria-controls="ledger-panel">记账</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
+      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程、纪念日、记账和习惯打卡"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button><button data-workspace="ledger" aria-pressed="false" aria-controls="ledger-panel">记账</button><button data-workspace="habits" aria-pressed="false" aria-controls="habits-panel">打卡</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
       <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
       <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
       <div id="schedule-panel">
@@ -64,6 +64,12 @@
         <div class="ledger-columns"><div class="ledger-records-panel"><div class="ledger-section-heading"><div><h3>本月流水 <span id="ledger-entry-count" class="count">0 笔</span></h3><span id="ledger-pending" class="ledger-pending" hidden></span></div><label class="sr-only" for="ledger-filter">筛选流水账户</label><select id="ledger-filter"><option value="all">全部流水</option></select></div><div id="ledger-entries"></div></div>
           <div class="ledger-fixed-panel"><div class="ledger-section-heading"><h3>每月固定收支 <span id="ledger-rule-count" class="count">0</span></h3><button id="ledger-add-rule" class="quiet">＋ 添加</button></div><p class="ledger-help">按指定日期自动记账，不会实际操作银行卡扣款。31 日遇小月按月末记账。</p><div id="ledger-rules"></div></div>
         </div>
+      </div>
+      <div id="habits-panel" class="habits-panel" hidden aria-label="习惯打卡">
+        <div class="habits-heading"><div><div class="eyebrow">SMALL STEPS, EVERY DAY</div><h2>把坚持，变成看得见的进步。</h2><p>每个习惯一张月历。点日期打卡，再点一次取消；过去的日期也可以补上。</p></div><span id="habits-today-count" class="habits-today-count"></span></div>
+        <div class="habits-toolbar"><div class="habits-month-navigation"><button id="habits-previous" type="button" class="icon-button" aria-label="查看上个月打卡">‹</button><label class="sr-only" for="habits-month">打卡月份</label><input id="habits-month" type="month" min="2000-01"><button id="habits-next" type="button" class="icon-button" aria-label="查看下个月打卡">›</button><button id="habits-current" type="button" class="quiet">本月</button></div><span>月完成率按本月已到日期计算 · 周日开始</span></div>
+        <p id="habits-notice" class="workspace-error" role="status"></p>
+        <div id="habits-list" class="habits-list"></div>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
@@ -125,6 +131,15 @@
         <p id="ledger-record-help" class="field-help"></p><label for="ledger-record-notes">备注</label><textarea id="ledger-record-notes" rows="2" maxlength="5000" placeholder="可留空"></textarea>
       </div>
       <p id="ledger-error" class="error" role="alert"></p><div class="dialog-actions"><button id="ledger-delete" type="button" class="danger" hidden>删除</button><div><button id="ledger-cancel" type="button" class="quiet">取消</button><button id="ledger-save" type="submit" class="primary">保存这笔</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="habit-dialog" aria-labelledby="habit-dialog-title">
+    <form id="habit-form"><div class="dialog-heading"><div><div class="eyebrow">ONE DAY AT A TIME</div><h2 id="habit-dialog-title">新建习惯</h2></div><button id="habit-close" type="button" class="icon-button" aria-label="关闭习惯编辑">×</button></div>
+      <label for="habit-title">习惯名称</label><input id="habit-title" maxlength="120" placeholder="例如：雅思阅读、跑步、每天读书" required>
+      <div class="form-grid"><div><label for="habit-start">开始日期</label><input id="habit-start" type="date" min="2000-01-01" max="2100-12-31" required></div><div><label for="habit-color">卡片颜色</label><select id="habit-color"></select></div></div>
+      <p class="field-help">每天打卡一次。从开始日起统计，可补打过去的日期；未来日期不能提前打卡。</p>
+      <label for="habit-notes">每日目标或备注（可留空）</label><textarea id="habit-notes" rows="3" maxlength="1000" placeholder="例如：阅读 30 分钟、跑步 3 公里"></textarea>
+      <p id="habit-error" class="error" role="alert"></p><div class="dialog-actions"><button id="habit-delete" type="button" class="danger" hidden>删除习惯</button><div><button id="habit-cancel" type="button" class="quiet">取消</button><button id="habit-save" type="submit" class="primary">保存习惯</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
