@@ -122,6 +122,53 @@
 .anniversary-email-setting .field-help{margin-bottom:0}
 .anniversary-mail{font-size:11px;color:var(--green);line-height:1.7}
 .inline-checks [hidden]{display:none!important}
+/* Weight measurements preserve missing dates and use a continuous date axis. */
+.weight-panel{max-width:1280px;margin:24px auto 34px}
+.weight-heading{margin-bottom:23px}.weight-heading .eyebrow{font-size:9px;letter-spacing:1.8px}
+.weight-heading h2{font-size:27px;font-weight:550;letter-spacing:-.4px;margin:12px 0 10px}
+.weight-heading p{font-size:12px;line-height:1.8;color:var(--muted);margin:0}
+.weight-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.weight-summary-card{background:white;border:1px solid var(--line);border-radius:11px;padding:19px 21px;min-width:0}
+.weight-summary-label{font-size:11px;color:var(--muted)}
+.weight-summary-value{display:flex;align-items:baseline;gap:6px;margin:13px 0 8px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.weight-summary-value strong{font-size:30px;font-weight:550;color:var(--green);letter-spacing:-.6px;overflow-wrap:anywhere}
+.weight-summary-detail{font-size:10px;line-height:1.6;color:var(--muted);display:block;overflow-wrap:anywhere}
+.weight-chart-panel,.weight-history-panel{background:white;border:1px solid var(--line);border-radius:13px;padding:22px 24px;margin-top:18px;min-width:0}
+.weight-chart-heading,.weight-history-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:20px}
+.weight-chart-heading h3,.weight-history-heading h3{font-size:17px;font-weight:550;margin:0 0 7px}
+.weight-chart-heading span,.weight-history-heading>span{font-size:10px;color:var(--muted);line-height:1.7}
+.weight-range-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.weight-range-switch{display:flex;gap:2px;padding:3px;background:#eef2e9;border-radius:7px}
+.weight-range-switch button{font-size:11px;color:var(--muted);padding:7px 12px;border-radius:4px;white-space:nowrap}
+.weight-range-switch button[aria-pressed=true]{background:white;color:var(--green);box-shadow:0 1px 3px #25351c0a}
+#weight-month{width:146px;font-size:12px;padding:7px 9px}
+.weight-chart{width:100%;min-width:0;overflow-x:auto}.weight-chart svg{display:block;width:100%;min-width:240px;overflow:visible}
+.weight-axis-label{font-family:inherit;font-size:10px;fill:#889081;font-variant-numeric:tabular-nums}
+.weight-gridline{stroke:#edf0e9;stroke-width:1}.weight-line{stroke:#67855f;stroke-width:2.2;stroke-linecap:round}
+.weight-line.gap{stroke-dasharray:5 5;opacity:.65}
+.weight-point{cursor:pointer;outline:0}.weight-point-hit{fill:transparent}.weight-point-dot{fill:#67855f;stroke:white;stroke-width:1.5}
+.weight-point:hover .weight-point-dot,.weight-point:focus .weight-point-dot{stroke:#a7bba0;stroke-width:6;paint-order:stroke}
+.weight-chart-empty{text-align:center;display:flex;align-items:center;justify-content:center;min-height:260px;font-size:13px;color:var(--muted);line-height:1.9;padding:30px}
+.weight-chart-footer{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:12px}
+.weight-chart-legend{display:flex;gap:15px;white-space:nowrap;font-size:10px;color:#67855f}
+#weight-chart-readout{font-size:10px;color:var(--muted);line-height:1.8;margin:0;text-align:right}
+.weight-record{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:16px;align-items:center;border-top:1px solid var(--line);padding:13px 0}
+.weight-record-copy{display:flex;flex-direction:column;gap:6px;text-align:left;padding:0}
+.weight-record-copy strong{font-size:15px;font-weight:550;font-variant-numeric:tabular-nums}
+.weight-record-copy span{font-size:10px;color:var(--muted)}
+.weight-record-notes{font-size:11px;color:var(--muted);overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.8}
+.weight-record .quiet{font-size:11px}.weight-history-empty{text-align:center;font-size:12px;color:var(--muted);padding:30px 10px}
+.weight-more{display:block;width:100%;font-size:11px;padding:13px;margin-top:8px;border-top:1px solid var(--line)}
+#weight-form>label{margin-top:14px}#weight-value{font-size:21px;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.weight-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){
+  .weight-panel{margin-top:20px}.weight-heading h2{font-size:23px}.weight-heading p{font-size:11px}
+  .weight-summary{gap:9px}.weight-summary-card{padding:15px 13px}.weight-summary-value{margin:10px 0 8px}.weight-summary-value strong{font-size:27px}
+  .weight-chart-panel,.weight-history-panel{padding:18px 13px}.weight-chart-heading{align-items:flex-start;flex-direction:column;gap:13px}
+  .weight-range-controls{justify-content:flex-start}.weight-range-switch button{padding:7px 10px}.weight-chart-footer{align-items:flex-start;flex-direction:column;gap:8px}
+  #weight-chart-readout{text-align:left}.weight-record{grid-template-columns:minmax(0,1fr) auto;gap:8px}.weight-record-notes{grid-row:2;grid-column:1/-1}
+  .weight-history-heading{align-items:flex-start;gap:10px}.weight-history-heading>span{max-width:115px;text-align:right}
+}
 /* Independent habit cards, each with a Sunday-first monthly check-in grid. */
 .habits-panel{max-width:1380px;margin:24px auto 32px}
 .habits-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}

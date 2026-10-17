@@ -41,6 +41,8 @@ jobs:
           node --check js/planner-ledger-model.mjs
           node --check js/planner-habits.mjs
           node --check js/planner-habits-model.mjs
+          node --check js/planner-weight.mjs
+          node --check js/planner-weight-model.mjs
           node --check supabase/functions/planner-email-reminders/handler.mjs
       - name: Check planner recurrence and dates
         run: node --test tools/planner-model.test.mjs
@@ -54,3 +56,5 @@ jobs:
         run: node --test tools/planner-ledger.test.mjs
       - name: Check habit monthly rates and streaks
         run: node --test tools/planner-habits.test.mjs
+      - name: Check weight history and sparse date charts
+        run: node --test tools/planner-weight.test.mjs
