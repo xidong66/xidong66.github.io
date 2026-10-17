@@ -122,6 +122,23 @@
 .anniversary-email-setting .field-help{margin-bottom:0}
 .anniversary-mail{font-size:11px;color:var(--green);line-height:1.7}
 .inline-checks [hidden]{display:none!important}
+.health-metric-switch{display:flex;width:max-content;gap:3px;padding:4px;background:#e9eee3;border-radius:8px;margin:0 0 20px}
+.health-metric-switch button{font-size:13px;padding:8px 26px;border-radius:5px;color:var(--muted)}
+.health-metric-switch button[aria-pressed=true]{background:white;color:var(--green);box-shadow:0 1px 4px #2633260a}
+.bp-summary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.bp-summary .weight-summary-card:first-child strong{color:#5a7da8}
+.bp-high-text{color:#5a7da8}.bp-low-text{color:#9a77a6}
+.bp-line{stroke-width:2.1;stroke-linecap:round}.bp-line.high{stroke:#5a7da8}.bp-line.low{stroke:#9a77a6}.bp-line.gap{stroke-dasharray:5 5;opacity:.65}
+.bp-point{cursor:pointer;outline:0}.bp-point-dot{stroke:white;stroke-width:1.4}.bp-point.high .bp-point-dot{fill:#5a7da8}.bp-point.low .bp-point-dot{fill:#9a77a6}
+.bp-point:hover .bp-point-dot,.bp-point:focus .bp-point-dot{stroke:#c8d4e0;stroke-width:6;paint-order:stroke}
+#bp-readout{font-size:10px;color:var(--muted);line-height:1.8;margin:0;text-align:right}
+#bp-month{width:146px;font-size:12px;padding:7px 9px}
+.bp-record{grid-template-columns:185px minmax(0,1fr) auto}.bp-record-value small{font-size:10px;color:var(--muted);font-weight:400}
+.bp-record .bp-record-value>span{font-size:15px;font-weight:550}.bp-record-value .bp-high-text{color:#5a7da8}.bp-record-value .bp-low-text{color:#9a77a6}
+.bp-record .weight-record-notes{display:flex;flex-direction:column;gap:5px}.bp-pulse{font-variant-numeric:tabular-nums}
+.bp-value-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.bp-value-fields input{font-size:20px;min-width:0}
+#bp-form>label{margin-top:14px}#bp-time{min-width:0;max-width:100%}
+@media(max-width:760px){.bp-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}.bp-summary .weight-summary-card:first-child{grid-column:1/-1}.bp-record{grid-template-columns:minmax(0,1fr) auto}#bp-readout{text-align:left}.bp-value-fields{gap:9px}.bp-value-fields label{font-size:10px}.bp-value-fields input{padding:10px 8px;font-size:18px}}
 /* Weight measurements preserve missing dates and use a continuous date axis. */
 .weight-panel{max-width:1280px;margin:24px auto 34px}
 .weight-heading{margin-bottom:23px}.weight-heading .eyebrow{font-size:9px;letter-spacing:1.8px}

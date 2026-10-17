@@ -8,10 +8,10 @@
   <meta name="description" content="个人日程、纪念日、记账、习惯打卡与体重管理，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261018-weight">
+  <link rel="stylesheet" href="../css/planner.css?v=20261018-bp">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261018-weight"></script>
+  <script type="module" src="../js/planner.js?v=20261018-bp"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -72,11 +72,19 @@
         <div id="habits-list" class="habits-list"></div>
       </div>
       <div id="weight-panel" class="weight-panel" hidden aria-label="体重管理">
-        <div class="weight-heading"><div class="eyebrow">YOUR OWN PACE</div><h2>记录每一次变化。</h2><p>有测量再记，漏记也没关系。按实际日期查看体重变化，统一使用公斤（kg）。</p></div>
+        <div class="weight-heading"><div class="eyebrow">YOUR OWN PACE</div><h2>记录每一次变化。</h2><p>体重与血压分别记录，漏记也没关系，按实际测量查看变化。</p></div>
+        <div class="health-metric-switch" role="group" aria-label="切换体重或血压"><button type="button" data-health-metric="weight" aria-pressed="true" aria-controls="weight-metric-panel">体重</button><button type="button" data-health-metric="bp" aria-pressed="false" aria-controls="bp-panel">血压</button></div>
+        <div id="weight-metric-panel">
         <p id="weight-notice" class="workspace-error" role="status"></p>
         <div id="weight-summary" class="weight-summary"></div>
         <div class="weight-chart-panel"><div class="weight-chart-heading"><div><h3>体重趋势</h3><span id="weight-range-caption"></span></div><div class="weight-range-controls"><div class="weight-range-switch" role="group" aria-label="曲线时间范围"><button type="button" data-weight-range="30" aria-pressed="true">近30天</button><button type="button" data-weight-range="90" aria-pressed="false">近90天</button><button type="button" data-weight-range="month" aria-pressed="false">按月</button><button type="button" data-weight-range="all" aria-pressed="false">全部</button></div><label id="weight-month-wrap" hidden><span class="sr-only">体重记录月份</span><input id="weight-month" type="month" min="2000-01"></label></div></div><div id="weight-chart" class="weight-chart"></div><div class="weight-chart-footer"><div class="weight-chart-legend"><span>● 实际测量</span><span>┄ 漏记间隔</span></div><p id="weight-chart-readout" aria-live="polite"></p></div></div>
         <div class="weight-history-panel"><div class="weight-history-heading"><h3>测量记录 <span id="weight-record-count" class="count">0 条</span></h3><span>每天保留一条，可补记、修改或删除</span></div><div id="weight-records"></div><button id="weight-more" type="button" class="quiet weight-more" hidden>再显示 20 条</button></div>
+        </div>
+        <div id="bp-panel" hidden aria-label="血压记录">
+          <p id="bp-notice" class="workspace-error" role="status"></p><div id="bp-summary" class="weight-summary bp-summary"></div>
+          <div class="weight-chart-panel"><div class="weight-chart-heading"><div><h3>血压趋势</h3><span id="bp-range-caption"></span></div><div class="weight-range-controls"><div class="weight-range-switch" role="group" aria-label="血压曲线时间范围"><button type="button" data-bp-range="30" aria-pressed="true">近30天</button><button type="button" data-bp-range="90" aria-pressed="false">近90天</button><button type="button" data-bp-range="month" aria-pressed="false">按月</button><button type="button" data-bp-range="all" aria-pressed="false">全部</button></div><label id="bp-month-wrap" hidden><span class="sr-only">血压记录月份</span><input id="bp-month" type="month" min="2000-01"></label></div></div><div id="bp-chart" class="weight-chart"></div><div class="weight-chart-footer"><div class="weight-chart-legend"><span class="bp-high-text">● 高压</span><span class="bp-low-text">● 低压</span><span>┄ 漏记间隔</span></div><p id="bp-readout" aria-live="polite"></p></div></div>
+          <div class="weight-history-panel"><div class="weight-history-heading"><h3>血压记录 <span id="bp-record-count" class="count">0 条</span></h3><span>支持一天多次，按 UTC+8 保存测量时间</span></div><div id="bp-records"></div><button id="bp-more" type="button" class="quiet weight-more" hidden>再显示 20 条</button></div>
+        </div>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
@@ -155,6 +163,14 @@
       <p class="field-help">不需要每天都有记录。选择已有测量的日期可修改那天的记录，日期按 UTC+8 计算。</p>
       <label for="weight-notes">备注（可留空）</label><textarea id="weight-notes" rows="3" maxlength="1000" placeholder="例如：早晨测量"></textarea>
       <p id="weight-error" class="error" role="alert"></p><div class="dialog-actions"><button id="weight-delete" type="button" class="danger" hidden>删除记录</button><div><button id="weight-cancel" type="button" class="quiet">取消</button><button id="weight-save" type="submit" class="primary">保存体重</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="bp-dialog" aria-labelledby="bp-dialog-title">
+    <form id="bp-form"><div class="dialog-heading"><div><div class="eyebrow">A SMALL RECORD</div><h2 id="bp-dialog-title">记录血压</h2></div><button id="bp-close" type="button" class="icon-button" aria-label="关闭血压编辑">×</button></div>
+      <label for="bp-time">测量日期与时间（UTC+8）</label><input id="bp-time" type="datetime-local" step="1" min="2000-01-01T00:00" required>
+      <div class="form-grid bp-value-fields"><div><label for="bp-systolic">高压（mmHg）</label><input id="bp-systolic" inputmode="numeric" maxlength="3" placeholder="收缩压" required></div><div><label for="bp-diastolic">低压（mmHg）</label><input id="bp-diastolic" inputmode="numeric" maxlength="3" placeholder="舒张压" required></div><div><label for="bp-pulse">心率（可留空）</label><input id="bp-pulse" inputmode="numeric" maxlength="3" placeholder="次/分"></div></div>
+      <p class="field-help">可补记过去的测量，一天可添加多次；每条记录单独保存。</p><label for="bp-notes">备注（可留空）</label><textarea id="bp-notes" rows="3" maxlength="1000" placeholder="例如：早晨测量、晚间测量"></textarea>
+      <p id="bp-error" class="error" role="alert"></p><div class="dialog-actions"><button id="bp-delete" type="button" class="danger" hidden>删除记录</button><div><button id="bp-cancel" type="button" class="quiet">取消</button><button id="bp-save" type="submit" class="primary">保存血压</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

@@ -5,6 +5,7 @@ import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail'
 import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 import { setupHabits } from './planner-habits.mjs?v=20261016-habits';
 import { setupWeight } from './planner-weight.mjs?v=20261018-weight';
+import { setupBloodPressure } from './planner-bp.mjs?v=20261018-bp';
 
 const $ = (id) => document.getElementById(id);
 const state = { user: null, tasks: [], exceptions: [], calendar: null, channel: null, busy: false, loaded: false, loading: false, epoch: 0, edit: null, search: '', showCompleted: false };
@@ -13,6 +14,8 @@ let anniversaries;
 let ledger;
 let habits;
 let weight;
+let bp;
+let activeHealthMetric = 'weight';
 let activeWorkspace = 'schedule';
 let pollTimer;
 let reloadTimer;
@@ -31,6 +34,7 @@ function syncStatus(message, error = false) {
   $('sync-status').dataset.state = error ? 'error' : 'ok';
 }
 function errorMessage(error) {
+  if (error?.code === '23514' && /bp_|blood_pressure/.test(error.message || '')) return '请核对血压、心率和测量时间；高压应大于低压，时间不能晚于现在。';
   if (error?.code === '23514' && /weight/.test(error.message || '')) return '请检查体重和日期，测量日期不能晚于今天。';
   if (error?.message === 'habit_unavailable') return '这个习惯已在另一台设备删除或修改，请刷新后重试。';
   if (error?.message === 'habit_start_after_checkins') return '开始日期不能晚于已有的打卡记录，请保持原日期或提前。';
@@ -59,6 +63,7 @@ function setBusy(value) {
   ledger?.busy(value);
   habits?.busy(value);
   weight?.busy(value);
+  bp?.busy(value);
   for (const id of ['save-task', 'delete-task', 'toggle-completion', 'confirm-delete', 'cancel-delete', 'close-delete', 'add-task', 'agenda-add', 'sign-out', 'refresh']) $(id).disabled = value;
   document.querySelectorAll('.task-check').forEach((button) => { button.disabled = value; });
   // Prevent closing a form midway through a write, including the Escape key.
@@ -87,12 +92,13 @@ async function loadData({ force = false } = {}) {
   syncStatus('正在同步…');
   try {
     // An unconfigured anniversary table must not prevent existing tasks loading.
-    const [taskResult, exceptionResult, daysResult, mailResult, ledgerResult, habitsResult, weightResult] = await Promise.allSettled([
+    const [taskResult, exceptionResult, daysResult, mailResult, ledgerResult, habitsResult, weightResult, bpResult] = await Promise.allSettled([
       allRows('planner_tasks', userId), allRows('planner_occurrences', userId), allRows('planner_anniversaries', userId),
       client.rpc('planner_mail_status').then(({ data, error }) => { if (error) throw error; return data; }),
       ledger.fetch(userId),
       habits.fetch(userId),
       weight.fetch(userId),
+      bp.fetch(userId),
     ]);
     if (token !== state.epoch || state.user?.id !== userId) return;
     if (taskResult.status === 'rejected') throw taskResult.reason;
@@ -103,11 +109,12 @@ async function loadData({ force = false } = {}) {
     ledger.apply(ledgerResult);
     habits.apply(habitsResult);
     weight.apply(weightResult);
+    bp.apply(bpResult);
     state.loaded = true;
     setError();
     render();
     const time = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date());
-    const incomplete = [daysResult.status !== 'fulfilled' ? '纪念日' : '', ledgerResult.status !== 'fulfilled' ? '记账' : '', habitsResult.status !== 'fulfilled' ? '打卡' : '', weightResult.status !== 'fulfilled' ? '体重' : ''].filter(Boolean);
+    const incomplete = [daysResult.status !== 'fulfilled' ? '纪念日' : '', ledgerResult.status !== 'fulfilled' ? '记账' : '', habitsResult.status !== 'fulfilled' ? '打卡' : '', weightResult.status !== 'fulfilled' ? '体重' : '', bpResult.status !== 'fulfilled' ? '血压' : ''].filter(Boolean);
     syncStatus(`${incomplete.length ? `日程已同步 · ${incomplete.join('、')}未同步` : '已同步'} · ${time}`, !!incomplete.length);
   } catch (error) {
     if (token !== state.epoch) return;
@@ -189,6 +196,7 @@ function render() {
   ledger?.search(state.search);
   habits?.search(state.search);
   weight?.search(state.search);
+  bp?.search(state.search);
 }
 function updateCalendarChrome() {
   $('calendar-title').textContent = state.calendar.view.title;
@@ -440,9 +448,9 @@ async function exportBackup() {
   const userId = state.user.id;
   $('export').disabled = true;
   try {
-    const [history, habitHistory, weightHistory] = await Promise.all([ledger.backup(userId), habits.backup(userId), weight.backup(userId)]);
+    const [history, habitHistory, weightHistory, bpHistory] = await Promise.all([ledger.backup(userId), habits.backup(userId), weight.backup(userId), bp.backup(userId)]);
     if (state.user?.id !== userId) return;
-    const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 5, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions, anniversaries: anniversaries.snapshot(), ledger: history, habits: habitHistory, weight: weightHistory }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ format: 'xidong-planner', version: 6, timezone: 'Asia/Singapore', exported_at: new Date().toISOString(), tasks: state.tasks, occurrences: state.exceptions, anniversaries: anniversaries.snapshot(), ledger: history, habits: habitHistory, weight: weightHistory, blood_pressure: bpHistory }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a'); link.href = url; link.download = `planner-${todaySG()}.json`; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -458,7 +466,7 @@ async function applySession(session) {
   if (state.channel) { client.removeChannel(state.channel); state.channel = null; }
   state.user = session?.user || null;
   state.tasks = []; state.exceptions = []; state.loaded = false; state.loading = false; state.edit = null;
-  state.search = ''; $('search').value = ''; anniversaries.reset(); ledger.reset(); habits.reset(); weight.reset(); switchWorkspace('schedule');
+  state.search = ''; $('search').value = ''; activeHealthMetric = 'weight'; anniversaries.reset(); ledger.reset(); habits.reset(); weight.reset(); bp.reset(); switchWorkspace('schedule');
   $('delete-dialog').close(); $('task-dialog').close();
   $('login-panel').hidden = !!state.user; $('workspace').hidden = !state.user;
   $('sign-out').hidden = !state.user; $('account-email').hidden = !state.user;
@@ -479,6 +487,7 @@ async function applySession(session) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_habits', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_habit_checkins', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_weight_records', filter: `user_id=eq.${state.user.id}` }, queueReload)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_blood_pressure', filter: `user_id=eq.${state.user.id}` }, queueReload)
     .subscribe();
   await loadData();
   // Polling also catches deletes and provides fallback when Realtime is blocked.
@@ -491,15 +500,18 @@ function switchWorkspace(name) {
   const bookkeeping = name === 'ledger';
   const checking = name === 'habits';
   const weighing = name === 'weight';
+  const pressure = weighing && activeHealthMetric === 'bp';
   $('schedule-panel').hidden = name !== 'schedule';
   $('anniversaries-panel').hidden = !days;
   $('ledger-panel').hidden = !bookkeeping;
   $('habits-panel').hidden = !checking;
   $('weight-panel').hidden = !weighing;
-  $('workspace-title').textContent = days ? '纪念日' : bookkeeping ? '我的记账' : checking ? '习惯打卡' : weighing ? '体重管理' : '我的日程';
-  $('add-task').textContent = days ? '＋ 新建纪念日' : bookkeeping ? '＋ 记一笔' : checking ? '＋ 新建习惯' : weighing ? '＋ 记录体重' : '＋ 新建任务';
+  $('weight-metric-panel').hidden = activeHealthMetric !== 'weight'; $('bp-panel').hidden = activeHealthMetric !== 'bp';
+  document.querySelectorAll('[data-health-metric]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.healthMetric === activeHealthMetric)));
+  $('workspace-title').textContent = days ? '纪念日' : bookkeeping ? '我的记账' : checking ? '习惯打卡' : pressure ? '血压记录' : weighing ? '体重管理' : '我的日程';
+  $('add-task').textContent = days ? '＋ 新建纪念日' : bookkeeping ? '＋ 记一笔' : checking ? '＋ 新建习惯' : pressure ? '＋ 记录血压' : weighing ? '＋ 记录体重' : '＋ 新建任务';
   $('search').placeholder = days ? '搜索纪念日…' : bookkeeping ? '搜索流水…' : checking ? '搜索习惯…' : weighing ? '搜索日期或备注…' : '搜索任务…';
-  document.querySelector('.search-label .sr-only').textContent = days ? '搜索纪念日' : bookkeeping ? '搜索流水' : checking ? '搜索习惯' : weighing ? '搜索体重记录' : '搜索任务';
+  document.querySelector('.search-label .sr-only').textContent = days ? '搜索纪念日' : bookkeeping ? '搜索流水' : checking ? '搜索习惯' : pressure ? '搜索血压记录' : weighing ? '搜索体重记录' : '搜索任务';
   document.querySelectorAll('[data-workspace]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.workspace === name)));
   render();
   if (name === 'schedule' && state.calendar) { state.calendar.updateSize(); scheduleCalendarSize(); }
@@ -533,6 +545,8 @@ async function init() {
   ledger = setupLedger({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, reload: () => loadData({ force: true }), toast });
   habits = setupHabits({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
   weight = setupWeight({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
+  bp = setupBloodPressure({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
+  document.querySelectorAll('[data-health-metric]').forEach((b) => b.addEventListener('click', () => { activeHealthMetric = b.dataset.healthMetric; state.search = ''; $('search').value = ''; switchWorkspace('weight'); }));
   document.querySelectorAll('[data-workspace]').forEach((button) => button.addEventListener('click', () => switchWorkspace(button.dataset.workspace)));
   $('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); $('login-submit').disabled = true; $('login-error').textContent = '';
@@ -551,7 +565,7 @@ async function init() {
     await applySession(null); toast('已退出当前设备');
   });
   client.auth.onAuthStateChange((_event, session) => { setTimeout(() => applySession(session), 0); });
-  $('add-task').addEventListener('click', () => { if (activeWorkspace === 'anniversaries') anniversaries.open(); else if (activeWorkspace === 'ledger') ledger.open(); else if (activeWorkspace === 'habits') habits.open(); else if (activeWorkspace === 'weight') weight.open(); else if (canEdit()) openNew(); });
+  $('add-task').addEventListener('click', () => { if (activeWorkspace === 'anniversaries') anniversaries.open(); else if (activeWorkspace === 'ledger') ledger.open(); else if (activeWorkspace === 'habits') habits.open(); else if (activeWorkspace === 'weight') { if (activeHealthMetric === 'bp') bp.open(); else weight.open(); } else if (canEdit()) openNew(); });
   $('agenda-add').addEventListener('click', () => { if (canEdit()) openNew(); });
   $('previous').addEventListener('click', () => state.calendar.prev());
   $('next').addEventListener('click', () => state.calendar.next());

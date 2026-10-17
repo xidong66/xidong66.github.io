@@ -60,7 +60,8 @@
 - “显示已完成”展示普通任务和已全部完成的循环系列，每个任务仍只有一条；仍在继续的循环任务，其历史完成记录在日历查看。点开日历中的某一次任务，可用“恢复为未完成”撤销误勾。
 - 操作在服务器确认后才显示成功。离线不接收编辑，不把未保存任务伪装成已同步；本版不提供离线编辑队列。
 - 使用 `updated_at` 条件更新防止同一记录在两台设备上静默互相覆盖。发生冲突时提示刷新重试；表单需关闭后重新打开。
-- 点击“导出备份”获得包含全部任务、单次记录、纪念日、所有月份记账数据、全部习惯打卡和体重记录的 JSON（格式版本 5）。该文件含个人日程、账目和测量记录，请自行妥善保存。本版没有网页导入功能，可由维护者恢复。
+- “体重”页内部可切换“血压”，记录高压、低压和可选心率，支持一天多次、修改、删除、双曲线和按时间范围查看，见[血压记录配置](planner-bp-setup.md)。
+- 点击“导出备份”获得包含全部任务、单次记录、纪念日、所有月份记账数据、全部习惯打卡、体重和血压记录的 JSON（格式版本 6）。该文件含个人日程、账目和测量记录，请自行妥善保存。本版没有网页导入功能，可由维护者恢复。
 - 免费项目连续一周无活动可能暂停，需登录 Dashboard 恢复。免费方案不含自动备份，建议定期导出。[套餐说明](https://supabase.com/pricing)
 - 本版未接入 Outlook 数据、系统后台通知或到点推送。
 - 登录页提供“检测连接”，只使用公开项目配置检查邮箱登录接口，不发送输入的邮箱、密码或会话凭据。微信内置浏览器会显示系统浏览器打开提示。检测成功仅证明该接口可达，不等于账号验证成功；检测失败也不能单凭结果断定是某地区的网络封锁。认证请求最长等待约 15 秒，连接检测最长约 8 秒。
@@ -82,6 +83,8 @@ node --check js/planner-habits.mjs
 node --check js/planner-habits-model.mjs
 node --check js/planner-weight.mjs
 node --check js/planner-weight-model.mjs
+node --check js/planner-bp.mjs
+node --check js/planner-bp-model.mjs
 node --test tools/planner-model.test.mjs
 node --test tools/planner-auth.test.mjs
 node --test tools/planner-days.test.mjs
@@ -89,6 +92,7 @@ node --test tools/planner-email.test.mjs
 node --test tools/planner-ledger.test.mjs
 node --test tools/planner-habits.test.mjs
 node --test tools/planner-weight.test.mjs
+node --test tools/planner-bp.test.mjs
 ```
 
 自动验证不替代运行 SQL 后的真实账号与跨设备验收。
