@@ -145,6 +145,6 @@ export function calendarEvent(item) {
     start: allDay ? item.date : wallISO(item.date, item.start_time),
     end: allDay ? addDays(item.date, 1) : timeEnd(item.date, item.start_time, item.duration_minutes),
     allDay, backgroundColor: category.color, textColor: category.textColor, borderColor: category.textColor,
-    classNames: item.completed ? ['task-completed'] : [], extendedProps: { item },
+    classNames: item.completed ? ['task-completed'] : [], extendedProps: { item, completionOrder: item.completed ? 1 : 0 },
   };
 }

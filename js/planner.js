@@ -1,6 +1,6 @@
 import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
-import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261016-colors';
+import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261018-pending-first';
 import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail';
 import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 import { setupHabits } from './planner-habits.mjs?v=20261016-habits';
@@ -162,6 +162,8 @@ function setupCalendar() {
     dayCellContent: (arg) => arg.dayNumberText.replace(/日$/, ''),
     height: 680, expandRows: true,
     fixedWeekCount: false, dayMaxEvents: true, eventDisplay: 'block', displayEventEnd: false,
+    // Keep pending tasks above completed ones, including when rows overflow.
+    eventOrder: 'completionOrder,start,-duration,allDay,title', eventOrderStrict: true,
     eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     slotMinTime: '06:00:00', slotMaxTime: '24:00:00', scrollTime: '08:00:00',
