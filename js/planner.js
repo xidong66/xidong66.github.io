@@ -169,6 +169,7 @@ function setupCalendar() {
     slotMinTime: '06:00:00', slotMaxTime: '24:00:00', scrollTime: '08:00:00',
     now: () => new Date(new Date().getTime() + 8 * 3600000).toISOString().slice(0, 19), nowIndicator: true,
     selectable: true, selectMirror: true, editable: true, eventDurationEditable: true,
+    allDayMaintainDuration: false, defaultTimedEventDuration: '01:00',
     longPressDelay: 450, selectLongPressDelay: 450,
     events(info, success) {
       const from = addDays(info.startStr.slice(0, 10), -1);
@@ -436,7 +437,9 @@ async function moveCalendarEvent(info) {
   const item = info.event.extendedProps.item;
   const date = info.event.startStr.slice(0, 10);
   const time = info.event.allDay ? null : info.event.startStr.slice(11, 16);
-  const duration = info.event.allDay ? 60 : Math.round((info.event.end - info.event.start) / 60000) || item.duration_minutes;
+  // Dropping an all-day event onto the time axis can leave end unset. Match
+  // FullCalendar's one-hour default rather than subtracting null from start.
+  const duration = info.event.allDay || !info.event.end ? 60 : Math.round((info.event.end - info.event.start) / 60000);
   info.revert();
   if (!canEdit()) return;
   if (date < '2000-01-01' || date > '2100-12-31' || duration < 5 || duration > 1440) { toast('请选择有效日期，单次任务最长为 24 小时。'); return; }
