@@ -11,6 +11,7 @@
     'bug.restoring': ['The bug is gone. The words are returning to their places.', '虫子已被叼走，文字正在恢复。'],
     'bug.done': ['The pigeon has carried the bug away. All text is restored.', '信鸽已叼走虫子，文字已全部恢复。'],
     'home.name': ['Xidong Wu', '吴熙东'], 'home.role': ['PhD student', '博士研究生'],
+    'home.sidebarRole': ['Undergraduate student', '本科生'],
     // Profile aliases also support visitors returning with cached homepage HTML.
     'home.profileRole': ['PhD student', '博士研究生'],
     'home.profileUniversities': ['National University of Singapore', '新加坡国立大学（NUS）'],
