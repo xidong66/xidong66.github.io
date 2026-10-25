@@ -5,7 +5,7 @@ import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail'
 import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 import { setupHabits } from './planner-habits.mjs?v=20261016-habits';
 import { setupWeight } from './planner-weight.mjs?v=20261018-weight';
-import { setupProjects } from './planner-projects.mjs?v=20261025-projects';
+import { setupProjects } from './planner-projects.mjs?v=20261025-project-edit';
 import { setupBloodPressure } from './planner-bp.mjs?v=20261018-bp';
 
 const $ = (id) => document.getElementById(id);
@@ -560,10 +560,10 @@ async function init() {
   ledger = setupLedger({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, reload: () => loadData({ force: true }), toast });
   habits = setupHabits({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
   weight = setupWeight({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
-  projects = setupProjects({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast, clearSearch: () => { state.search = ''; $('search').value = ''; } });
+  projects = setupProjects({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast, errorMessage, clearSearch: () => { state.search = ''; $('search').value = ''; } });
   bp = setupBloodPressure({ client, getUser: () => state.user, canEdit, mutate, checkedWrite, allRows, toast });
   document.querySelectorAll('[data-health-metric]').forEach((b) => b.addEventListener('click', () => { activeHealthMetric = b.dataset.healthMetric; state.search = ''; $('search').value = ''; switchWorkspace('weight'); }));
-  document.querySelectorAll('[data-workspace]').forEach((button) => button.addEventListener('click', () => switchWorkspace(button.dataset.workspace)));
+  document.querySelectorAll('[data-workspace]').forEach((button) => button.addEventListener('click', async () => { if (await projects.flush()) switchWorkspace(button.dataset.workspace); }));
   $('login-form').addEventListener('submit', async (event) => {
     event.preventDefault(); $('login-submit').disabled = true; $('login-error').textContent = '';
     try {
@@ -576,6 +576,7 @@ async function init() {
   });
   $('sign-out').addEventListener('click', async () => {
     if (state.busy) return;
+    if (!(await projects.flush())) return;
     const { error } = await client.auth.signOut({ scope: 'local' });
     if (error) { toast('退出失败，请重试。'); return; }
     await applySession(null); toast('已退出当前设备');
@@ -593,8 +594,8 @@ async function init() {
     state.calendar.updateSize();
     scheduleCalendarSize();
   }));
-  $('refresh').addEventListener('click', () => loadData({ force: true }));
-  $('export').addEventListener('click', exportBackup);
+  $('refresh').addEventListener('click', async () => { if (await projects.flush()) loadData({ force: true }); });
+  $('export').addEventListener('click', async () => { if (await projects.flush()) exportBackup(); });
   $('search').addEventListener('input', () => { state.search = $('search').value.trim().toLocaleLowerCase(); render(); });
   $('show-completed').addEventListener('change', () => { state.showCompleted = $('show-completed').checked; renderAgenda(); });
   $('task-form').addEventListener('submit', submitTask);

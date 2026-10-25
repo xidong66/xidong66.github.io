@@ -8,10 +8,10 @@
   <meta name="description" content="个人日程、纪念日、记账、习惯打卡、体重与血压、项目管理，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261025-projects">
+  <link rel="stylesheet" href="../css/planner.css?v=20261025-project-edit">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261025-projects"></script>
+  <script type="module" src="../js/planner.js?v=20261025-project-edit"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -87,10 +87,10 @@
         </div>
       </div>
       <div id="projects-panel" class="projects-panel" hidden role="region" aria-label="项目管理">
-        <div class="projects-intro"><div><div class="eyebrow">FROM IDEAS TO OUTCOMES</div><h2>让每个项目，都有迹可循。</h2><p>记录进展、合作者和产出，也留住过程中的反思与发现。</p></div><span id="project-count" class="count">0 个项目</span></div>
+        <div class="projects-intro"><div><div class="eyebrow">FROM IDEAS TO OUTCOMES</div><h2>让每个项目，都有迹可循。</h2><p>点击任意字段直接编辑，离开单元格自动保存；点击“编辑”查看完整项目。</p></div><span id="project-count" class="count">0 个项目</span></div>
         <p id="projects-notice" class="workspace-error" role="status"></p>
         <div class="projects-controls"><div id="project-filters" class="project-filters" role="group" aria-label="按项目状态筛选"></div><label class="project-sort-label">排序 <select id="project-sort"><option value="original">原始顺序</option><option value="status">进行中的优先</option><option value="updated">最近更新</option><option value="name">项目名称</option></select></label></div>
-        <div id="project-table-wrap" class="project-table-wrap" tabindex="0" role="region" aria-label="项目表格，可横向滚动"><table class="project-table"><caption class="sr-only">项目名称、状态、合作者、产出、问题反思和有趣发现。点击项目名称编辑。</caption><thead><tr><th scope="col">项目名称</th><th scope="col">状态</th><th scope="col">合作者</th><th scope="col">产出</th><th scope="col">问题反思</th><th scope="col">有趣发现</th></tr></thead><tbody id="project-table-body"></tbody></table></div>
+        <div id="project-table-wrap" class="project-table-wrap" tabindex="0" role="region" aria-label="项目表格，可横向滚动"><table class="project-table"><caption class="sr-only">项目名称、状态、合作者、产出、问题反思和有趣发现。点击单元格直接编辑，离开后自动保存。</caption><thead><tr><th scope="col">项目名称</th><th scope="col">状态</th><th scope="col">合作者</th><th scope="col">产出</th><th scope="col">问题反思</th><th scope="col">有趣发现</th><th scope="col"><span class="sr-only">编辑详情</span></th></tr></thead><tbody id="project-table-body"></tbody></table></div>
         <div id="project-cards" class="project-cards"></div><p id="projects-empty" class="projects-empty" hidden></p><button id="project-more" class="quiet weight-more" type="button" hidden>再显示 50 个项目</button>
       </div>
     </section>

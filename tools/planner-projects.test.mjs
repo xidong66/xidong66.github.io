@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseProject, selectProjects, projectCounts } from '../js/planner-projects-model.mjs';
+import { parseProject, selectProjects, projectCounts, projectFieldPatch } from '../js/planner-projects-model.mjs';
 const input={title:'研究项目',status:'in_progress',collaborators:'A Person, B Person\nA Person；C Person',output:'论文',reflection:'检查实验设计',findings:'保留观察',notes:''};
 test('project form normalizes collaborators without losing full names or optional fields',()=>{
   const row=parseProject(input); assert.deepEqual(row.collaborators,['A Person','B Person','C Person']);assert.equal(row.findings,'保留观察');
@@ -34,4 +34,14 @@ test('status and update sorting preserve distinct projects with the same title',
 test('counts retain all six status buckets, including empty projects',()=>{
  assert.deepEqual(projectCounts(rows),{all:3,waiting:1,planned:0,in_progress:1,completed:1,failed:0,archived:0});
  assert.equal(projectCounts([]).all,0);
+});
+test('inline editing changes one field without sending other columns or ownership',()=>{
+ const row={...parseProject(input),id:'a',user_id:'owner'};
+ assert.deepEqual(projectFieldPatch(row,'output','  New outcome  '),{output:'New outcome'});
+ assert.deepEqual(projectFieldPatch(row,'collaborators','Person A, Person B\nPerson A'),{collaborators:['Person A','Person B']});
+ assert.deepEqual(projectFieldPatch(row,'findings',''),{findings:''});
+ assert.throws(()=>projectFieldPatch(row,'title',' '),/项目名称/);
+ assert.throws(()=>projectFieldPatch(row,'status','unknown'),/状态/);
+ assert.throws(()=>projectFieldPatch(row,'user_id','other'),/不能直接编辑/);
+ assert.equal(row.output,'论文');
 });

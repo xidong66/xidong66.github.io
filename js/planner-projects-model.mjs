@@ -33,3 +33,7 @@ export function projectCounts(rows) {
   for (const r of rows) if (Object.hasOwn(counts,r.status)) counts[r.status]++;
   return { all: rows.length, ...counts };
 }
+export function projectFieldPatch(row, field, value) {
+  if (!['title','status','collaborators','output','reflection','findings','notes'].includes(field)) throw new Error('这个字段不能直接编辑。');
+  return { [field]: parseProject({ ...row, collaborators: (row.collaborators || []).join('\n'), [field]: value })[field] };
+}
