@@ -96,3 +96,6 @@ node --test tools/planner-bp.test.mjs
 ```
 
 自动验证不替代运行 SQL 后的真实账号与跨设备验收。
+
+
+第六项项目管理见 [planner-projects-setup.md](planner-projects-setup.md)。项目支持状态、合作者、产出、反思与发现；备份格式版本 7 增加完整的 projects 数组。

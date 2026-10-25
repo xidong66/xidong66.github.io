@@ -45,6 +45,8 @@ jobs:
           node --check js/planner-weight-model.mjs
           node --check js/planner-bp.mjs
           node --check js/planner-bp-model.mjs
+          node --check js/planner-projects.mjs
+          node --check js/planner-projects-model.mjs
           node --check supabase/functions/planner-email-reminders/handler.mjs
       - name: Check planner recurrence and dates
         run: node --test tools/planner-model.test.mjs
@@ -62,3 +64,5 @@ jobs:
         run: node --test tools/planner-weight.test.mjs
       - name: Check blood pressure measurements and time axes
         run: node --test tools/planner-bp.test.mjs
+      - name: Check project validation and filtering
+        run: node --test tools/planner-projects.test.mjs

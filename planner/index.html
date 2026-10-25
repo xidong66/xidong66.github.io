@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#53664c">
-  <meta name="description" content="个人日程、纪念日、记账、习惯打卡与体重管理，登录后跨设备同步。">
+  <meta name="description" content="个人日程、纪念日、记账、习惯打卡、体重与血压、项目管理，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261018-bp">
+  <link rel="stylesheet" href="../css/planner.css?v=20261025-projects">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261020-allday-drag"></script>
+  <script type="module" src="../js/planner.js?v=20261025-projects"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -36,7 +36,7 @@
     </section>
 
     <section id="workspace" class="workspace" hidden aria-label="个人计划">
-      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换日程、纪念日、记账、打卡和体重"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button><button data-workspace="ledger" aria-pressed="false" aria-controls="ledger-panel">记账</button><button data-workspace="habits" aria-pressed="false" aria-controls="habits-panel">打卡</button><button data-workspace="weight" aria-pressed="false" aria-controls="weight-panel">体重</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
+      <div class="page-heading"><div><h1 id="workspace-title">我的日程</h1><div class="workspace-tabs" role="group" aria-label="切换个人计划功能"><button data-workspace="schedule" aria-pressed="true" aria-controls="schedule-panel">日程</button><button data-workspace="anniversaries" aria-pressed="false" aria-controls="anniversaries-panel">纪念日</button><button data-workspace="ledger" aria-pressed="false" aria-controls="ledger-panel">记账</button><button data-workspace="habits" aria-pressed="false" aria-controls="habits-panel">打卡</button><button data-workspace="weight" aria-pressed="false" aria-controls="weight-panel">体重</button><button data-workspace="projects" aria-pressed="false" aria-controls="projects-panel">项目</button></div><div class="eyebrow" id="today-caption">YOUR DAYS, AT A GLANCE</div></div><button id="add-task" class="primary">＋ 新建任务</button></div>
       <div class="utility-bar"><div id="sync-status" class="sync-status" role="status" aria-live="polite">正在连接…</div><div class="utility-actions"><button id="refresh" class="quiet">刷新</button><button id="export" class="quiet">导出备份</button><label class="search-label"><span class="sr-only">搜索任务</span><input id="search" type="search" placeholder="搜索任务…" maxlength="200"></label></div></div>
       <div id="workspace-error" class="workspace-error" role="alert" hidden></div>
       <div id="schedule-panel">
@@ -85,6 +85,13 @@
           <div class="weight-chart-panel"><div class="weight-chart-heading"><div><h3>血压趋势</h3><span id="bp-range-caption"></span></div><div class="weight-range-controls"><div class="weight-range-switch" role="group" aria-label="血压曲线时间范围"><button type="button" data-bp-range="30" aria-pressed="true">近30天</button><button type="button" data-bp-range="90" aria-pressed="false">近90天</button><button type="button" data-bp-range="month" aria-pressed="false">按月</button><button type="button" data-bp-range="all" aria-pressed="false">全部</button></div><label id="bp-month-wrap" hidden><span class="sr-only">血压记录月份</span><input id="bp-month" type="month" min="2000-01"></label></div></div><div id="bp-chart" class="weight-chart"></div><div class="weight-chart-footer"><div class="weight-chart-legend"><span class="bp-high-text">● 高压</span><span class="bp-low-text">● 低压</span><span>┄ 漏记间隔</span></div><p id="bp-readout" aria-live="polite"></p></div></div>
           <div class="weight-history-panel"><div class="weight-history-heading"><h3>血压记录 <span id="bp-record-count" class="count">0 条</span></h3><span>支持一天多次，按 UTC+8 保存测量时间</span></div><div id="bp-records"></div><button id="bp-more" type="button" class="quiet weight-more" hidden>再显示 20 条</button></div>
         </div>
+      </div>
+      <div id="projects-panel" class="projects-panel" hidden role="region" aria-label="项目管理">
+        <div class="projects-intro"><div><div class="eyebrow">FROM IDEAS TO OUTCOMES</div><h2>让每个项目，都有迹可循。</h2><p>记录进展、合作者和产出，也留住过程中的反思与发现。</p></div><span id="project-count" class="count">0 个项目</span></div>
+        <p id="projects-notice" class="workspace-error" role="status"></p>
+        <div class="projects-controls"><div id="project-filters" class="project-filters" role="group" aria-label="按项目状态筛选"></div><label class="project-sort-label">排序 <select id="project-sort"><option value="original">原始顺序</option><option value="status">进行中的优先</option><option value="updated">最近更新</option><option value="name">项目名称</option></select></label></div>
+        <div id="project-table-wrap" class="project-table-wrap" tabindex="0" role="region" aria-label="项目表格，可横向滚动"><table class="project-table"><caption class="sr-only">项目名称、状态、合作者、产出、问题反思和有趣发现。点击项目名称编辑。</caption><thead><tr><th scope="col">项目名称</th><th scope="col">状态</th><th scope="col">合作者</th><th scope="col">产出</th><th scope="col">问题反思</th><th scope="col">有趣发现</th></tr></thead><tbody id="project-table-body"></tbody></table></div>
+        <div id="project-cards" class="project-cards"></div><p id="projects-empty" class="projects-empty" hidden></p><button id="project-more" class="quiet weight-more" type="button" hidden>再显示 50 个项目</button>
       </div>
     </section>
     <noscript><p class="error">请启用 JavaScript 后使用日历和登录功能。</p></noscript>
@@ -171,6 +178,17 @@
       <div class="form-grid bp-value-fields"><div><label for="bp-systolic">高压（mmHg）</label><input id="bp-systolic" inputmode="numeric" maxlength="3" placeholder="收缩压" required></div><div><label for="bp-diastolic">低压（mmHg）</label><input id="bp-diastolic" inputmode="numeric" maxlength="3" placeholder="舒张压" required></div><div><label for="bp-pulse">心率（可留空）</label><input id="bp-pulse" inputmode="numeric" maxlength="3" placeholder="次/分"></div></div>
       <p class="field-help">可补记过去的测量，一天可添加多次；每条记录单独保存。</p><label for="bp-notes">备注（可留空）</label><textarea id="bp-notes" rows="3" maxlength="1000" placeholder="例如：早晨测量、晚间测量"></textarea>
       <p id="bp-error" class="error" role="alert"></p><div class="dialog-actions"><button id="bp-delete" type="button" class="danger" hidden>删除记录</button><div><button id="bp-cancel" type="button" class="quiet">取消</button><button id="bp-save" type="submit" class="primary">保存血压</button></div></div>
+    </form>
+  </dialog>
+  <dialog id="project-dialog" aria-labelledby="project-dialog-title">
+    <form id="project-form"><div class="dialog-heading"><div><div class="eyebrow">ONE PROJECT AT A TIME</div><h2 id="project-dialog-title">新建项目</h2></div><button id="project-close" type="button" class="icon-button" aria-label="关闭项目编辑">×</button></div>
+      <div class="form-grid"><div><label for="project-title">项目名称</label><input id="project-title" maxlength="200" required autocomplete="off"></div><div><label for="project-status">状态</label><select id="project-status" required></select></div></div>
+      <label for="project-collaborators">合作者</label><textarea id="project-collaborators" rows="2" maxlength="4096" placeholder="每行一人，也可以用逗号分隔"></textarea><p class="field-help">仅记录姓名；项目保存在你自己的账号中。</p>
+      <label for="project-output">产出</label><input id="project-output" maxlength="1000" placeholder="论文、会议、原型或阶段成果">
+      <label for="project-reflection">问题反思</label><textarea id="project-reflection" rows="3" maxlength="5000" placeholder="遇到了什么问题，下一次如何改进"></textarea>
+      <label for="project-findings">有趣发现</label><textarea id="project-findings" rows="3" maxlength="5000" placeholder="值得留下的观察、灵感与启发"></textarea>
+      <label for="project-notes">备注</label><textarea id="project-notes" rows="2" maxlength="10000" placeholder="其他需要记住的信息"></textarea>
+      <p id="project-error" class="error" role="alert"></p><div class="dialog-actions"><button id="project-delete" type="button" class="danger" hidden>删除项目</button><div><button id="project-cancel" type="button" class="quiet">取消</button><button id="project-save" type="submit" class="primary">保存项目</button></div></div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
