@@ -8,10 +8,10 @@
   <meta name="description" content="个人日程、纪念日、记账、习惯打卡、体重与血压、项目管理，登录后跨设备同步。">
   <title>日程 · Xidong</title>
   <link rel="icon" href="../assets/img/favicon1.ico">
-  <link rel="stylesheet" href="../css/planner.css?v=20261025-project-edit">
+  <link rel="stylesheet" href="../css/planner.css?v=20261026-project-archive">
   <script defer src="../js/vendor/planner/fullcalendar.min.js"></script>
   <script defer src="../js/vendor/planner/supabase.js"></script>
-  <script type="module" src="../js/planner.js?v=20261025-project-edit"></script>
+  <script type="module" src="../js/planner.js?v=20261026-project-archive"></script>
 </head>
 <body>
   <a class="skip" href="#main-content">跳到日历</a>
@@ -89,6 +89,7 @@
       <div id="projects-panel" class="projects-panel" hidden role="region" aria-label="项目管理">
         <div class="projects-intro"><div><div class="eyebrow">FROM IDEAS TO OUTCOMES</div><h2>让每个项目，都有迹可循。</h2><p>点击任意字段直接编辑，离开单元格自动保存；点击“编辑”查看完整项目。</p></div><span id="project-count" class="count">0 个项目</span></div>
         <p id="projects-notice" class="workspace-error" role="status"></p>
+        <div class="project-view-switch" role="group" aria-label="项目范围"><button type="button" class="project-view-button" data-project-view-filter="home" aria-pressed="true">首页 <span>0</span></button><button type="button" class="project-view-button" data-project-view-filter="all" aria-pressed="false">全部 <span>0</span></button></div>
         <div class="projects-controls"><div id="project-filters" class="project-filters" role="group" aria-label="按项目状态筛选"></div><label class="project-sort-label">排序 <select id="project-sort"><option value="original">原始顺序</option><option value="status">进行中的优先</option><option value="updated">最近更新</option><option value="name">项目名称</option></select></label></div>
         <div id="project-table-wrap" class="project-table-wrap" tabindex="0" role="region" aria-label="项目表格，可横向滚动"><table class="project-table"><caption class="sr-only">项目名称、状态、合作者、产出、问题反思和有趣发现。点击单元格直接编辑，离开后自动保存。</caption><thead><tr><th scope="col">项目名称</th><th scope="col">状态</th><th scope="col">合作者</th><th scope="col">产出</th><th scope="col">问题反思</th><th scope="col">有趣发现</th><th scope="col"><span class="sr-only">编辑详情</span></th></tr></thead><tbody id="project-table-body"></tbody></table></div>
         <div id="project-cards" class="project-cards"></div><p id="projects-empty" class="projects-empty" hidden></p><button id="project-more" class="quiet weight-more" type="button" hidden>再显示 50 个项目</button>
@@ -183,6 +184,7 @@
   <dialog id="project-dialog" aria-labelledby="project-dialog-title">
     <form id="project-form"><div class="dialog-heading"><div><div class="eyebrow">ONE PROJECT AT A TIME</div><h2 id="project-dialog-title">新建项目</h2></div><button id="project-close" type="button" class="icon-button" aria-label="关闭项目编辑">×</button></div>
       <div class="form-grid"><div><label for="project-title">项目名称</label><input id="project-title" maxlength="200" required autocomplete="off"></div><div><label for="project-status">状态</label><select id="project-status" required></select></div></div>
+      <label class="project-archive-option"><input id="project-archived" type="checkbox">归档项目<span>首页隐藏，仍可在“全部”中查看；状态保持独立。</span></label>
       <label for="project-collaborators">合作者</label><textarea id="project-collaborators" rows="2" maxlength="4096" placeholder="每行一人，也可以用逗号分隔"></textarea><p class="field-help">仅记录姓名；项目保存在你自己的账号中。</p>
       <label for="project-output">产出</label><input id="project-output" maxlength="1000" placeholder="论文、会议、原型或阶段成果">
       <label for="project-reflection">问题反思</label><textarea id="project-reflection" rows="3" maxlength="5000" placeholder="遇到了什么问题，下一次如何改进"></textarea>

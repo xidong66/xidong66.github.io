@@ -5,7 +5,7 @@ import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail'
 import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 import { setupHabits } from './planner-habits.mjs?v=20261016-habits';
 import { setupWeight } from './planner-weight.mjs?v=20261018-weight';
-import { setupProjects } from './planner-projects.mjs?v=20261025-project-edit';
+import { setupProjects } from './planner-projects.mjs?v=20261026-project-archive';
 import { setupBloodPressure } from './planner-bp.mjs?v=20261018-bp';
 
 const $ = (id) => document.getElementById(id);

@@ -32,7 +32,7 @@ test('status and update sorting preserve distinct projects with the same title',
  assert.equal(selectProjects([...rows,{...rows[0],id:'d'}],{search:'先记录'}).length,2);
 });
 test('counts retain all six status buckets, including empty projects',()=>{
- assert.deepEqual(projectCounts(rows),{all:3,waiting:1,planned:0,in_progress:1,completed:1,failed:0,archived:0});
+ assert.deepEqual(projectCounts(rows),{all:3,home:3,total:3,waiting:1,planned:0,in_progress:1,completed:1,failed:0,unspecified:0});
  assert.equal(projectCounts([]).all,0);
 });
 test('inline editing changes one field without sending other columns or ownership',()=>{
@@ -44,4 +44,24 @@ test('inline editing changes one field without sending other columns or ownershi
  assert.throws(()=>projectFieldPatch(row,'status','unknown'),/状态/);
  assert.throws(()=>projectFieldPatch(row,'user_id','other'),/不能直接编辑/);
  assert.equal(row.output,'论文');
+});
+test('home hides independently archived projects; all keeps them searchable and filterable',()=>{
+ const archived={...rows[0],id:'archive-a',is_archived:true};
+ const projects=[...rows,archived];
+ assert.equal(selectProjects(projects).length,3);
+ assert.equal(selectProjects(projects,{view:'all'}).length,4);
+ assert.equal(selectProjects(projects,{view:'all',status:'completed',search:'ALPHA'}).length,2);
+ assert.equal(selectProjects(projects,{status:'completed',search:'ALPHA'}).length,1);
+ assert.equal(projectCounts(projects).completed,1);
+ assert.equal(projectCounts(projects,{view:'all'}).completed,2);
+ assert.equal(projectCounts(projects).total,4);
+});
+test('archive toggles cannot rewrite business status and archived is no longer a status',()=>{
+ const row={...parseProject(input),is_archived:false};
+ assert.deepEqual(projectFieldPatch(row,'is_archived',true),{is_archived:true});
+ assert.deepEqual(projectFieldPatch({...row,is_archived:true},'is_archived',false),{is_archived:false});
+ assert.equal(row.status,'in_progress');
+ assert.throws(()=>parseProject({...input,status:'archived'}),/状态/);
+ assert.throws(()=>projectFieldPatch(row,'is_archived','true'),/归档/);
+ assert.equal(parseProject({...input,status:'unspecified',is_archived:true}).status,'unspecified');
 });

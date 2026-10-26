@@ -1,9 +1,9 @@
-import { PROJECT_STATUSES, parseProject, selectProjects, projectCounts, projectFieldPatch } from './planner-projects-model.mjs?v=20261025-project-edit';
+import { PROJECT_STATUSES, parseProject, selectProjects, projectCounts, projectFieldPatch } from './planner-projects-model.mjs?v=20261026-project-archive';
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => { const n=document.createElement(tag); n.className=cls; if (text !== undefined) n.textContent=text; return n; };
 const FIELDS={ title:'项目名称', status:'状态', collaborators:'合作者', output:'产出', reflection:'问题反思', findings:'有趣发现' };
 export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, allRows, toast, clearSearch, errorMessage }) {
-  let rows=[], available=false, notice='', search='', status='all', sort='original', limit=50, busy=false, edit=null, conflict=false, inline=null;
+  let rows=[], available=false, notice='', actionError='', search='', status='all', view='home', sort='original', limit=50, busy=false, edit=null, conflict=false, inline=null;
   const options={ dialog:true, dialogId:'project-dialog', errorTarget:'project-error' };
   const guard=() => { if (!canEdit()) return false; if (!available) { toast('项目尚未加载，请刷新后重试。'); return false; } return true; };
   function badge(value) { const s=PROJECT_STATUSES[value] || PROJECT_STATUSES.waiting; return el('span',`project-status ${s.color}`,s.label); }
@@ -14,6 +14,22 @@ export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, 
   }
   function detailsButton(row) {
     const b=el('button','project-details quiet','编辑'); b.type='button'; b.disabled=busy; b.setAttribute('aria-label',`编辑项目详情：${row.title}`); b.addEventListener('click',()=>open(row)); return b;
+  }
+  function archiveButton(row) {
+    const b=el('button','project-archive-control quiet',row.is_archived ? '取消归档' : '归档'); b.type='button'; b.disabled=busy;
+    b.setAttribute('aria-label',`${row.is_archived ? '取消归档' : '归档'}项目：${row.title}`); b.setAttribute('aria-pressed',String(!!row.is_archived));
+    b.addEventListener('click',()=>toggleArchive(row.id)); return b;
+  }
+  async function toggleArchive(id) {
+    if (!(await saveInline()) || !guard()) return;
+    const row=rows.find((r)=>r.id===id); if (!row) return;
+    actionError='';
+    await mutate(async()=>{
+      try {
+        const updated=await checkedWrite(client.from('planner_projects').update({is_archived:!row.is_archived}).eq('id',row.id).eq('updated_at',row.updated_at));
+        rows=rows.map((r)=>r.id===updated.id ? updated : r);
+      } catch(error) {actionError=errorMessage(error);throw error;}
+    },row.is_archived ? '已取消归档，项目已回到首页' : '项目已归档，可在“全部”中查看');
   }
   function cell(row,field,view) {
     const host=el('div','project-cell'); Object.assign(host.dataset,{projectId:row.id,projectField:field,projectView:view});
@@ -89,21 +105,22 @@ export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, 
     widget.addEventListener('focusout',(e)=>{
       // These controls flush explicitly in their click/change handler. Saving
       // on pointer-down blur would disable or replace them before the click.
-      if (e.relatedTarget?.closest('.project-cell,.project-details,.project-filter,#project-sort,#project-more,#add-task,#sign-out,#refresh,#export')) return;
+      if (e.relatedTarget?.closest('.project-cell,.project-details,.project-archive-control,.project-view-button,.project-filter,#project-sort,#project-more,#add-task,#sign-out,#refresh,#export')) return;
       queueMicrotask(()=>{if (inline===d && !widget.contains(document.activeElement) && !d.saving) saveInline();});
     });
     if (field==='status') input.addEventListener('change',()=>saveInline());
     updateInline(); input.focus(); if (input.tagName==='INPUT') input.select();
   }
   function render() {
-    $('projects-notice').textContent=notice || (!available ? '正在加载项目…' : ''); $('projects-notice').hidden=available && !notice;
-    const counts=projectCounts(rows), filters=$('project-filters'); filters.replaceChildren();
-    for (const [value,label] of [['all','全部'],...Object.entries(PROJECT_STATUSES).map(([s,v])=>[s,v.label])]) {
+    $('projects-notice').textContent=actionError || notice || (!available ? '正在加载项目…' : ''); $('projects-notice').hidden=available && !notice && !actionError;
+    const counts=projectCounts(rows,{view}), filters=$('project-filters'); filters.replaceChildren();
+    document.querySelectorAll('[data-project-view-filter]').forEach((b)=>{ b.setAttribute('aria-pressed',String(b.dataset.projectViewFilter===view)); b.disabled=busy; b.querySelector('span').textContent=String(b.dataset.projectViewFilter==='home' ? counts.home : counts.total); });
+    for (const [value,label] of [['all','全部状态'],...Object.entries(PROJECT_STATUSES).filter(([s])=>s!=='unspecified' || counts.unspecified>0).map(([s,v])=>[s,v.label])]) {
       const b=el('button','project-filter'); b.type='button'; b.dataset.projectStatus=value; b.setAttribute('aria-pressed',String(status===value)); b.append(el('span','',label),el('span','project-filter-count',String(counts[value]))); b.disabled=busy;
       b.addEventListener('click',async()=>{if (!(await saveInline())) return;status=value;limit=50;render();}); filters.append(b);
     }
     $('project-sort').value=sort; $('project-sort').disabled=busy;
-    const selected=selectProjects(rows,{search,status,sort}), shown=selected.slice(0,limit);
+    const selected=selectProjects(rows,{search,status,sort,view}), shown=selected.slice(0,limit);
     $('project-count').textContent=`${selected.length} 个项目${selected.length>limit ? ` · 已显示 ${shown.length} 个` : ''}`;
     // Background polling and focus refresh keep the active editor mounted.
     if (inline) {updateInline();return;}
@@ -111,14 +128,15 @@ export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, 
     for (const row of shown) {
       const tr=el('tr','');tr.dataset.projectId=row.id;
       for (const field of Object.keys(FIELDS)) {const td=el('td','');td.append(cell(row,field,'table'));tr.append(td);}
-      const actions=el('td','project-actions');actions.append(detailsButton(row));tr.append(actions);table.append(tr);
+      if (row.is_archived) { tr.classList.add('is-archived'); tr.firstChild.append(el('span','project-archive-label','已归档')); }
+      const actions=el('td','project-actions'), buttons=el('div','project-row-actions');buttons.append(detailsButton(row),archiveButton(row));actions.append(buttons);tr.append(actions);table.append(tr);
       const card=el('article','project-card');card.dataset.projectId=row.id;
       const top=el('div','project-card-top');top.append(cell(row,'title','card'),cell(row,'status','card'));card.append(top,cell(row,'collaborators','card'));
       const dl=el('dl','');
       for (const field of ['output','reflection','findings']) {const group=el('div','');const dd=el('dd','');dd.append(cell(row,field,'card'));group.append(el('dt','',FIELDS[field]),dd);dl.append(group);}
-      const footer=el('div','project-card-actions');footer.append(detailsButton(row));card.append(dl,footer);cards.append(card);
+      const footer=el('div','project-card-actions');if(row.is_archived)footer.append(el('span','project-archive-label','已归档'));footer.append(detailsButton(row),archiveButton(row));card.append(dl,footer);cards.append(card);
     }
-    $('projects-empty').hidden=selected.length>0 || !available;$('projects-empty').textContent=rows.length ? '没有符合筛选条件的项目。' : '还没有项目，点击“新建项目”开始记录。';
+    $('projects-empty').hidden=selected.length>0 || !available;$('projects-empty').textContent=rows.length ? view==='home' && !counts.home ? '首页暂时没有项目，已归档项目可在“全部”中查看。' : '没有符合筛选条件的项目。' : '还没有项目，点击“新建项目”开始记录。';
     $('project-table-wrap').hidden=!shown.length;$('project-more').hidden=selected.length<=limit;$('project-more').disabled=busy;
   }
   async function open(row=null) {
@@ -128,17 +146,18 @@ export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, 
     edit=row ? structuredClone(row) : null;conflict=false;$('project-form').reset();$('project-error').textContent='';
     $('project-dialog-title').textContent=row ? '编辑项目' : '新建项目';
     for (const field of ['title','status','output','reflection','findings','notes']) $(`project-${field}`).value=row?.[field] || (field==='status' ? 'waiting' : '');
+    $('project-archived').checked=!!row?.is_archived;
     $('project-collaborators').value=(row?.collaborators || []).join('\n');$('project-delete').hidden=!row;$('project-dialog').showModal();$('project-title').focus();
   }
   $('project-form').addEventListener('submit',async(e)=>{
     e.preventDefault();if (!guard()) return;
     if (conflict) {$('project-error').textContent='项目已在其他设备修改，请关闭弹窗并重新打开。';return;}
-    let values;try {values=parseProject(Object.fromEntries(['title','status','collaborators','output','reflection','findings','notes'].map((f)=>[f,$(`project-${f}`).value])));}catch(error){$('project-error').textContent=error.message;return;}
+    let values;try {values=parseProject({...Object.fromEntries(['title','status','collaborators','output','reflection','findings','notes'].map((f)=>[f,$(`project-${f}`).value])),is_archived:$('project-archived').checked});}catch(error){$('project-error').textContent=error.message;return;}
     await mutate(async()=>{
       try {await checkedWrite(edit ? client.from('planner_projects').update(values).eq('id',edit.id).eq('updated_at',edit.updated_at)
         : client.from('planner_projects').insert({...values,user_id:getUser().id,sort_order:Math.min(1000000000,rows.reduce((max,r)=>Math.max(max,r.sort_order),0)+1)}));}
       catch(error){if(error.message==='conflict' || error.code==='23505') conflict=true;throw error;}
-      status='all';search='';clearSearch();limit=Math.max(limit,rows.length+1);
+      status='all';if(values.is_archived)view='all';search='';clearSearch();limit=Math.max(limit,rows.length+1);
     },'项目已保存',options);
   });
   $('project-delete').addEventListener('click',async()=>{
@@ -150,12 +169,13 @@ export function setupProjects({ client, getUser, canEdit, mutate, checkedWrite, 
   const close=()=>{if(!busy)$('project-dialog').close();};
   $('project-close').addEventListener('click',close);$('project-cancel').addEventListener('click',close);$('project-dialog').addEventListener('cancel',(e)=>{if(busy)e.preventDefault();});
   $('project-sort').addEventListener('change',async()=>{const value=$('project-sort').value;if (!(await saveInline())) return;sort=value;limit=50;render();});$('project-more').addEventListener('click',async()=>{if (!(await saveInline())) return;limit+=50;render();});
+  document.querySelectorAll('[data-project-view-filter]').forEach((b)=>b.addEventListener('click',async()=>{if (!(await saveInline()))return;view=b.dataset.projectViewFilter;status='all';limit=50;render();}));
   for(const [value,s] of Object.entries(PROJECT_STATUSES)){const option=el('option','',s.label);option.value=value;$('project-status').append(option);}
   return {
     open,flush:saveInline,search(value){if(search!==value)limit=50;search=value;render();},
     fetch(userId){return allRows('planner_projects',userId);},backup(userId){return allRows('planner_projects',userId);},
     apply(result){if(result.status==='fulfilled'){rows=result.value;available=true;notice='';}else{const missing=['PGRST205','42P01','42501'].includes(result.reason?.code);notice=missing ? '项目管理尚未启用，请联系站主完成配置。' : '项目同步失败，保留上次加载的项目，请刷新重试。';if(missing){rows=[];available=false;}}render();},
-    reset(){inline=null;rows=[];available=false;notice='';search='';status='all';sort='original';limit=50;edit=null;conflict=false;$('project-dialog').close();$('project-form').reset();$('project-error').textContent='';render();},
+    reset(){inline=null;rows=[];available=false;notice='';actionError='';search='';status='all';view='home';sort='original';limit=50;edit=null;conflict=false;$('project-dialog').close();$('project-form').reset();$('project-error').textContent='';render();},
     busy(value){busy=value;for(const id of ['project-save','project-delete','project-close','project-cancel'])$(id).disabled=value;render();},
   };
 }
