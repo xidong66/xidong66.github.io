@@ -1,4 +1,4 @@
-import { sortAnniversaries } from './planner-days.mjs?v=20261016-days';
+import { sortAnniversaries, calendarDifference } from './planner-days.mjs?v=20261028-anniversary-format';
 import { todaySG } from './planner-model.mjs?v=20261016-days';
 
 const $ = (id) => document.getElementById(id);
@@ -17,10 +17,15 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
   let search = '';
   let mailSupported = false;
   let mailEnabled = false;
+  const calendarFormats = new Set();
   const dialog = $('anniversary-dialog');
   const table = () => client.from('planner_anniversaries');
 
   function render() {
+    const active=document.activeElement;
+    const focusedId=active?.closest('.anniversary-card')?.dataset.anniversaryId;
+    const focusOnNumber=active?.classList.contains('anniversary-number');
+    let focusTarget;
     const list = $('anniversary-list');
     const featured = $('anniversary-featured');
     list.replaceChildren(); featured.replaceChildren();
@@ -28,29 +33,50 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
     $('anniversary-notice').hidden = !loadingError;
     $('anniversary-count').textContent = rows.length;
     if (!available) return;
-    const items = sortAnniversaries(rows).filter((item) => `${item.title} ${item.notes}`.toLocaleLowerCase().includes(search));
+    const today=todaySG();
+    const items = sortAnniversaries(rows,today).filter((item) => `${item.title} ${item.notes}`.toLocaleLowerCase().includes(search));
     if (!items.length) {
       list.append(node('div', 'anniversary-empty', search ? '没有匹配的纪念日。' : '记下一个值得期待或回味的日子。生日、相识、旅行出发，都可以放在这里。'));
       return;
     }
     for (const [index, item] of items.entries()) {
-      const card = node('button', `anniversary-card ${item.summary.tone}${index === 0 ? ' featured' : ''}`);
-      card.type = 'button'; card.dataset.anniversaryId = item.id;
-      card.setAttribute('aria-label', `编辑纪念日：${item.title}，${item.summary.label} ${item.summary.days} 天`);
-      const copy = node('span', 'anniversary-copy');
+      const card = node('article', `anniversary-card ${item.summary.tone}${index === 0 ? ' featured' : ''}`);
+      card.dataset.anniversaryId = item.id; card.setAttribute('aria-label', `纪念日：${item.title}`);
+      const copy = node('button', 'anniversary-copy'); copy.type='button';
+      copy.setAttribute('aria-label',`编辑纪念日：${item.title}`); copy.title='编辑纪念日';
       copy.append(node('span', 'anniversary-name', `${item.pinned ? '☆ ' : ''}${item.title}`));
       copy.append(node('span', 'anniversary-date', item.yearly
         ? `下次：${item.summary.target} · 每年 ↻` : `${item.mode === 'countup' ? '开始日' : '目标日'}：${item.date}`));
       if (index === 0 && item.notes) copy.append(node('span', 'anniversary-notes', item.notes));
       if (item.email_reminder) copy.append(node('span', 'anniversary-mail', mailSupported && mailEnabled ? '✉ 提前 1 天 · 09:00' : '✉ 邮件提醒待启用'));
-      const count = node('span', 'anniversary-number');
+      const count = node('button', 'anniversary-number'); count.type='button';
       count.append(node('span', 'anniversary-direction', item.summary.label));
       const digits = node('span', 'anniversary-digits');
-      digits.append(node('strong', '', String(item.summary.days)), node('span', '', '天'));
-      count.append(digits); card.append(copy, count);
-      card.addEventListener('click', () => open(item));
+      const hint = node('span','anniversary-format-hint');
+      function drawCount() {
+        const calendar=calendarFormats.has(item.id);
+        card.classList.toggle('calendar-format',calendar); digits.classList.toggle('calendar-duration',calendar); digits.replaceChildren();
+        let value;
+        if (calendar) {
+          const duration=calendarDifference(item.summary.target,today);
+          for (const [field,unit] of [['years','年'],['months','个月'],['days','天']]) {
+            const part=node('span','anniversary-duration-part');part.dataset.durationUnit=field;
+            part.append(node('strong','',String(duration[field])),node('span','',unit));digits.append(part);
+          }
+          value=`${duration.years}年${duration.months}个月${duration.days}天`;
+        } else {digits.append(node('strong','',String(item.summary.days)),node('span','','天'));value=`${item.summary.days}天`;}
+        hint.textContent=calendar ? '点击查看总天数' : '点击查看年月天';
+        count.dataset.format=calendar ? 'calendar' : 'days'; count.setAttribute('aria-pressed',String(calendar));
+        count.setAttribute('aria-label',`${item.title}，${item.summary.label}${value}，${hint.textContent}`);count.title=hint.textContent;
+      }
+      drawCount(); count.append(digits,hint);card.append(copy,count);
+      count.addEventListener('click',(event)=>{event.stopPropagation();if(calendarFormats.has(item.id))calendarFormats.delete(item.id);else calendarFormats.add(item.id);drawCount();});
+      copy.addEventListener('click',(event)=>{event.stopPropagation();open(item);});
+      card.addEventListener('click',(event)=>{if(!event.target.closest('button'))open(item);});
       (index === 0 ? featured : list).append(card);
+      if(item.id===focusedId)focusTarget=focusOnNumber ? count : copy;
     }
+    focusTarget?.focus({preventScroll:true});
   }
   function formMode() {
     const countdown = $('anniversary-mode').value === 'countdown';
@@ -124,7 +150,7 @@ export function setupAnniversaries({ client, getUser, canEdit, mutate, checkedWr
       }
       render();
     },
-    reset() { rows = []; available = false; edit = null; loadingError = ''; mailSupported = false; mailEnabled = false; dialog.close(); $('anniversary-form').reset(); $('anniversary-error').textContent = ''; render(); },
+    reset() { rows = []; available = false; edit = null; loadingError = ''; mailSupported = false; mailEnabled = false; calendarFormats.clear(); dialog.close(); $('anniversary-form').reset(); $('anniversary-error').textContent = ''; render(); },
     search(value) { search = value; render(); },
     snapshot: () => rows,
     get available() { return available; },

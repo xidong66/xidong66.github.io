@@ -387,3 +387,19 @@ textarea.project-inline-input{resize:vertical;min-height:85px}
 .project-archive-option{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px;background:var(--soft);border-radius:7px}
 .project-archive-option input{width:16px;height:16px;margin:0;flex-shrink:0}.project-archive-option span{flex-basis:100%;margin-left:25px;font-size:11px;color:var(--muted);font-weight:400;line-height:1.7}
 @media(max-width:760px){.project-archive-control{min-height:32px}.project-view-button{padding:8px 18px}}
+
+/* The number toggles its display; the separate name button edits the record. */
+.anniversary-copy{flex:1;text-align:left;align-items:flex-start;padding:0}
+.anniversary-number{padding:5px 0;border-radius:7px;background:transparent;text-align:right}
+.anniversary-number:hover{background:#6386aa0a}
+.anniversary-format-hint{font-size:10px;line-height:1.5;opacity:.65;margin-top:4px;white-space:nowrap}
+.anniversary-duration-part{display:inline-flex;align-items:baseline;gap:3px;white-space:nowrap}
+.calendar-duration{gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.anniversary-card.featured.calendar-format .anniversary-digits strong{font-size:56px}
+@media(max-width:760px){
+  .anniversary-card.calendar-format{flex-wrap:wrap}.anniversary-card.calendar-format .anniversary-copy{flex-basis:100%}
+  .anniversary-card.calendar-format .anniversary-number{margin-left:auto;max-width:100%}
+  .anniversary-card.calendar-format .anniversary-digits strong{font-size:28px}
+  .anniversary-card.featured.calendar-format .anniversary-digits strong{font-size:38px}
+  .calendar-duration{gap:7px;font-size:11px}
+}

@@ -2,9 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { CATEGORIES, calendarEvent, occurrence } from '../js/planner-model.mjs';
-import { anniversarySummary, sortAnniversaries } from '../js/planner-days.mjs';
+import { anniversarySummary, sortAnniversaries, calendarDifference } from '../js/planner-days.mjs';
 
 const item = (changes = {}) => ({ id: 'a', title: '纪念日', date: '2021-10-31', mode: 'countup', yearly: false, pinned: false, ...changes });
+
+test('year/month/day display uses full calendar months and actual remaining days',()=>{
+  assert.deepEqual(calendarDifference('2021-10-31','2026-10-28'),{years:4,months:11,days:28});
+  assert.deepEqual(calendarDifference('2021-10-31','2026-10-31'),{years:5,months:0,days:0});
+  assert.deepEqual(calendarDifference('2026-10-28','2021-10-31'),{years:4,months:11,days:28});
+  assert.deepEqual(calendarDifference('2026-10-28','2026-10-28'),{years:0,months:0,days:0});
+  assert.deepEqual(calendarDifference('2026-12-31','2027-01-01'),{years:0,months:0,days:1});
+});
+test('calendar duration handles end-of-month, leap years and resolved annual targets',()=>{
+  assert.deepEqual(calendarDifference('2026-01-31','2026-02-28'),{years:0,months:1,days:0});
+  assert.deepEqual(calendarDifference('2026-01-31','2026-03-30'),{years:0,months:1,days:30});
+  assert.deepEqual(calendarDifference('2026-01-31','2026-03-31'),{years:0,months:2,days:0});
+  assert.deepEqual(calendarDifference('2024-02-29','2025-02-28'),{years:1,months:0,days:0});
+  assert.deepEqual(calendarDifference('2000-02-29','2100-02-28'),{years:100,months:0,days:0});
+  assert.deepEqual(calendarDifference('1900-02-28','1901-03-01'),{years:1,months:0,days:1});
+  const next=anniversarySummary(item({date:'1995-07-09',mode:'countdown',yearly:true}),'2026-10-28').target;
+  assert.deepEqual(calendarDifference('2026-10-28',next),{years:0,months:8,days:11});
+});
 test('elapsed days exclude the start date and match the reference', () => {
   assert.deepEqual(anniversarySummary(item(), '2026-10-16'), { target: '2021-10-31', days: 1811, label: '已经', tone: 'elapsed' });
   assert.equal(anniversarySummary(item(), '2021-10-31').days, 0);

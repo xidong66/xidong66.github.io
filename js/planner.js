@@ -1,7 +1,7 @@
 import { plannerConfig } from './planner-config.js';
 import { loginErrorMessage, checkLoginConnection, authFetchWithTimeout } from './planner-auth.mjs?v=20261016-login-check';
 import { CATEGORIES, addDays, todaySG, weekday, expandTasks, calendarEvent, repeatLabel, buildTaskList } from './planner-model.mjs?v=20261018-pending-first';
-import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261016-mail';
+import { setupAnniversaries } from './planner-anniversaries.mjs?v=20261028-anniversary-format';
 import { setupLedger } from './planner-ledger.mjs?v=20261016-ledger';
 import { setupHabits } from './planner-habits.mjs?v=20261016-habits';
 import { setupWeight } from './planner-weight.mjs?v=20261018-weight';
