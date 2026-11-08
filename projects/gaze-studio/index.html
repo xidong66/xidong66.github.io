@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f6f7f3">
+<meta name="description" content="A small creative space for drawing with your eyes. Explore four-point gaze drawing, or try it with your mouse.">
+<meta name="robots" content="noindex, follow">
+<title>Gaze Studio · Draw with a different perspective</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"><script defer src="app.js"></script>
+</head>
+<body>
+<svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+<symbol id="i-mouse" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="m8 4-5 5 5 5M3 9h11a6 6 0 0 1 0 12"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M3 15h18M9 3v18m6-18v18"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="m14 4 6 6M4 20l5-1L21 7l-4-4L5 15l-1 5Z"/></symbol>
+</defs></svg>
+<a class="skip-link" href="#board">Skip to drawing board</a>
+<header class="site-header">
+<a class="brand" href="./" aria-label="Gaze Studio home"><span class="brand-icon"><svg><use href="#i-eye"/></svg></span><span>gaze<span class="brand-light"> / studio</span></span></a>
+<nav aria-label="Main navigation"><span class="nav-current">The studio</span><button class="nav-link" type="button" data-help>How it works <svg><use href="#i-arrow"/></svg></button></nav>
+<span class="project-badge"><span></span> BN5213 · EXPLORATORY PROTOTYPE</span>
+</header>
+<main>
+<section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">A DIFFERENT WAY TO CREATE</p><h1 id="page-title">Let your eyes do the drawing<span>.</span></h1><p class="intro-description">Four points. A little focus. Endless ways to connect.</p></div><div class="intro-aside"><span class="small-orbit" aria-hidden="true">✳</span><p>Less movement.<br>More possibility.</p></div></section>
+<div class="studio-layout">
+<aside class="sidebar" aria-label="Drawing controls">
+<section class="setup-panel"><div class="section-heading"><h2>Your setup</h2><span class="mini-badge" id="setup-badge">LET’S BEGIN</span></div>
+<div class="camera-card"><div class="camera-visual" aria-hidden="true"><span class="viewfinder"></span><svg><use href="#i-eye"/></svg></div><strong id="camera-title">A new point of view</strong><p id="camera-description">Your webcam is all you need.<br>No special equipment required.</p><span class="camera-chip"><span id="camera-led"></span><span id="camera-state">Camera is off</span></span></div>
+<button id="start" class="button primary wide" type="button"><svg><use href="#i-camera"/></svg><span id="start-label">Enable eye tracking</span><svg class="end-icon"><use href="#i-arrow"/></svg></button>
+<button id="mouse" class="button secondary wide" type="button"><svg><use href="#i-mouse"/></svg><span>Try with your mouse</span></button>
+<button id="stop" class="text-button" type="button" hidden>Stop eye tracking &amp; turn camera off</button>
+<ol class="setup-steps"><li id="step-camera"><span>1</span><div><strong>Connect</strong><small>Allow access to your camera</small></div></li><li id="step-calibrate"><span>2</span><div><strong>Calibrate</strong><small>Look at and click the nine dots</small></div></li><li id="step-create"><span>3</span><div><strong>Create</strong><small>Hold your gaze to connect points</small></div></li></ol>
+</section>
+<section class="tools-panel"><div class="section-heading"><h2>Make it yours</h2><svg class="muted-icon"><use href="#i-pen"/></svg></div>
+<fieldset class="palette"><legend>Ink color <span id="color-name">Forest</span></legend><div class="swatches">
+<button type="button" class="swatch selected" style="--swatch:#287263" data-color="#287263" data-name="Forest" aria-label="Forest ink" aria-pressed="true"></button>
+<button type="button" class="swatch" style="--swatch:#2d3748" data-color="#2d3748" data-name="Graphite" aria-label="Graphite ink" aria-pressed="false"></button>
+<button type="button" class="swatch" style="--swatch:#6789b5" data-color="#6789b5" data-name="Blue" aria-label="Blue ink" aria-pressed="false"></button>
+<button type="button" class="swatch" style="--swatch:#b594c2" data-color="#b594c2" data-name="Lilac" aria-label="Lilac ink" aria-pressed="false"></button>
+<button type="button" class="swatch" style="--swatch:#d68668" data-color="#d68668" data-name="Terracotta" aria-label="Terracotta ink" aria-pressed="false"></button>
+<button type="button" class="swatch" style="--swatch:#d3ac51" data-color="#d3ac51" data-name="Ochre" aria-label="Ochre ink" aria-pressed="false"></button>
+</div></fieldset>
+<label class="setting-row" for="stroke-width">Stroke width <select id="stroke-width"><option value="3">Fine</option><option value="5" selected>Medium</option><option value="9">Bold</option></select></label>
+<label class="setting-row" for="dwell-time">Hold to select <select id="dwell-time"><option value="600">0.6 seconds</option><option value="800" selected>0.8 seconds</option><option value="1200">1.2 seconds</option><option value="1800">1.8 seconds</option></select></label>
+</section>
+<p class="privacy-note"><svg><use href="#i-shield"/></svg><span>Your camera stays yours.<br>Video is processed in your browser.</span></p>
+</aside>
+<section class="workspace" aria-label="Creative workspace">
+<div class="canvas-header"><div class="document-heading"><span class="document-icon"><svg><use href="#i-pen"/></svg></span><div><label class="sr-only" for="drawing-title">Drawing title</label><input id="drawing-title" value="Untitled exploration" maxlength="60" spellcheck="false"><p><span class="save-dot"></span><span id="save-state">Your canvas, your possibilities</span></p></div></div><button id="export" class="button export-button" type="button" disabled><svg><use href="#i-download"/></svg>Export PNG</button></div>
+<div class="canvas-toolbar"><div class="toolbar-group"><span class="board-label">FOUR-POINT CANVAS</span><span class="toolbar-divider"></span><span class="mode-pill" id="mode-label"><span></span>Ready when you are</span></div><div class="toolbar-group">
+<button class="icon-button" id="undo" type="button" aria-label="Undo last point" title="Undo (Ctrl/⌘ Z)" disabled><svg><use href="#i-undo"/></svg></button>
+<button class="icon-button" id="redo" type="button" aria-label="Redo point" title="Redo (Ctrl/⌘ Shift Z)" disabled><svg class="flip"><use href="#i-undo"/></svg></button><span class="toolbar-divider"></span>
+<button class="icon-button" id="grid" type="button" aria-label="Show canvas grid" aria-pressed="true" title="Toggle grid"><svg><use href="#i-grid"/></svg></button>
+<button class="icon-button" id="focus" type="button" aria-label="Enter focus mode" aria-pressed="false" title="Focus mode"><svg><use href="#i-expand"/></svg></button>
+<button class="icon-button danger" id="clear" type="button" aria-label="Clear drawing" title="Clear drawing (can be undone)" disabled><svg><use href="#i-trash"/></svg></button></div></div>
+<div id="board" class="show-grid" tabindex="0" aria-label="Four-point drawing board. In mouse mode, hover over a numbered area to select it. You can also use number keys 1 to 4.">
+<span class="board-corner corner-tl" aria-hidden="true"></span><span class="board-corner corner-br" aria-hidden="true"></span>
+<svg id="ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+<div class="target" style="--x:25%;--y:25%" data-point="0"><span class="target-caption">POINT 01</span><span class="target-number">1</span><span class="target-hint">Hold to connect</span></div>
+<div class="target" style="--x:75%;--y:25%" data-point="1"><span class="target-caption">POINT 02</span><span class="target-number">2</span><span class="target-hint">Hold to connect</span></div>
+<div class="target" style="--x:25%;--y:75%" data-point="2"><span class="target-caption">POINT 03</span><span class="target-number">3</span><span class="target-hint">Hold to connect</span></div>
+<div class="target" style="--x:75%;--y:75%" data-point="3"><span class="target-caption">POINT 04</span><span class="target-number">4</span><span class="target-hint">Hold to connect</span></div>
+<div class="canvas-center" id="canvas-empty" aria-hidden="true"><span>It starts with a look.</span><small>YOUR NEXT CONNECTION IS A POSSIBILITY</small></div>
+</div>
+<div class="canvas-status"><div><span class="status-dot" id="status-dot"></span><p id="status" role="status" aria-live="polite">Choose eye tracking or mouse mode to begin.</p></div><span id="point-count">0 points connected</span><button id="pause" class="text-button" type="button" disabled>Pause</button></div>
+<div class="inspiration"><div class="inspiration-art" aria-hidden="true"><svg viewBox="0 0 80 65"><path d="M16 14h48v38L16 14"/><circle cx="16" cy="14" r="4"/><circle cx="64" cy="14" r="4"/><circle cx="64" cy="52" r="4"/></svg></div><div><p class="eyebrow">A LITTLE INSPIRATION</p><h3>Every shape starts somewhere.</h3><p>Try a triangle: <span class="point-sequence">1 <i>→</i> 2 <i>→</i> 4 <i>→</i> 1</span><span class="inspiration-extra">. Then see where your eyes take you.</span></p></div><button class="round-button" type="button" data-help aria-label="Read the drawing guide"><svg><use href="#i-arrow"/></svg></button></div>
+</section>
+</div>
+<footer class="site-footer"><p><a href="/">← Xidong Wu · Homepage</a></p><p>BN5213 <span> / </span> Temporary course demo <span class="footer-dot">·</span> <button class="text-button" type="button" data-help>About this prototype <svg><use href="#i-arrow"/></svg></button></p></footer>
+</main>
+<div id="gaze-cursor" aria-hidden="true" hidden></div>
+<section id="calibration" aria-label="Eye tracking calibration" hidden><div class="calibration-note"><p class="eyebrow">FINDING YOUR FOCUS</p><h2>A little calibration.<br>A better connection.</h2><p>Keep your head still. Look directly at the green dot and click it five times, then move to the next dot.</p><p id="calibration-count" role="status"></p><progress id="calibration-progress" value="0" max="45" aria-label="Calibration progress"></progress><p class="calibration-help">A mouse or an assistant is needed for this step.</p></div><button id="cancel-calibration" class="button secondary" type="button">Cancel calibration</button><button id="calibration-dot" type="button" aria-label="Record a calibration sample"></button></section>
+<dialog id="guide"><div class="dialog-top"><span class="eyebrow">WELCOME TO GAZE STUDIO</span><button class="icon-button" id="close-guide" type="button" aria-label="Close guide">✕</button></div><h2>A different perspective<br>on making things.</h2><p>Gaze Studio connects four fixed points into a drawing. It is an exploratory interaction prototype, so there is no freehand tracking or accuracy guarantee.</p><ol class="guide-steps"><li><strong>Make yourself comfortable.</strong><p>Use a desktop browser, a webcam, and even lighting. Enable eye tracking and allow camera access.</p></li><li><strong>Find your focus.</strong><p>Look at each of nine dots and click it five times. An assistant can help with clicks. Recalibrate after changing your position or window size.</p></li><li><strong>Connect the possibilities.</strong><p>Hold your estimated gaze in a numbered area until it fills. Look at another area to extend your line. Pause whenever you need a break.</p></li></ol><div class="guide-tip"><svg><use href="#i-mouse"/></svg><p>No camera? Try mouse mode. Hover over a point, tap it on a touch screen, or press <kbd>1</kbd>–<kbd>4</kbd>. <kbd>Space</kbd> pauses, <kbd>Esc</kbd> leaves focus mode.</p></div><p class="guide-privacy">Camera frames are processed locally by WebGazer. Tracking code and models load from third-party hosts. Only your drawing is saved in this browser.</p><button id="guide-done" class="button primary wide" type="button">Let’s create <svg><use href="#i-arrow"/></svg></button></dialog>
+</body>
+</html>
