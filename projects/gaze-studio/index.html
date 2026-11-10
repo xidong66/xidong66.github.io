@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f6f7f3">
-<meta name="description" content="A small creative space for drawing with your eyes. Explore four-point gaze drawing, or try it with your mouse.">
+<meta name="description" content="Draw with your eyes using four fixed points or choose both ends of a straight line.">
 <meta name="robots" content="noindex, follow">
 <title>Gaze Studio · Draw with a different perspective</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"><script defer src="app.js"></script>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=d40b82f"><script defer src="app.js?v=d40b82f"></script>
 </head>
 <body>
 <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
@@ -28,7 +28,7 @@
 <span class="project-badge"><span></span> BN5213 · EXPLORATORY PROTOTYPE</span>
 </header>
 <main>
-<section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">A DIFFERENT WAY TO CREATE</p><h1 id="page-title">Let your eyes do the drawing<span>.</span></h1><p class="intro-description">Four points. A little focus. Endless ways to connect.</p></div><div class="intro-aside"><span class="small-orbit" aria-hidden="true">✳</span><p>Less movement.<br>More possibility.</p></div></section>
+<section class="intro" aria-labelledby="page-title"><div><p class="eyebrow">A DIFFERENT WAY TO CREATE</p><h1 id="page-title">Let your eyes do the drawing<span>.</span></h1><p class="intro-description">Connect four fixed points or place a line anywhere on the canvas.</p></div><div class="intro-aside"><span class="small-orbit" aria-hidden="true">✳</span><p>Less movement.<br>More possibility.</p></div></section>
 <div class="studio-layout">
 <aside class="sidebar" aria-label="Drawing controls">
 <section class="setup-panel"><div class="section-heading"><h2>Your setup</h2><span class="mini-badge" id="setup-badge">LET’S BEGIN</span></div>
@@ -54,15 +54,23 @@
 </aside>
 <section class="workspace" aria-label="Creative workspace">
 <div class="canvas-header"><div class="document-heading"><span class="document-icon"><svg><use href="#i-pen"/></svg></span><div><label class="sr-only" for="drawing-title">Drawing title</label><input id="drawing-title" value="Untitled exploration" maxlength="60" spellcheck="false"><p><span class="save-dot"></span><span id="save-state">Your canvas, your possibilities</span></p></div></div><button id="export" class="button export-button" type="button" disabled><svg><use href="#i-download"/></svg>Export PNG</button></div>
-<div class="canvas-toolbar"><div class="toolbar-group"><span class="board-label">FOUR-POINT CANVAS</span><span class="toolbar-divider"></span><span class="mode-pill" id="mode-label"><span></span>Ready when you are</span></div><div class="toolbar-group">
-<button class="icon-button" id="undo" type="button" aria-label="Undo last point" title="Undo (Ctrl/⌘ Z)" disabled><svg><use href="#i-undo"/></svg></button>
-<button class="icon-button" id="redo" type="button" aria-label="Redo point" title="Redo (Ctrl/⌘ Shift Z)" disabled><svg class="flip"><use href="#i-undo"/></svg></button><span class="toolbar-divider"></span>
+<div class="canvas-toolbar"><div class="toolbar-group"><span class="board-label" id="board-label">FOUR-POINT CANVAS</span><span class="toolbar-divider"></span><span class="mode-pill" id="mode-label"><span></span>Ready when you are</span></div><div class="toolbar-group">
+<button class="icon-button" id="undo" type="button" aria-label="Undo last change" title="Undo (Ctrl/⌘ Z)" disabled><svg><use href="#i-undo"/></svg></button>
+<button class="icon-button" id="redo" type="button" aria-label="Redo change" title="Redo (Ctrl/⌘ Shift Z)" disabled><svg class="flip"><use href="#i-undo"/></svg></button><span class="toolbar-divider"></span>
 <button class="icon-button" id="grid" type="button" aria-label="Show canvas grid" aria-pressed="true" title="Toggle grid"><svg><use href="#i-grid"/></svg></button>
 <button class="icon-button" id="focus" type="button" aria-label="Enter focus mode" aria-pressed="false" title="Focus mode"><svg><use href="#i-expand"/></svg></button>
 <button class="icon-button danger" id="clear" type="button" aria-label="Clear drawing" title="Clear drawing (can be undone)" disabled><svg><use href="#i-trash"/></svg></button></div></div>
+<div class="drawing-tools" role="group" aria-label="Drawing tool">
+  <button id="point-tool" type="button" aria-pressed="true">Four points</button>
+  <button id="line-tool" type="button" aria-pressed="false">Line tool</button>
+  <label id="snap-option" hidden><input id="snap-endpoints" type="checkbox" checked> Snap to endpoints</label>
+</div>
 <div id="board" class="show-grid" tabindex="0" aria-label="Four-point drawing board. In mouse mode, hover over a numbered area to select it. You can also use number keys 1 to 4.">
 <span class="board-corner corner-tl" aria-hidden="true"></span><span class="board-corner corner-br" aria-hidden="true"></span>
 <svg id="ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+<svg id="line-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line id="line-preview" visibility="hidden"/></svg>
+<span id="line-start" class="line-marker" aria-hidden="true" hidden></span>
+<span id="line-snap" class="line-marker" aria-hidden="true" hidden></span>
 <div class="target" style="--x:25%;--y:25%" data-point="0"><span class="target-caption">POINT 01</span><span class="target-number">1</span><span class="target-hint">Hold to connect</span></div>
 <div class="target" style="--x:75%;--y:25%" data-point="1"><span class="target-caption">POINT 02</span><span class="target-number">2</span><span class="target-hint">Hold to connect</span></div>
 <div class="target" style="--x:25%;--y:75%" data-point="2"><span class="target-caption">POINT 03</span><span class="target-number">3</span><span class="target-hint">Hold to connect</span></div>
@@ -76,7 +84,7 @@
 <footer class="site-footer"><p><a href="/">← Xidong Wu · Homepage</a></p><p>BN5213 <span> / </span> Temporary course demo <span class="footer-dot">·</span> <button class="text-button" type="button" data-help>About this prototype <svg><use href="#i-arrow"/></svg></button></p></footer>
 </main>
 <div id="gaze-cursor" aria-hidden="true" hidden></div>
-<section id="calibration" aria-label="Eye tracking calibration" hidden><div class="calibration-note"><p class="eyebrow">FINDING YOUR FOCUS</p><h2>A little calibration.<br>A better connection.</h2><p>Keep your head still. Look directly at the green dot and click it five times, then move to the next dot.</p><p id="calibration-count" role="status"></p><progress id="calibration-progress" value="0" max="45" aria-label="Calibration progress"></progress><p class="calibration-help">A mouse or an assistant is needed for this step.</p></div><button id="cancel-calibration" class="button secondary" type="button">Cancel calibration</button><button id="calibration-dot" type="button" aria-label="Record a calibration sample"></button></section>
-<dialog id="guide"><div class="dialog-top"><span class="eyebrow">WELCOME TO GAZE STUDIO</span><button class="icon-button" id="close-guide" type="button" aria-label="Close guide">✕</button></div><h2>A different perspective<br>on making things.</h2><p>Gaze Studio connects four fixed points into a drawing. It is an exploratory interaction prototype, so there is no freehand tracking or accuracy guarantee.</p><ol class="guide-steps"><li><strong>Make yourself comfortable.</strong><p>Use a desktop browser, a webcam, and even lighting. Enable eye tracking and allow camera access.</p></li><li><strong>Find your focus.</strong><p>Look at each of nine dots and click it five times. An assistant can help with clicks. Recalibrate after changing your position or window size.</p></li><li><strong>Connect the possibilities.</strong><p>Hold your estimated gaze in a numbered area until it fills. Look at another area to extend your line. Pause whenever you need a break.</p></li></ol><div class="guide-tip"><svg><use href="#i-mouse"/></svg><p>No camera? Try mouse mode. Hover over a point, tap it on a touch screen, or press <kbd>1</kbd>–<kbd>4</kbd>. <kbd>Space</kbd> pauses, <kbd>Esc</kbd> leaves focus mode.</p></div><p class="guide-privacy">Camera frames are processed locally by WebGazer. Tracking code and models load from third-party hosts. Only your drawing is saved in this browser.</p><button id="guide-done" class="button primary wide" type="button">Let’s create <svg><use href="#i-arrow"/></svg></button></dialog>
+<section id="calibration" aria-label="Eye tracking calibration" hidden><div class="calibration-note"><p class="eyebrow">FINDING YOUR FOCUS</p><h2>A little calibration.<br>A better connection.</h2><p>Keep your head still. Look directly at the green dot and click it five times, then move to the next dot.</p><p id="calibration-count" role="status"></p><progress id="calibration-progress" value="0" max="45" aria-label="Calibration progress"></progress><p class="calibration-help">A mouse or an assistant is needed for this step.</p></div><div id="calibration-board" aria-hidden="true" hidden></div><button id="cancel-calibration" class="button secondary" type="button">Cancel calibration</button><button id="calibration-dot" type="button" aria-label="Record a calibration sample"></button></section>
+<dialog id="guide"><div class="dialog-top"><span class="eyebrow">WELCOME TO GAZE STUDIO</span><button class="icon-button" id="close-guide" type="button" aria-label="Close guide">✕</button></div><h2>A different perspective<br>on making things.</h2><p>Draw by selecting points with your eyes or with a mouse.</p><ol class="guide-steps"><li><strong>Choose a tool.</strong><p>Use Four points for numbered targets or Line tool for any two positions on the canvas.</p></li><li><strong>Calibrate eye tracking.</strong><p>Look at each of nine dots and click it five times. Recalibrate after switching tools or changing your position or window size.</p></li><li><strong>Draw.</strong><p>Hold until the target or cursor ring fills. In Line tool, a dashed line previews the stroke after you set the start. Hold on the end point to finish.</p></li></ol><div class="guide-tip"><svg><use href="#i-mouse"/></svg><p>No camera? Try mouse mode. Hover over the canvas to select a point. In Four points, you can also tap a target or press <kbd>1</kbd>–<kbd>4</kbd>. <kbd>Space</kbd> pauses, <kbd>Esc</kbd> leaves focus mode.</p></div><p class="guide-privacy">Camera frames are processed locally by WebGazer. Tracking code and models load from third-party hosts. Only your drawing is saved in this browser.</p><button id="guide-done" class="button primary wide" type="button">Let’s create <svg><use href="#i-arrow"/></svg></button></dialog>
 </body>
 </html>

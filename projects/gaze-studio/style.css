@@ -631,6 +631,11 @@ main {
   align-items:center;
   gap:10px
 }
+.drawing-tools {display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 16px;background:#fff;border:1px solid var(--line);border-top:0;font-size:12px}
+.drawing-tools button {padding:4px 9px;border-radius:6px}
+.drawing-tools button[aria-pressed=true] {color:var(--accent);background:#eef3e8;font-weight:600}
+.drawing-tools label {display:flex;align-items:center;gap:5px}
+.drawing-tools input {accent-color:var(--accent)}
 .board-label {
   font-size:9px;
   letter-spacing:1px;
@@ -739,6 +744,12 @@ main {
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke
 }
+#board.line-mode .target,#board.line-mode .canvas-center {display:none}
+#line-overlay {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+#line-preview {stroke:var(--ink);stroke-opacity:.85;stroke-width:3;stroke-dasharray:7 6;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.line-marker {position:absolute;z-index:5;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+#line-start {background:var(--ink);border:2px solid #fff}
+#line-snap {width:21px;height:21px;border:3px solid #287263;box-shadow:0 0 0 2px #fff}
 .target {
   position:absolute;
   left:calc(var(--x) - 20.5%);
@@ -980,6 +991,7 @@ main {
   box-shadow:0 0 0 3px #ffffffa0;
   background:radial-gradient(circle,#9b79b3 2px,transparent 3px)
 }
+#gaze-cursor::after {content:'';position:absolute;inset:-7px;border-radius:50%;background:conic-gradient(#7f55aa calc(var(--line-progress,0)*1turn),transparent 0);mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 0)}
 #calibration {
   position:fixed;
   inset:0;
@@ -1037,6 +1049,12 @@ main {
   height:34px;
   padding:0
 }
+#calibration-board {position:absolute;border:2px dashed #b1c8bb;border-radius:12px;pointer-events:none}
+#calibration.board-calibration .calibration-note {top:8px;z-index:1;background:#f6f7f3ed;border-radius:8px;padding:5px 8px}
+#calibration.board-calibration .calibration-note h2,#calibration.board-calibration .calibration-help {display:none}
+#calibration.board-calibration .calibration-note p {margin:3px 0}
+#calibration.board-calibration #calibration-progress {margin-top:4px}
+#calibration.board-calibration #calibration-dot,#calibration.board-calibration #cancel-calibration {z-index:2}
 dialog {
   width:min(560px,calc(100% - 30px));
   max-height:90dvh;

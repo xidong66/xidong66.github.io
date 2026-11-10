@@ -2,10 +2,10 @@
 
 线上地址：<https://wuxidong.com/projects/gaze-studio/>
 
-来源：用户提供的 `gaze-studio-website-package.zip` 中的 `demo/`。
+来源：作业仓库 `integration/line-tool` 分支的提交 `d40b82f`。
 只发布 `index.html`、`style.css`、`app.js` 和 `assets/favicon.svg`；
 不需要 npm、构建步骤、后端或数据库。原项目：
-<https://github.com/ixnac/bn5213-gaze-drawing/tree/feat/gaze-studio-ui>。
+<https://github.com/ixnac/bn5213-gaze-drawing/commit/d40b82fa8f7e787ed0097f50fad6c24f284b7bbf>。
 
 ## 集成范围
 
@@ -36,4 +36,6 @@
 摄像头需要 HTTPS 或 localhost；WebGazer 按需从
 `https://webgazer.cs.brown.edu/webgazer.js` 加载，MediaPipe 从 jsDelivr 加载，
 字体使用 Google Fonts。鼠标、触屏和数字键 1–4 的绘画模式无需摄像头。
-真人注视精度仍需实际设备测试；当前是四点连接原型。
+选择 **Four points** 连接四个固定点，或选择 **Line tool**，用鼠标悬停
+或注视依次选定直线的两个端点。摄像头模式下切换工具后需要重新校准。
+真人注视精度仍需实际设备测试。
