@@ -19,6 +19,11 @@ const storageKey = 'bn5213-gaze-studio-v1';
 const maxSampleGapMs = 250;
 const lineSampleWindowMs = 200;
 const lineDriftGraceMs = 120;
+const gazeMedianSamples = 3;
+const gazeSlowTimeMs = 160;
+const gazeFastTimeMs = 32;
+const gazeSlowDistancePx = 50;
+const gazeFastDistancePx = 170;
 const colors = [...document.querySelectorAll('[data-color]')];
 let path = [];
 let history = [];
@@ -41,17 +46,29 @@ let dwellMs = 800;
 let lineDwellMs = 600;
 let tool = 'points';
 const lineSamples = [];
+const gazeSamples = [];
+let filteredGaze = null;
 let lineStart = null;
 let lineLock = null;
 let lineAnchor = null;
 let calibrationBounds;
+let calibratedExperimentBounds;
 let calibrationIndex = 0;
 let calibrationClicks = 0;
 let mouseFrameId;
 let webGazerPromise;
 
 function say(message) { status.textContent = message; }
-function isDrawing() { return (mode === 'mouse' || mode === 'gaze') && !paused && !guide.open && calibration.hidden && !document.hidden; }
+function isExperiment() { return tool === 'experiment'; }
+function usesLineInput() { return tool === 'line' || (isExperiment() && experiment.shape()); }
+function activeDwellMs() {
+  return (isExperiment() && experiment.fixedDwell()) || (usesLineInput() ? lineDwellMs : dwellMs);
+}
+function inputCanvas() { return isExperiment() ? $('#experiment-ink') : ink; }
+function isDrawing() {
+  return (mode === 'mouse' || mode === 'gaze') && !paused && !guide.open && calibration.hidden &&
+    !document.hidden && (!isExperiment() || experiment.active());
+}
 function showProgress(progress) {
   targets.forEach((target, index) => {
     target.classList.toggle('active', index === activeTarget);
@@ -62,6 +79,8 @@ function resetDwell() {
   activeTarget = -1;
   confirmed = false;
   lastSample = 0;
+  gazeSamples.length = 0;
+  filteredGaze = null;
   gazeCursor.hidden = true;
   showProgress(0);
   resetLineTracking();
@@ -83,13 +102,18 @@ function updateUI() {
   pill.replaceChildren(document.createElement('span'), document.createTextNode(startupPending ? 'Connecting camera' : paused && active ? 'Drawing paused' : mode === 'gaze' ? 'Eye tracking' : mode === 'mouse' ? 'Mouse mode' : mode === 'calibration' ? 'Calibrating' : 'Ready when you are'));
   pill.classList.toggle('live', active && !paused);
   $('#status-dot').classList.toggle('live', active && !paused);
-  $('#pause').disabled = !active || (mode === 'gaze' && !hasCalibration);
+  $('#pause').disabled = experiment.active() || !active || (mode === 'gaze' && !hasCalibration);
   $('#pause').textContent = paused ? 'Resume' : 'Pause';
   $('#step-camera').classList.toggle('done', cameraOn);
   $('#step-camera').classList.toggle('current', startupPending);
   $('#step-calibrate').classList.toggle('done', cameraOn && hasCalibration);
   $('#step-calibrate').classList.toggle('current', mode === 'calibration');
   $('#step-create').classList.toggle('current', active);
+  const experimentInput = active && !paused && (mode === 'mouse' || hasCalibration) ? mode : null;
+  experiment.sync(isExperiment(), experimentInput);
+  $('#dwell-time').value = activeDwellMs();
+  $('#dwell-time').disabled = experiment.active() || (isExperiment() && Boolean(experiment.fixedDwell()));
+  for (const id of ['#line-tool', '#point-tool']) $(id).disabled = experiment.active();
 }
 function persist() {
   try {
@@ -138,9 +162,9 @@ function renderPath(save = true) {
   $('#point-count').textContent = tool === 'line' || lineCount
     ? `${lineCount} line${lineCount === 1 ? '' : 's'} · ${pointCount} fixed points`
     : `${pointCount} point${pointCount === 1 ? '' : 's'} connected`;
-  $('#undo').disabled = history.length === 0 && !lineStart;
-  $('#redo').disabled = future.length === 0;
-  $('#clear').disabled = $('#export').disabled = path.length === 0;
+  $('#undo').disabled = isExperiment() || (history.length === 0 && !lineStart);
+  $('#redo').disabled = isExperiment() || future.length === 0;
+  $('#clear').disabled = $('#export').disabled = isExperiment() || path.length === 0;
   if (save) persist();
 }
 function remember() {
@@ -184,10 +208,33 @@ function clearPendingLine() {
   resetLineTracking();
 }
 
-function medianCoordinate(key) {
-  const values = lineSamples.map(sample => sample[key]).sort((a, b) => a - b);
+function medianCoordinate(samples, key) {
+  const values = samples.map(sample => sample[key]).sort((a, b) => a - b);
   const middle = Math.floor(values.length / 2);
   return values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+}
+
+function smoothGaze(point, now) {
+  const elapsed = filteredGaze ? now - filteredGaze.time : Infinity;
+  if (elapsed > maxSampleGapMs) gazeSamples.length = 0;
+  gazeSamples.push({...point, time: now});
+  while (gazeSamples.length > gazeMedianSamples || now - gazeSamples[0].time > maxSampleGapMs) gazeSamples.shift();
+  const x = medianCoordinate(gazeSamples, 'x');
+  const y = medianCoordinate(gazeSamples, 'y');
+  if (elapsed > maxSampleGapMs) {
+    filteredGaze = {x, y, time: now};
+    return filteredGaze;
+  }
+
+  // A median rejects one-frame jumps. Follow sustained, larger moves more quickly.
+  const dx = x - filteredGaze.x;
+  const dy = y - filteredGaze.y;
+  const movement = Math.hypot(dx, dy);
+  const speedup = Math.min(1, Math.max(0, (movement - gazeSlowDistancePx) / (gazeFastDistancePx - gazeSlowDistancePx)));
+  const timeConstant = gazeSlowTimeMs + (gazeFastTimeMs - gazeSlowTimeMs) * speedup;
+  const weight = -Math.expm1(-elapsed / timeConstant);
+  filteredGaze = {x: filteredGaze.x + weight * dx, y: filteredGaze.y + weight * dy, time: now};
+  return filteredGaze;
 }
 
 function lineDwellProgress(x, y, now, radius) {
@@ -201,7 +248,7 @@ function lineDwellProgress(x, y, now, radius) {
     if (!outside) lineAnchor.outsideSince = null;
     lineAnchor.lastTime = now;
   }
-  return Math.min(1, lineAnchor.elapsed / lineDwellMs);
+  return Math.min(1, lineAnchor.elapsed / activeDwellMs());
 }
 
 function findSnapPoint(distanceFrom, radius) {
@@ -218,24 +265,27 @@ function findSnapPoint(distanceFrom, radius) {
 }
 
 function updateLine(point, now) {
-  const {left, top, right, bottom, width: w, height: h} = ink.getBoundingClientRect();
+  const {left, top, right, bottom, width: w, height: h} = inputCanvas().getBoundingClientRect();
   if (!w || !h || point.x < left || point.x >= right || point.y < top || point.y >= bottom) {
     showCursor(point);
     resetLineTracking();
     return;
   }
-  lineSamples.push({...point, time: now});
-  while (lineSamples[0].time < now - lineSampleWindowMs) lineSamples.shift();
-  const x = medianCoordinate('x');
-  const y = medianCoordinate('y');
+  let {x, y} = point;
+  if (mode === 'mouse') {
+    lineSamples.push({...point, time: now});
+    while (lineSamples[0].time < now - lineSampleWindowMs) lineSamples.shift();
+    x = medianCoordinate(lineSamples, 'x');
+    y = medianCoordinate(lineSamples, 'y');
+  }
   showCursor({x, y});
   const aim = [(x - left) / w * 100, (y - top) / h * 100];
   const radius = mode === 'mouse' ? 10 : Math.max(24, Math.min(48, Math.min(w, h) * 0.1));
   const distance = (a, b) => Math.hypot((a[0] - b[0]) * w / 100, (a[1] - b[1]) * h / 100);
-  const snap = findSnapPoint(point => distance(aim, point), mode === 'mouse' ? 16 : radius * 1.2);
+  const snap = isExperiment() ? null : findSnapPoint(point => distance(aim, point), mode === 'mouse' ? 16 : radius * 1.2);
   const end = snap ?? aim;
   showMarker(lineSnapMarker, snap);
-  if (lineStart) {
+  if (lineStart && !(isExperiment() && experiment.horizontal())) {
     for (const [key, value] of Object.entries({x1: lineStart[0], y1: lineStart[1], x2: end[0], y2: end[1], visibility: 'visible'})) linePreview.setAttribute(key, value);
   }
   if (lineLock && distance(aim, lineLock) <= radius) return;
@@ -243,6 +293,12 @@ function updateLine(point, now) {
   const progress = lineDwellProgress(x, y, now, radius);
   gazeCursor.style.setProperty('--line-progress', progress);
   if (progress < 1) return;
+  if (isExperiment()) {
+    if (experiment.horizontal()) lineLock = aim;
+    resetLineTracking();
+    handleExperimentEvent('endpoint', aim, now);
+    return;
+  }
   lineLock = aim;
   lineAnchor = null;
   gazeCursor.style.setProperty('--line-progress', 0);
@@ -265,7 +321,15 @@ function updateLine(point, now) {
 
 function updateDwell(point, now) {
   if (!isDrawing() || !point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
-  if (tool === 'line') {
+  if (isExperiment() && (experimentLayoutChanged() || tickExperiment(now))) return;
+  if (mode === 'gaze') point = smoothGaze(point, now);
+  if (isExperiment() && experiment.kind() === 'fixation') {
+    lastSample = now;
+    showCursor(point);
+    experiment.sample(point, now);
+    return;
+  }
+  if (usesLineInput()) {
     if (now - lastSample > maxSampleGapMs) resetLineTracking();
     lastSample = now;
     updateLine(point, now);
@@ -287,7 +351,8 @@ function updateDwell(point, now) {
   showProgress(progress);
   if (progress < 1 || confirmed) return;
   confirmed = true;
-  selectPoint(activeTarget);
+  if (isExperiment()) handleExperimentEvent('selection', activeTarget, now);
+  else selectPoint(activeTarget);
 }
 function releaseTracker(tracker) {
   if (!tracker) return;
@@ -300,6 +365,7 @@ function releaseTracker(tracker) {
   for (const id of [tracker.params?.videoContainerId, tracker.params?.gazeDotId]) if (id) document.getElementById(id)?.remove();
 }
 function stopCamera(message = 'Camera turned off. Your drawing is still here.') {
+  if (experiment.active()) finishExperiment('interrupted');
   startupGeneration++;
   releaseTracker(gaze || startingTracker);
   gaze = undefined;
@@ -352,9 +418,10 @@ async function calibrate(generation) {
   if (generation !== startupGeneration) return;
   calibrationIndex = calibrationClicks = 0;
   calibrationBounds = {left: 0, top: 0, width: window.innerWidth, height: window.innerHeight};
-  if (tool === 'line') {
+  if (tool === 'line' || isExperiment()) {
     board.scrollIntoView({block: 'center', behavior: 'instant'});
-    const bounds = ink.getBoundingClientRect();
+    const bounds = inputCanvas().getBoundingClientRect();
+    if (isExperiment()) calibratedExperimentBounds = experimentBounds();
     const left = Math.max(0, bounds.left);
     const top = Math.max(0, bounds.top);
     const width = Math.min(window.innerWidth, bounds.right) - left;
@@ -362,8 +429,9 @@ async function calibrate(generation) {
     if (width > 80 && height > 80) calibrationBounds = {left, top, width, height};
     for (const [key, value] of Object.entries(calibrationBounds)) $('#calibration-board').style[key] = `${value}px`;
   }
-  calibration.classList.toggle('board-calibration', tool === 'line');
-  $('#calibration-board').hidden = tool !== 'line';
+  const boardCalibration = tool === 'line' || isExperiment();
+  calibration.classList.toggle('board-calibration', boardCalibration);
+  $('#calibration-board').hidden = !boardCalibration;
   showCalibrationDot();
   calibration.hidden = false;
   updateUI();
@@ -376,6 +444,7 @@ startButton.addEventListener('click', async () => {
     say('Eye tracking needs HTTPS or localhost and a browser with camera support. You can still try mouse mode.');
     return;
   }
+  if (experiment.active()) finishExperiment('interrupted');
   const generation = ++startupGeneration;
   startupPending = true;
   mode = 'loading';
@@ -419,7 +488,8 @@ $('#calibration-dot').addEventListener('click', () => {
   if (calibrationIndex === calibrationPoints.length) {
     $('#calibration-progress').value = 45;
     calibration.hidden = true;
-    hasCalibration = true;
+    hasCalibration = !isExperiment() || sameExperimentBounds(calibratedExperimentBounds, experimentBounds());
+    paused = !hasCalibration;
     mode = 'gaze';
     resetDwell();
     if (tool === 'line') {
@@ -428,14 +498,16 @@ $('#calibration-dot').addEventListener('click', () => {
         (dot.top + dot.height / 2 - bounds.top) / bounds.height * 100];
     }
     updateUI();
-    say(tool === 'line' ? 'Hold the purple ring on a spot to set the start, then hold on the end.' : 'Follow the purple gaze ring. Hold it inside a numbered area to connect.');
+    say(isExperiment() ? hasCalibration ? 'Calibrated. Enter a participant ID and start the trial.' : 'The canvas moved during calibration. Recalibrate before starting.' :
+      tool === 'line' ? 'Hold the purple ring on a spot to set the start, then hold on the end.' : 'Follow the purple gaze ring. Hold it inside a numbered area to connect.');
     board.focus({ preventScroll: true });
   } else showCalibrationDot();
 });
 $('#cancel-calibration').addEventListener('click', () => { stopCamera('Calibration cancelled and camera turned off. Try mouse mode whenever you like.'); startButton.focus(); });
 $('#stop').addEventListener('click', () => stopCamera());
 mouseButton.addEventListener('click', () => {
-  stopCamera(tool === 'line' ? 'Mouse mode is ready. Hover to set the start and end of a line.' : 'Mouse mode is ready. Hover over a point, tap it, or press 1–4.');
+  stopCamera(isExperiment() ? 'Mouse practice is ready. Choose a task and start a trial.' :
+    tool === 'line' ? 'Mouse mode is ready. Hover to set the start and end of a line.' : 'Mouse mode is ready. Hover over a point, tap it, or press 1–4.');
   mode = 'mouse';
   paused = false;
   pointer = null;
@@ -464,9 +536,11 @@ $('#pause').addEventListener('click', () => {
   pointer = null;
   resetDwell();
   updateUI();
-  say(paused ? `Drawing paused.${gaze ? ' Camera remains on; use the stop button to turn it off.' : ' Take your time.'}` : tool === 'line' ? 'Ready to draw. Hold on a spot to select it.' : 'Ready to connect. Choose your next point.');
+  say(paused ? `Drawing paused.${gaze ? ' Camera remains on; use the stop button to turn it off.' : ' Take your time.'}` :
+    isExperiment() ? 'Ready to start a trial.' : tool === 'line' ? 'Ready to draw. Hold on a spot to select it.' : 'Ready to connect. Choose your next point.');
 });
 $('#undo').addEventListener('click', () => {
+  if (isExperiment()) return;
   if (lineStart) {
     clearPendingLine();
     renderPath(false);
@@ -481,6 +555,7 @@ $('#undo').addEventListener('click', () => {
   say('Last change undone.');
 });
 $('#redo').addEventListener('click', () => {
+  if (isExperiment()) return;
   if (!future.length) return;
   history.push(path.slice());
   path = future.pop();
@@ -490,6 +565,7 @@ $('#redo').addEventListener('click', () => {
   say('Change restored.');
 });
 $('#clear').addEventListener('click', () => {
+  if (isExperiment()) return;
   if (!path.length) return;
   remember();
   path = [];
@@ -510,23 +586,24 @@ colors.forEach(button => button.addEventListener('click', () => { setColor(butto
 $('#stroke-width').addEventListener('change', event => { width = Number(event.target.value); persist(); });
 $('#dwell-time').addEventListener('change', event => {
   const duration = Number(event.target.value);
-  if (tool === 'line') lineDwellMs = duration;
+  if (usesLineInput()) lineDwellMs = duration;
   else dwellMs = duration;
   resetDwell(); persist();
   say(`Hold for ${(duration / 1000).toFixed(1)} seconds to select a point.`);
 });
 
 function selectTool(next) {
-  if (tool === next || mode === 'calibration' || startupPending) return;
+  if (tool === next || mode === 'calibration' || startupPending || experiment.active()) return;
   tool = next;
   const lineMode = tool === 'line';
-  board.classList.toggle('line-mode', lineMode);
-  board.setAttribute('aria-label', lineMode ? 'Straight line drawing board. Hold on the start, then hold on the end.' : 'Four-point drawing board. Hover over a numbered area or press 1 to 4 in mouse mode.');
-  $('#board-label').textContent = lineMode ? 'LINE CANVAS' : 'FOUR-POINT CANVAS';
-  $('#point-tool').setAttribute('aria-pressed', !lineMode);
+  board.classList.toggle('experiment-mode', isExperiment());
+  board.classList.toggle('line-mode', lineMode || (isExperiment() && experiment.kind() !== 'fixed'));
+  board.setAttribute('aria-label', isExperiment() ? 'Experiment drawing board' : lineMode ? 'Straight line drawing board. Hold on the start, then hold on the end.' : 'Four-point drawing board. Hover over a numbered area or press 1 to 4 in mouse mode.');
+  $('#board-label').textContent = isExperiment() ? 'EXPERIMENT CANVAS' : lineMode ? 'LINE CANVAS' : 'FOUR-POINT CANVAS';
+  $('#point-tool').setAttribute('aria-pressed', tool === 'points');
   $('#line-tool').setAttribute('aria-pressed', lineMode);
+  $('#experiment-tool').setAttribute('aria-pressed', isExperiment());
   $('#snap-option').hidden = !lineMode;
-  $('#dwell-time').value = lineMode ? lineDwellMs : dwellMs;
   clearPendingLine();
   resetDwell();
   pointer = null;
@@ -534,22 +611,111 @@ function selectTool(next) {
   if (mode === 'gaze') {
     paused = true;
     hasCalibration = false;
-    updateUI();
     say('Tool changed. Recalibrate eye tracking to continue.');
+  } else if (isExperiment()) {
+    say('Choose a task and enter a participant ID.');
   } else if (lineMode) {
     say('Hold on a spot to start, then move to preview the line. Hold again to finish.');
   } else {
     say('Hold inside a numbered area to connect to it.');
   }
+  updateUI();
+  experiment.render(targets);
 }
 
 $('#point-tool').addEventListener('click', () => selectTool('points'));
 $('#line-tool').addEventListener('click', () => selectTool('line'));
+$('#experiment-tool').addEventListener('click', () => selectTool('experiment'));
+$('#experiment-participant').addEventListener('input', updateUI);
+$('#experiment-task').addEventListener('change', () => {
+  experiment.resetReview();
+  board.classList.toggle('line-mode', experiment.kind() !== 'fixed');
+  resetDwell();
+  updateUI();
+  experiment.render(targets);
+});
+
+function experimentBounds() {
+  const {left, top, width, height} = inputCanvas().getBoundingClientRect();
+  return {left, top, width, height};
+}
+
+function sameExperimentBounds(a, b) {
+  return a && b && ['left', 'top', 'width', 'height'].every(key => Math.abs(a[key] - b[key]) <= 2);
+}
+
+function experimentLayoutChanged() {
+  if (sameExperimentBounds(experiment.bounds(), experimentBounds())) return false;
+  invalidateGazeLayout();
+  return true;
+}
+
+function showExperimentEvent(message) {
+  if (!experiment.active()) {
+    clearPendingLine();
+    resetDwell();
+    updateUI();
+  }
+  experiment.render(targets);
+  if (message) say(message);
+  experiment.schedule(runExperimentTimer);
+}
+
+function handleExperimentEvent(type, value, now) {
+  const message = experiment.record(type, value, now);
+  if (type === 'endpoint' && experiment.active()) {
+    lineStart = experiment.pendingEndpoint();
+    showMarker(lineStartMarker, lineStart);
+  }
+  showExperimentEvent(message);
+}
+
+function finishExperiment(reason) {
+  showExperimentEvent(experiment.finish(reason, performance.now()));
+}
+
+function tickExperiment(now) {
+  if (!experiment.due(now)) return false;
+  if (experiment.kind() === 'fixation') handleExperimentEvent('fixation', null, now);
+  else finishExperiment('timeout');
+  return true;
+}
+
+function runExperimentTimer() {
+  if (experiment.active() && !experimentLayoutChanged() && !tickExperiment(performance.now())) {
+    experiment.schedule(runExperimentTimer);
+  }
+}
+
+$('#experiment-start').addEventListener('click', () => {
+  if (!isExperiment() || guide.open || !calibration.hidden || document.hidden) return;
+  board.scrollIntoView({block: 'center', behavior: 'instant'});
+  const bounds = experimentBounds();
+  if (bounds.top < -2 || bounds.top + bounds.height > innerHeight + 2 || !bounds.width || !bounds.height) {
+    say('Fit the full canvas on screen before starting the trial.');
+    return;
+  }
+  if (mode === 'gaze' && !sameExperimentBounds(bounds, calibratedExperimentBounds)) {
+    invalidateGazeLayout();
+    return;
+  }
+  clearPendingLine();
+  resetDwell();
+  pointer = null;
+  const message = experiment.begin(bounds, performance.now(), activeDwellMs());
+  if (!message) return;
+  board.focus({preventScroll: true});
+  updateUI();
+  showExperimentEvent(message);
+});
+$('#experiment-end').addEventListener('click', () => finishExperiment('ended'));
+$('#experiment-export').addEventListener('click', experiment.exportCsv);
 $('#snap-endpoints').addEventListener('change', resetLineTracking);
 $('#drawing-title').addEventListener('input', persist);
 $('#drawing-title').addEventListener('change', () => { $('#drawing-title').value = $('#drawing-title').value.trim() || 'Untitled exploration'; persist(); });
 $('#grid').addEventListener('click', () => { const visible = board.classList.toggle('show-grid'); $('#grid').setAttribute('aria-pressed', visible); persist(); });
 function setFocus(enabled) {
+  if (experiment.active()) finishExperiment('interrupted');
   document.body.classList.toggle('focus-mode', enabled);
   $('#focus').setAttribute('aria-pressed', enabled);
   $('#focus').setAttribute('aria-label', enabled ? 'Exit focus mode' : 'Enter focus mode');
@@ -557,11 +723,14 @@ function setFocus(enabled) {
   pointer = null;
 }
 $('#focus').addEventListener('click', () => setFocus(!document.body.classList.contains('focus-mode')));
-for (const button of document.querySelectorAll('[data-help]')) button.addEventListener('click', () => { resetDwell(); pointer = null; guide.showModal(); });
+for (const button of document.querySelectorAll('[data-help]')) button.addEventListener('click', () => {
+  if (experiment.active()) finishExperiment('interrupted');
+  resetDwell(); pointer = null; guide.showModal();
+});
 for (const id of ['#close-guide', '#guide-done']) $(id).addEventListener('click', () => guide.close());
 guide.addEventListener('close', () => { pointer = null; resetDwell(); });
 $('#export').addEventListener('click', async () => {
-  if (!path.length) return;
+  if (isExperiment() || !path.length) return;
   const button = $('#export');
   button.disabled = true;
   try {
@@ -602,6 +771,7 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     if (!calibration.hidden) { $('#cancel-calibration').click(); return; }
     if (guide.open) return;
+    if (experiment.active()) { finishExperiment('ended'); return; }
     setFocus(false);
     if (isDrawing()) $('#pause').click();
     return;
@@ -618,12 +788,14 @@ document.addEventListener('keydown', event => {
   }
 });
 document.addEventListener('visibilitychange', () => {
+  if (document.hidden && experiment.active()) finishExperiment('interrupted');
   pointer = null; resetDwell();
   if (document.hidden && (mode === 'mouse' || mode === 'gaze')) { paused = true; updateUI(); say('Drawing paused while you were away. Resume when you are ready.'); }
 });
 window.addEventListener('pagehide', () => stopCamera());
 let previousSize = `${board.clientWidth}:${board.clientHeight}`;
 function invalidateGazeLayout() {
+  if (experiment.active()) finishExperiment('interrupted');
   resetDwell(); pointer = null;
   if (mode === 'gaze') {
     paused = true; hasCalibration = false; updateUI();

@@ -5,7 +5,7 @@
 <meta name="description" content="Draw with your eyes using four fixed points or choose both ends of a straight line.">
 <meta name="robots" content="noindex, follow">
 <title>Gaze Studio · Draw with a different perspective</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=d40b82f"><script defer src="app.js?v=d40b82f"></script>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=85ef6e4"><script defer src="experiment.js?v=85ef6e4"></script><script defer src="app.js?v=85ef6e4"></script>
 </head>
 <body>
 <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
@@ -63,11 +63,30 @@
 <div class="drawing-tools" role="group" aria-label="Drawing tool">
   <button id="point-tool" type="button" aria-pressed="true">Four points</button>
   <button id="line-tool" type="button" aria-pressed="false">Line tool</button>
+  <button id="experiment-tool" type="button" aria-pressed="false">Experiment</button>
   <label id="snap-option" hidden><input id="snap-endpoints" type="checkbox" checked> Snap to endpoints</label>
 </div>
+<section id="experiment-controls" aria-label="Experiment setup" hidden>
+  <div class="experiment-fields">
+    <label>Participant ID <input id="experiment-participant" maxlength="24" placeholder="P01" autocomplete="off" spellcheck="false"></label>
+    <div class="experiment-task-field"><label for="experiment-task">Task</label><select id="experiment-task">
+      <option value="horizontal">Horizontal line · timing</option>
+      <option value="triangle">Triangle · 3 vertices</option>
+      <option value="quadrilateral">Quadrilateral · 4 vertices</option>
+      <option value="fixed">Four points · target selection</option>
+      <option value="fixation">Fixation · upper vs. lower canvas</option>
+    </select></div>
+    <button id="experiment-start" class="button primary" type="button" disabled>Start trial</button>
+    <button id="experiment-end" class="button secondary" type="button" disabled>End trial</button>
+    <button id="experiment-export" class="button secondary" type="button" disabled>Download CSV</button>
+  </div>
+  <p id="experiment-instructions"></p>
+</section>
 <div id="board" class="show-grid" tabindex="0" aria-label="Four-point drawing board. In mouse mode, hover over a numbered area to select it. You can also use number keys 1 to 4.">
 <span class="board-corner corner-tl" aria-hidden="true"></span><span class="board-corner corner-br" aria-hidden="true"></span>
 <svg id="ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+<svg id="experiment-ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" hidden></svg>
+<div id="experiment-markers" aria-hidden="true" hidden></div>
 <svg id="line-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line id="line-preview" visibility="hidden"/></svg>
 <span id="line-start" class="line-marker" aria-hidden="true" hidden></span>
 <span id="line-snap" class="line-marker" aria-hidden="true" hidden></span>
@@ -78,6 +97,7 @@
 <div class="canvas-center" id="canvas-empty" aria-hidden="true"><span>It starts with a look.</span><small>YOUR NEXT CONNECTION IS A POSSIBILITY</small></div>
 </div>
 <div class="canvas-status"><div><span class="status-dot" id="status-dot"></span><p id="status" role="status" aria-live="polite">Choose eye tracking or mouse mode to begin.</p></div><span id="point-count">0 points connected</span><button id="pause" class="text-button" type="button" disabled>Pause</button></div>
+<p id="experiment-results" role="status" hidden></p>
 <div class="inspiration"><div class="inspiration-art" aria-hidden="true"><svg viewBox="0 0 80 65"><path d="M16 14h48v38L16 14"/><circle cx="16" cy="14" r="4"/><circle cx="64" cy="14" r="4"/><circle cx="64" cy="52" r="4"/></svg></div><div><p class="eyebrow">A LITTLE INSPIRATION</p><h3>Every shape starts somewhere.</h3><p>Try a triangle: <span class="point-sequence">1 <i>→</i> 2 <i>→</i> 4 <i>→</i> 1</span><span class="inspiration-extra">. Then see where your eyes take you.</span></p></div><button class="round-button" type="button" data-help aria-label="Read the drawing guide"><svg><use href="#i-arrow"/></svg></button></div>
 </section>
 </div>

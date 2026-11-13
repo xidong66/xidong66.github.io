@@ -2,10 +2,10 @@
 
 线上地址：<https://wuxidong.com/projects/gaze-studio/>
 
-来源：作业仓库 `integration/line-tool` 分支的提交 `d40b82f`。
-只发布 `index.html`、`style.css`、`app.js` 和 `assets/favicon.svg`；
+来源：作业仓库 `integration/line-tool` 分支的提交 `85ef6e4`。
+运行文件包括 `index.html`、`style.css`、`app.js`、`experiment.js` 和 `assets/favicon.svg`。
 不需要 npm、构建步骤、后端或数据库。原项目：
-<https://github.com/ixnac/bn5213-gaze-drawing/commit/d40b82fa8f7e787ed0097f50fad6c24f284b7bbf>。
+<https://github.com/ixnac/bn5213-gaze-drawing/commit/85ef6e4b24f4f42f7b850e66c9dbe36b5fedfab4>。
 
 ## 集成范围
 
@@ -15,7 +15,8 @@
 - 演示页页脚提供回主页链接，并标记为临时课程演示。
 - 演示页使用 `noindex, follow`，请求搜索引擎不要索引临时页面；这不是访问控制。
 - 应用草稿仅存于浏览器 localStorage 的 `bn5213-gaze-studio-v1` 键，
-  不使用个人计划页面的数据库。不会上传摄像头画面或画作。
+  实验记录保存在 `bn5213-gaze-experiment-v1` 键，可下载为 CSV。
+  摄像头画面、画作和实验结果均在浏览器处理。
 
 ## 随时移除
 
@@ -25,8 +26,7 @@
 
 只做第 1 步会隐藏入口，知道网址的人仍能访问；完整下线需要同时做第 2 步。
 不需要修改网站公共 CSS/JS、数据库或部署配置。原作业压缩包不受影响。
-部署删除不会清理访客已经保存在浏览器中的草稿；访客可按需在本站浏览器控制台执行
-`localStorage.removeItem('bn5213-gaze-studio-v1')`，仅清除此演示的草稿。
+访客可在下线前导出画作和实验 CSV。已保存的草稿和实验记录仍存于各自的浏览器。
 
 ## 预览和限制
 
@@ -38,4 +38,5 @@
 字体使用 Google Fonts。鼠标、触屏和数字键 1–4 的绘画模式无需摄像头。
 选择 **Four points** 连接四个固定点，或选择 **Line tool**，用鼠标悬停
 或注视依次选定直线的两个端点。摄像头模式下切换工具后需要重新校准。
+选择 **Experiment** 后填写参与者编号，即可进行水平线计时、图形、四点选择或注视任务。
 真人注视精度仍需实际设备测试。

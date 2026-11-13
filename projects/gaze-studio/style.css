@@ -636,6 +636,27 @@ main {
 .drawing-tools button[aria-pressed=true] {color:var(--accent);background:#eef3e8;font-weight:600}
 .drawing-tools label {display:flex;align-items:center;gap:5px}
 .drawing-tools input {accent-color:var(--accent)}
+#experiment-controls {padding:12px 16px;background:#fff;border:1px solid var(--line);border-top:0;font-size:13px}
+.experiment-fields {display:flex;flex-wrap:wrap;align-items:end;gap:8px 12px}
+.experiment-fields label,.experiment-task-field {display:grid;gap:3px;font-size:12px;font-weight:600}
+.experiment-fields input,.experiment-fields select {min-height:34px;border:1px solid #cfd8cb;border-radius:6px;padding:4px 8px;background:#fff;color:inherit;font:inherit}
+.experiment-fields input {width:8em}
+.experiment-fields .button {min-height:34px;padding:5px 12px;font-size:12px}
+#experiment-instructions {margin-top:8px}
+#experiment-results {margin-top:4px;color:#285c49;font-weight:600}
+#board.experiment-mode #ink,#board.experiment-mode .canvas-center {display:none}
+#board.experiment-mode .target.experiment-expected {border:2px solid #6354a2}
+#experiment-ink,#experiment-markers {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#experiment-ink {z-index:3}
+#experiment-markers {z-index:5}
+.experiment-reference,.experiment-stroke {fill:none;stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.experiment-reference {stroke:#8274b4;stroke-dasharray:6 6}
+.experiment-stroke {stroke:#287263}
+.experiment-marker {position:absolute;display:grid;place-items:center;width:24px;height:24px;border:2px solid #6354a2;border-radius:50%;transform:translate(-50%,-50%);background:#fff;color:#4d397f;font-size:12px;font-weight:700}
+.experiment-marker.current {background:#6354a2;color:#fff;box-shadow:0 0 0 3px #e6e0f5}
+.experiment-marker.fixation {width:15px;height:15px}
+.experiment-zone {position:absolute;border:1px solid #a49bbd;border-radius:12px}
+.experiment-zone.current {border:2px solid #6354a2;background:#8a74b510}
 .board-label {
   font-size:9px;
   letter-spacing:1px;
